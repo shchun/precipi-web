@@ -1,15 +1,219 @@
-<html>
-	<head><title>비타미술 홈</title></head>
-	<meta charset="utf-8"> 
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-K7BBKNKZYM"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-K7BBKNKZYM');
+  </script>
+  <title>Precipi - 인터랙티브 데모</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans KR', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 40px 20px;
+      color: #333;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 50px;
+      color: white;
+    }
+
+    .logo {
+      max-width: 250px;
+      margin-bottom: 20px;
+      background: white;
+      padding: 20px 30px;
+      border-radius: 15px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      display: inline-block;
+    }
+
+    .logo svg {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    .header h1 {
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .header p {
+      font-size: 1.1rem;
+      opacity: 0.9;
+    }
+
+    .demos-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 25px;
+      margin-top: 40px;
+    }
+
+    .demo-card {
+      background: white;
+      border-radius: 15px;
+      padding: 30px;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      text-decoration: none;
+      color: inherit;
+      display: block;
+    }
+
+    .demo-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.25);
+    }
+
+    .demo-card h2 {
+      font-size: 1.5rem;
+      margin-bottom: 10px;
+      color: #667eea;
+    }
+
+    .demo-card p {
+      color: #666;
+      line-height: 1.6;
+      margin-bottom: 15px;
+    }
+
+    .demo-card .path {
+      font-size: 0.9rem;
+      color: #999;
+      font-family: 'Courier New', monospace;
+      background: #f5f5f5;
+      padding: 5px 10px;
+      border-radius: 5px;
+      display: inline-block;
+    }
+
+    .info-section {
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 15px;
+      padding: 30px;
+      margin-bottom: 30px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .info-section h2 {
+      color: #667eea;
+      margin-bottom: 15px;
+    }
+
+    .info-section ul {
+      list-style: none;
+      padding-left: 0;
+    }
+
+    .info-section li {
+      padding: 8px 0;
+      border-bottom: 1px solid #eee;
+    }
+
+    .info-section li:last-child {
+      border-bottom: none;
+    }
+
+    .info-section a {
+      color: #667eea;
+      text-decoration: none;
+    }
+
+    .info-section a:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 768px) {
+      .header h1 {
+        font-size: 2rem;
+      }
+
+      .demos-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
 <body>
-	<img src="vita_logo.jpg">
-	<h1>비타미술에 오신것을 환영합니다.</h1>
-	
-	<ul>
-		<li>비타미술 소개</li>
-		<li><a href="http://www.vitamisul.com">비타미술 카페</a></li>
-		<li>전화: 02-6408-7115</li>
-		<li>주소: 서울시 서초구 방배1동 928-19</li>	
-	</ul>
+  <div class="container">
+    <div class="header">
+      <div class="logo">
+        <svg viewBox="0 0 200 60" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+              <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+            </linearGradient>
+          </defs>
+          <text x="10" y="40" font-family="Arial, sans-serif" font-size="36" font-weight="bold" fill="url(#logoGradient)">precipi</text>
+          <text x="10" y="55" font-family="Arial, sans-serif" font-size="12" fill="#999">.com</text>
+        </svg>
+      </div>
+      <h1>인터랙티브 데모</h1>
+      <p>다양한 웹 데모와 인터랙티브 작품을 경험해보세요</p>
+    </div>
+
+    <div class="demos-grid">
+      <a href="lotp/index.html" class="demo-card">
+        <h2>🎲 시각적 추첨 프로그램</h2>
+        <p>p5.js로 만든 인터랙티브 추첨 게임입니다. 원형 캐릭터를 클릭하여 당첨자를 선택할 수 있습니다.</p>
+        <span class="path">lotp/index.html</span>
+      </a>
+
+      <a href="lot/lot.html" class="demo-card">
+        <h2>🎯 랜덤 당첨 이벤트</h2>
+        <p>랜덤 당첨 이벤트를 위한 추첨 프로그램입니다.</p>
+        <span class="path">lot/lot.html</span>
+      </a>
+
+      <a href="octo.html" class="demo-card">
+        <h2>🐙 문어 네뷸라</h2>
+        <p>네뷸라 배경에서 떠다니는 문어들이 생각을 말풍선으로 보여주는 인터랙티브 작품입니다.</p>
+        <span class="path">octo.html</span>
+      </a>
+
+      <a href="robo-dog.html" class="demo-card">
+        <h2>🤖 로봇 강아지</h2>
+        <p>클릭하면 짖는 귀여운 로봇 강아지 애니메이션입니다.</p>
+        <span class="path">robo-dog.html</span>
+      </a>
+
+      <a href="refcard/index.html" class="demo-card">
+        <h2>⚽ 심판 카드</h2>
+        <p>축구 심판 카드(초록/노랑/빨강)를 전환할 수 있는 시뮬레이터입니다.</p>
+        <span class="path">refcard/index.html</span>
+      </a>
+
+      <a href="CameraTest.html" class="demo-card">
+        <h2>📷 카메라 테스트</h2>
+        <p>웹캠 접근 권한을 테스트하는 페이지입니다.</p>
+        <span class="path">CameraTest.html</span>
+      </a>
+    </div>
+  </div>
 </body>
 </html>
