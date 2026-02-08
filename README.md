@@ -65,6 +65,7 @@ Precipi Web은 다양한 웹 기술을 활용한 인터랙티브 데모들의 �
 ```
 precipi-web/
 ├── index.html              # 메인 인덱스 페이지
+├── CNAME                   # GitHub Pages 커스텀 도메인 설정
 ├── CameraTest.html         # 카메라 테스트
 ├── octo.html              # 문어 네뷸라
 ├── robo-dog.html          # 로봇 강아지
@@ -85,6 +86,36 @@ precipi-web/
 ```
 
 ## 사용 방법
+
+### GitHub Pages로 배포하기
+
+1. **저장소 생성 및 푸시**
+   ```bash
+   git init
+   git add .
+   git commit -m "Initial commit"
+   git branch -M main
+   git remote add origin <your-repository-url>
+   git push -u origin main
+   ```
+
+2. **GitHub Pages 활성화**
+   - GitHub 저장소 페이지로 이동
+   - Settings → Pages 메뉴 선택
+   - Source에서 "Deploy from a branch" 선택
+   - Branch를 `main` (또는 `master`) 선택
+   - 폴더는 `/ (root)` 선택
+   - Save 클릭
+
+3. **커스텀 도메인 설정 (선택사항)**
+   - `CNAME` 파일이 이미 포함되어 있습니다 (`www.precipi.com`)
+   - GitHub Pages 설정에서 Custom domain에 `www.precipi.com` 입력
+   - DNS 설정에서 `www.precipi.com`을 GitHub Pages IP로 설정
+     - A 레코드: `185.199.108.153`, `185.199.109.153`, `185.199.110.153`, `185.199.111.153`
+     - 또는 CNAME 레코드: `your-username.github.io`
+
+4. **배포 확인**
+   - 몇 분 후 `https://www.precipi.com` 또는 `https://your-username.github.io/precipi-web`에서 확인 가능
 
 ### 로컬에서 실행하기
 
