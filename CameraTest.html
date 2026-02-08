@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Camera Access Example</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 20px;
+    }
+    video {
+      width: 100%;
+      max-width: 400px;
+      border: 2px solid #ccc;
+      border-radius: 8px;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Camera Access Example</h1>
+  <p>Click the button below to access your camera:</p>
+  <button id="startCamera">Start Camera</button>
+  <video id="video" autoplay></video>
+  <p id="errorMessage" style="color: red; margin-top: 20px;"></p>
+  
+  <script>
+    document.getElementById('startCamera').addEventListener('click', () => {
+      const video = document.getElementById('video');
+      const errorMessage = document.getElementById('errorMessage');
+      errorMessage.textContent = '';
+
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        navigator.mediaDevices.getUserMedia({ video: true })
+          .then((stream) => {
+            video.srcObject = stream;
+          })
+          .catch((err) => {
+            errorMessage.textContent = 'Error accessing camera: ' + err.message;
+          });
+      } else {
+        errorMessage.textContent = 'Camera access is not supported in this browser.';
+      }
+    });
+  </script>
+</body>
+</html>

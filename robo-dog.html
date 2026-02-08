@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>귀여운 로봇 강아지</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.min.js"></script>
+
+</head>
+<body>
+<audio id="bark" src="small-dog.wav" preload="auto"></audio>
+  <script>
+
+    function setup() {
+      createCanvas(400, 400);
+      textAlign(CENTER, CENTER);
+      textSize(16);
+    }
+
+    function draw() {
+      background(250);
+
+      // 말풍선
+      fill(50);
+      text("🐶 클릭하면 멍멍!", width / 2, 40);
+
+      noStroke();
+
+      // 몸통
+      fill(200, 200, 200);
+      rect(120, 160, 160, 120, 40);
+
+      // 머리
+      fill(220);
+      rect(130, 90, 100, 80, 30);
+
+      // 귀
+      fill(180);
+      triangle(130, 90, 115, 70, 145, 85);
+      triangle(230, 90, 245, 70, 215, 85);
+
+      // 눈
+      fill(0);
+      ellipse(155, 120, 14, 14);
+      ellipse(195, 120, 14, 14);
+
+      // 혀 낸 입
+      fill(0);
+      arc(175, 140, 24, 20, 0, PI, CHORD);
+      fill(255, 100, 100);
+      ellipse(175, 145, 10, 10);  // 혀
+
+      // 다리
+      fill(180);
+      rect(140, 270, 15, 25, 5);
+      rect(205, 270, 15, 25, 5);
+
+      // 꼬리
+      stroke(160);
+      strokeWeight(5);
+      noFill();
+      arc(270, 180, 40, 40, HALF_PI, PI);
+      noStroke();
+    }
+
+  function mousePressed() {
+    document.getElementById("bark").play();
+  }
+  </script>
+
+
+</body>
+</html>

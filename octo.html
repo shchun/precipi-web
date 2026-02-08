@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Create a beautiful, interactive p5js demo (no HTML), I like octopus and nebulae. Show me what the octopus are thinking -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Octopus Nebula Thoughts</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.4/p5.js"></script>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden; /* Prevent scrollbars */
+            background-color: #080826; /* Corresponds to HSB(240, 80, 15) - deep space blue */
+            display: flex; /* For centering canvas if needed, though p5 fills it */
+            justify-content: center;
+            align-items: center;
+        }
+        /* The p5.js canvas will be created by the script and will fill the window */
+        /* main is the default canvas container in p5.js */
+        main { 
+            display: block; /* Ensure it behaves as a block element */
+        }
+    </style>
+</head>
+<body>
+    <script>
+        // Global variables
+        let octopuses = [];
+        const NUM_OCTOPUSES = 20;
+        let nebulaTime = 5;
+
+        // Pre-defined thoughts for our cephalopod philosophers
+        // const THOUGHTS_LIST = [
+        //     "Hmm, what is the meaning of ink?",
+        //     "Are those stars... or just very shiny krill?",
+        //     "I wonder if I left the cosmic coffee pot on.",
+        //     "So many arms, so little time to wave them all.",
+        //     "Is this the real life? Is this just fantasy?",
+        //     "To squish, or not to squish the jellyfish?",
+        //     "Must find more sparkly pebbles!",
+        //     "The void is surprisingly... cozy.",
+        //     "Are we all just data in a giant cosmic simulation?",
+        //     "I think, therefore I ink.",
+        //     "Contemplating the currents of existence.",
+        //     "If a clam clams up in space, does anyone hear it?",
+        //     "One day, I'll high-eight a comet.",
+        //     "The universe is vast, but is it tentacle-proof?",
+        //     "Do other galaxies have better snacks?",
+        //     "What if my camouflage isn't working right now?",
+        //     "Just keep swimming... or floating, rather."
+        // ];
+        const THOUGHTS_LIST = [
+            "아, 퇴근하고 싶다...",
+            "점심 뭐 먹지?",
+            "오늘 커피 몇 잔째더라?",
+            "집에 가면 뭐부터 할까?",
+            "주말 언제 와?",
+            "이거 오늘 다 할 수 있을까?",
+            "회의 시간 너무 길어...",
+            "월급날 D-며칠?",
+            "로또 되면 바로 퇴사!",
+            "오늘 저녁은 치킨이다.",
+            "아침에 5분만 더 잘걸.",
+            "다음 휴가는 어디로 갈까?",
+            "왜 나만 바쁜 것 같지?",
+            "이메일 또 쌓였네.",
+            "오늘 야근 각인가?",
+            "피곤하다... 당 떨어져.",
+            "내 통장은 왜 항상 비어있나.",
+            "오늘도 수고했어, 나 자신!",
+            "칼퇴 성공 기원!",
+            "부장님 오늘 기분 좋아 보이시네?"
+        ];
+        function setup() {
+            createCanvas(windowWidth, windowHeight);
+            colorMode(HSB, 360, 100, 100, 100); // Hue, Saturation, Brightness, Alpha
+            rectMode(CENTER); // Set rect mode to center for thought bubbles
+
+            // Create octopus objects
+            for (let i = 0; i < NUM_OCTOPUSES; i++) {
+                octopuses.push(new Octopus(random(width), random(height)));
+            }
+        }
+
+        function draw() {
+            // The background color is set in CSS initially, 
+            // but p5 draws over it each frame.
+            // HSB(240, 80, 15) -> very dark blue
+            background(240, 80, 15, 100); 
+
+            drawNebula();
+
+            // Update and display each octopus
+            for (let octopus of octopuses) {
+                octopus.update();
+                octopus.display();
+            }
+
+            nebulaTime += 0.005; // Slowly animate nebula
+        }
+
+        function windowResized() {
+            resizeCanvas(windowWidth, windowHeight);
+        }
+
+        function mousePressed() {
+            for (let octopus of octopuses) {
+                octopus.handleClick(mouseX, mouseY);
+            }
+        }
+
+        // Function to draw the animated nebula background
+        function drawNebula() {
+            noStroke();
+            // Multiple layers of nebula clouds for depth
+            for (let i = 0; i < 6; i++) {
+                // Noise-driven position, size, and color for organic look
+                let x = noise(nebulaTime + i * 10, i) * width * 1.8 - width * 0.4;
+                let y = noise(nebulaTime + i * 10 + 20, i + 5) * height * 1.8 - height * 0.4;
+                let sizeX = noise(nebulaTime + i * 10 + 40, i + 10) * (width * 0.9) + width * 0.5;
+                let sizeY = noise(nebulaTime + i * 10 + 60, i + 15) * (height * 0.7) + height * 0.3;
+                
+                // Hue cycles through blues, purples, and pinks
+                let hue = map(noise(nebulaTime * 0.5 + i * 5, i + 20), 0, 1, 200, 320);
+                let saturation = noise(nebulaTime + i * 5 + 80, i + 25) * 40 + 60; // Rich saturation
+                let brightness = noise(nebulaTime + i * 5 + 100, i + 30) * 30 + 40; // Dimmer, cloud-like
+                let alpha = noise(nebulaTime + i * 5 + 120, i + 35) * 25 + 5; // Very transparent
+
+                fill(hue, saturation, brightness, alpha);
+                ellipse(x, y, sizeX, sizeY);
+            }
+        }
+
+        // Octopus class
+        class Octopus {
+            constructor(x, y) {
+                this.pos = createVector(x, y);
+                this.vel = p5.Vector.random2D().mult(random(0.3, 0.8)); // Slow, drifting movement
+                this.size = random(60, 120); // Base size of the octopus head
+                this.baseColor = color(random(180, 300), random(70, 90), random(60, 80)); // Blues, Purples, Pinks
+                this.currentColor = this.baseColor;
+
+                this.tentacles = [];
+                this.numTentacles = 8;
+                for (let i = 0; i < this.numTentacles; i++) {
+                    this.tentacles.push({
+                        angleOffset: (TWO_PI / this.numTentacles) * i,
+                        waveSpeed: random(0.03, 0.07),
+                        waveAmplitude: this.size * random(0.05, 0.15)
+                    });
+                }
+
+                this.thought = "";
+                this.thoughtTimer = 0;
+                this.thoughtDuration = random(250, 600); // Frames for how long a thought lasts
+                this.newThought(); // Get an initial thought
+                
+                this.targetColor = this.baseColor;
+                this.colorLerpSpeed = 0.05;
+            }
+
+            newThought() {
+                this.thought = random(THOUGHTS_LIST);
+                this.thoughtTimer = 0;
+                this.thoughtDuration = random(200, 500); // New duration for the new thought
+            }
+
+            update() {
+                this.pos.add(this.vel);
+
+                // Bounce off edges
+                if (this.pos.x < this.size / 2 || this.pos.x > width - this.size / 2) {
+                    this.vel.x *= -1;
+                    this.pos.x = constrain(this.pos.x, this.size / 2, width - this.size / 2);
+                }
+                if (this.pos.y < this.size / 2 || this.pos.y > height - this.size / 2) {
+                    this.vel.y *= -1;
+                    this.pos.y = constrain(this.pos.y, this.size / 2, height - this.size / 2);
+                }
+
+                // Thought timer
+                this.thoughtTimer++;
+                if (this.thoughtTimer > this.thoughtDuration) {
+                    this.newThought();
+                }
+                
+                // Smoothly transition color back to base or new target
+                this.currentColor = lerpColor(this.currentColor, this.targetColor, this.colorLerpSpeed);
+                if (abs(hue(this.currentColor) - hue(this.targetColor)) < 1 &&
+                    abs(saturation(this.currentColor) - saturation(this.targetColor)) < 1 &&
+                    abs(brightness(this.currentColor) - brightness(this.targetColor)) < 1) {
+                    this.targetColor = this.baseColor; // Revert to base after a pulse
+                }
+            }
+
+            display() {
+                push(); // Isolate transformations and styles for this octopus
+                translate(this.pos.x, this.pos.y);
+
+                // Draw tentacles first (behind head)
+                strokeWeight(this.size * 0.12); // Thicker tentacles
+                noFill();
+                for (let i = 0; i < this.numTentacles; i++) {
+                    let t = this.tentacles[i];
+                    let angle = t.angleOffset + this.vel.heading() + PI / 2; // Orient with movement
+                    let tentacleLength = this.size * 0.9;
+                    // Dynamic wave based on frameCount and individual tentacle properties
+                    let wave = sin(frameCount * t.waveSpeed + i * PI / 3) * t.waveAmplitude;
+
+                    stroke(hue(this.currentColor), saturation(this.currentColor) * 0.8, brightness(this.currentColor) * 0.8, 90); // Slightly darker tentacles
+
+                    push();
+                    rotate(angle);
+                    beginShape();
+                    curveVertex(0, 0); // Start point at body edge (control point)
+                    curveVertex(0, 0); // Start point at body edge (anchor)
+                    curveVertex(wave * 0.5, tentacleLength * 0.3); // Mid-point control
+                    curveVertex(wave, tentacleLength * 0.6); // Mid-point control
+                    curveVertex(wave * 0.3, tentacleLength); // End point (anchor)
+                    curveVertex(wave * 0.3, tentacleLength); // End point (control point)
+                    endShape();
+                    pop();
+                }
+
+                // Draw head
+                noStroke();
+                fill(this.currentColor);
+                ellipse(0, 0, this.size, this.size * 0.85); // Slightly taller head
+
+                // Draw eyes
+                let eyeOffset = this.size * 0.22;
+                let eyeYPos = -this.size * 0.15;
+                let eyeSize = this.size * 0.18;
+                let pupilSize = eyeSize * 0.5;
+
+                // Eye whites
+                fill(0, 0, 100, 95); // White
+                ellipse(-eyeOffset, eyeYPos, eyeSize, eyeSize * 1.1);
+                ellipse(eyeOffset, eyeYPos, eyeSize, eyeSize * 1.1);
+
+                // Pupils (looking slightly forward based on velocity)
+                let pupilOffsetX = map(this.vel.x, -1, 1, -pupilSize * 0.2, pupilSize * 0.2);
+                let pupilOffsetY = map(this.vel.y, -1, 1, -pupilSize * 0.2, pupilSize * 0.2);
+                fill(240, 70, 20, 95); // Dark blue pupils
+                ellipse(-eyeOffset + pupilOffsetX, eyeYPos + pupilOffsetY, pupilSize, pupilSize);
+                ellipse(eyeOffset + pupilOffsetX, eyeYPos + pupilOffsetY, pupilSize, pupilSize);
+                
+                // Tiny highlight in eyes
+                fill(0, 0, 100, 80);
+                ellipse(-eyeOffset + pupilSize * 0.15 + pupilOffsetX, eyeYPos - pupilSize * 0.15 + pupilOffsetY, pupilSize * 0.3, pupilSize * 0.3);
+                ellipse(eyeOffset + pupilSize * 0.15 + pupilOffsetX, eyeYPos - pupilSize * 0.15 + pupilOffsetY, pupilSize * 0.3, pupilSize * 0.3);
+
+
+                pop(); // End octopus-specific transformations
+
+                // Display thought bubble (drawn in world space, but positioned relative to octopus)
+                this.displayThought();
+            }
+
+            displayThought() {
+                let bubblePadding = this.size * 0.15;
+                textSize(this.size * 0.15); // Text size relative to octopus size
+                let textW = textWidth(this.thought) + bubblePadding;
+                let textH = this.size * 0.25 + bubblePadding * 0.5; // Fixed height based on font size + padding
+
+                // Position bubble above the octopus head
+                let bubbleX = this.pos.x;
+                let bubbleY = this.pos.y - (this.size * 0.45) - (textH / 2) - (this.size * 0.1); //0.45 is approx half head height
+
+                // Bubble fill and stroke
+                fill(0, 0, 100, 75); // Semi-transparent white bubble
+                stroke(0, 0, 20, 80); // Dark grey outline
+                strokeWeight(2);
+                
+                // Draw main bubble
+                rect(bubbleX, bubbleY, textW, textH, this.size * 0.1); // Rounded corners
+
+                // Connector tail (three small circles)
+                noStroke();
+                let tailStartY = this.pos.y - this.size * 0.42; // Top of head
+                let tailEndY = bubbleY + textH / 2; // Bottom of bubble
+                
+                fill(0, 0, 90, 70); // Match bubble transparency
+                ellipse(this.pos.x, lerp(tailStartY, tailEndY, 0.3), this.size * 0.1, this.size * 0.1);
+                ellipse(this.pos.x, lerp(tailStartY, tailEndY, 0.55), this.size * 0.08, this.size * 0.08);
+                ellipse(this.pos.x, lerp(tailStartY, tailEndY, 0.8), this.size * 0.06, this.size * 0.06);
+
+
+                // Text inside bubble
+                fill(0, 0, 15, 90); // Dark text color
+                noStroke();
+                textAlign(CENTER, CENTER);
+                text(this.thought, bubbleX, bubbleY);
+            }
+
+            handleClick(mx, my) {
+                // Check if click is within the octopus head area
+                if (dist(mx, my, this.pos.x, this.pos.y) < this.size / 1.5) { // Generous click area
+                    this.newThought();
+                    // Pulse with a new temporary color
+                    this.targetColor = color(random(360), 95, 90); 
+                    // Give a little nudge
+                    this.vel.rotate(random(-PI / 4, PI / 4));
+                    this.vel.mult(1.2); // Slight speed boost
+                    // Constrain velocity after boost
+                    this.vel.limit(1.5);
+                    return true; // Indicate click was handled
+                }
+                return false;
+            }
+        }
+    </script>
+</body>
+</html>
