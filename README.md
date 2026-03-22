@@ -17,6 +17,10 @@ Precipi Web은 다양한 웹 기술을 활용한 인터랙티브 데모들의 �
 
 ## 주요 데모
 
+### 🤖 AI P5.js Agent (`AiAgents/` 외부 링크)
+- AI 에이전트가 생각하고 p5.js로 시각화하는 인터랙티브 프로젝트입니다.
+- 외부 Vercel 앱으로 배포되어 있습니다: [바로가기](https://p5-agent-732idlgl8-shchuns-projects.vercel.app/)
+
 ### 🎲 시각적 추첨 프로그램 (`lotp/`)
 - p5.js로 구현된 인터랙티브 추첨 게임
 - 원형 캐릭터를 클릭하여 당첨자 선택
