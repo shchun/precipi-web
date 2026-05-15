@@ -715,6 +715,9 @@
         state.nextAutoLaunchWallMs = null;
         state.autoLaunchCount += 1;
 
+        // Recalculate trajectory on every launch (do not reuse cached bestCandidate)
+        state.bestCandidate = null;
+
         // 캐시된 후보가 있으면 즉시 발사, 없으면 빠른 탐색 후 발사
         if (state.bestCandidate) {
           launchProbeFromCandidate(state.bestCandidate);
