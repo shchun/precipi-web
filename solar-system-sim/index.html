@@ -435,6 +435,7 @@
             b.ay -= f * a.mass * dy;
           }
         }
+        state.simTime += steps * dtClamped;
       }
 
       // Velocity Verlet(=kick-drift-kick) 계열: 에너지 보존 특성이 좋아 장시간 궤도에 유리
@@ -510,6 +511,7 @@
         // 시간
         lastT: nowMs(),
         simStartWallMs: nowMs(),
+        simTime: 0, // sim seconds since reset
         // trails
         trailMax: 2200,
         trails: new Map(), // key -> [{x,y}]
@@ -519,6 +521,7 @@
         // - points: 실제(라이브) 시뮬레이션 중 누적
         // - predicted: 버튼으로 찾은 예측 경로(점선)
         probe: null,
+        probeLaunchSimTime: null, // sim seconds at launch
         probeMaxPoints: 6000,
         optimizerRunning: false,
 
@@ -606,6 +609,7 @@
         bodies = cloneBodies();
         clearTrails();
         state.probe = null;
+        state.probeLaunchSimTime = null;
         state.optimizerRunning = false;
         setStatus("");
         setLaunchOverlay(false);
@@ -613,6 +617,7 @@
         state.camY = 0;
         state.lastT = nowMs();
         state.simStartWallMs = state.lastT;
+        state.simTime = 0;
         state.nextAutoLaunchWallMs = state.lastT + 10_000;
         state.autoLaunchCount = 0;
       }
@@ -629,6 +634,7 @@
           points: [{ x: candidate.init.x, y: candidate.init.y }],
           predicted: candidate.predicted.slice(),
         };
+        state.probeLaunchSimTime = state.simTime;
         ui.followProbe.checked = true;
         ui.followEarth.checked = false;
       }
@@ -737,9 +743,22 @@
         if (!state.probe) return;
         if (state.optimizerRunning) return;
 
+        const launchT = state.probeLaunchSimTime ?? state.simTime;
+        const elapsedSim = state.simTime - launchT;
+        // If it hasn't reached 2x Jupiter distance within ~2 Earth years, restart anyway
+        if (elapsedSim >= 2 * YEAR) {
+          state.probe = null;
+          state.probeLaunchSimTime = null;
+          ui.followProbe.checked = false;
+          setStatus("자동 재시작: 2년(지구 2회 공전) 경과로 탐사선 재발사");
+          scheduleAutoLaunch(0);
+          return;
+        }
+
         const r = Math.sqrt(state.probe.x * state.probe.x + state.probe.y * state.probe.y);
         if (r >= AUTO_RELAUNCH_RADIUS) {
           state.probe = null;
+          state.probeLaunchSimTime = null;
           ui.followProbe.checked = false;
           setStatus(`자동 재발사: 탐사선이 ${Math.round((AUTO_RELAUNCH_RADIUS / AU) * 100) / 100} AU 도달 → 새 탐사선 발사`);
           scheduleAutoLaunch(0);
