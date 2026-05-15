@@ -1,0 +1,1420 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>태양계 (태양·수성·금성·지구·화성·목성) 2D N-body 시뮬레이션</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #0b1020;
+        --panel: rgba(15, 22, 45, 0.86);
+        --panelBorder: rgba(255, 255, 255, 0.12);
+        --text: rgba(255, 255, 255, 0.92);
+        --muted: rgba(255, 255, 255, 0.65);
+      }
+      html,
+      body {
+        height: 100%;
+      }
+      body {
+        margin: 0;
+        background: radial-gradient(1200px 900px at 25% 20%, #111b3d, var(--bg));
+        overflow: hidden;
+        font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans KR", "Apple SD Gothic Neo",
+          "Malgun Gothic", "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji";
+        color: var(--text);
+      }
+      #wrap {
+        position: relative;
+        width: 100%;
+        height: 100%;
+      }
+      .overlay {
+        position: absolute;
+        inset: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 25;
+        background: rgba(0, 0, 0, 0.22);
+        backdrop-filter: blur(2px);
+        pointer-events: none;
+      }
+      .overlay .card {
+        min-width: min(520px, calc(100vw - 48px));
+        max-width: min(720px, calc(100vw - 48px));
+        background: rgba(15, 22, 45, 0.82);
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-radius: 14px;
+        padding: 14px 16px 12px;
+        box-shadow: 0 18px 60px rgba(0, 0, 0, 0.45);
+      }
+      .overlay .card .t {
+        font-size: 14px;
+        margin: 0 0 6px 0;
+        color: rgba(255, 255, 255, 0.92);
+        letter-spacing: -0.2px;
+      }
+      .overlay .card .d {
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.72);
+        line-height: 1.35;
+        white-space: pre-line;
+      }
+      .topBar {
+        position: absolute;
+        top: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 6px 10px;
+        border: 1px solid rgba(255, 255, 255, 0.10);
+        background: rgba(15, 22, 45, 0.45);
+        border-radius: 999px;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 10px 28px rgba(0, 0, 0, 0.25);
+        z-index: 15;
+        pointer-events: none;
+        display: flex;
+        gap: 10px;
+        align-items: baseline;
+      }
+      .topBar .h {
+        font-size: 13px;
+        margin: 0;
+        letter-spacing: -0.2px;
+        color: rgba(255, 255, 255, 0.92);
+      }
+      .topBar .sub {
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.65);
+        white-space: nowrap;
+      }
+      canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+      .panel {
+        position: absolute;
+        left: 16px;
+        top: 16px;
+        width: min(420px, calc(100vw - 32px));
+        background: var(--panel);
+        border: 1px solid var(--panelBorder);
+        border-radius: 12px;
+        padding: 12px 12px 10px;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 12px 36px rgba(0, 0, 0, 0.35);
+        user-select: none;
+      }
+      .panel.minimized {
+        width: auto;
+        padding: 10px 10px;
+      }
+      .panel.minimized #panelBody {
+        display: none;
+      }
+      .row {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 10px;
+        align-items: center;
+        margin: 8px 0;
+      }
+      .row > label {
+        font-size: 13px;
+        color: var(--muted);
+      }
+      .row > input[type="range"] {
+        width: 210px;
+      }
+      .toggles {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px 10px;
+        margin-top: 10px;
+      }
+      .toggle {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        color: var(--muted);
+      }
+      .btns {
+        display: flex;
+        gap: 8px;
+        margin-top: 10px;
+        flex-wrap: wrap;
+      }
+      .status {
+        margin-top: 10px;
+        font-size: 12px;
+        color: var(--muted);
+        line-height: 1.35;
+        white-space: pre-line;
+      }
+      button {
+        appearance: none;
+        border: 1px solid var(--panelBorder);
+        background: rgba(255, 255, 255, 0.06);
+        color: var(--text);
+        padding: 7px 10px;
+        border-radius: 10px;
+        cursor: pointer;
+        font-size: 13px;
+      }
+      button:hover {
+        background: rgba(255, 255, 255, 0.1);
+      }
+      .title {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+      }
+      .title h1,
+      .title .sub {
+        display: none;
+      }
+      .title .titleRight {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .help {
+        margin-top: 10px;
+        font-size: 12px;
+        color: var(--muted);
+        line-height: 1.35;
+      }
+      .kbd {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        font-size: 11px;
+        padding: 1px 6px;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        border-radius: 999px;
+        color: rgba(255, 255, 255, 0.85);
+        background: rgba(0, 0, 0, 0.2);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="wrap">
+      <canvas id="c"></canvas>
+      <div class="topBar" id="topBar">
+        <div class="h">태양계 2D N-body (탑뷰)</div>
+        <div class="sub">지구 1년 = 가변</div>
+      </div>
+      <div class="overlay" id="launchOverlay" aria-hidden="true">
+        <div class="card">
+          <div class="t">탐사선 발사 준비중…</div>
+          <div class="d" id="launchOverlayText">경로를 계산하고 있어요.</div>
+        </div>
+      </div>
+      <div class="panel" id="panel">
+        <div class="title">
+          <div class="titleRight">
+            <button id="minPanel" title="세팅 패널 최소화">최소화</button>
+          </div>
+        </div>
+
+        <div id="panelBody">
+        <div class="row">
+          <label for="yearsPer10Min">지구 공전 주기(분)</label>
+          <input id="yearsPer10Min" type="range" min="0.25" max="30" value="0.25" step="0.25" />
+        </div>
+
+        <div class="row">
+          <label for="stepsPerFrame">프레임당 적분 서브스텝</label>
+          <input id="stepsPerFrame" type="range" min="1" max="80" value="20" step="1" />
+        </div>
+
+        <div class="row">
+          <label for="zoom">줌</label>
+          <input id="zoom" type="range" min="0.15" max="4" value="1" step="0.01" />
+        </div>
+
+        <div class="toggles">
+          <label class="toggle"><input id="showTrails" type="checkbox" checked /> 궤적</label>
+          <label class="toggle"><input id="showLabels" type="checkbox" checked /> 라벨</label>
+          <label class="toggle"><input id="followEarth" type="checkbox" /> 지구 따라가기</label>
+          <label class="toggle"><input id="followProbe" type="checkbox" /> 탐사선 따라가기</label>
+          <label class="toggle"><input id="autoZoom" type="checkbox" checked /> 자동 줌(맞춤)</label>
+          <label class="toggle"><input id="softening" type="checkbox" checked /> 소프트닝</label>
+          <label class="toggle"><input id="autoProbe" type="checkbox" checked /> 탐사선 자동 발사</label>
+          <label class="toggle"><input id="bgm" type="checkbox" checked /> 우주 BGM</label>
+        </div>
+
+        <div class="btns">
+          <button id="reset">리셋</button>
+          <button id="pause">일시정지</button>
+          <button id="centerSun">태양 중심</button>
+          <button id="clearTrails">궤적 지우기</button>
+          <button id="findEscape">슬링샷 경로 찾기</button>
+          <button id="clearProbe">탐사선 지우기</button>
+        </div>
+
+        <div class="status" id="status"></div>
+
+        <div class="help">
+          드래그: 화면 이동 · 휠: 줌 · <span class="kbd">Space</span>: 일시정지 · <span class="kbd">R</span>: 리셋
+          <br />
+          “슬링샷 경로 찾기”는 지구 출발 탐사선의 태양계 탈출 경로를 간이 탐색해 표시합니다.
+          <br />
+          단위는 SI(kg, m, s)로 계산하고 화면에만 스케일링합니다.
+        </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // 물리 상수 (SI)
+      const G = 6.6743e-11; // m^3 kg^-1 s^-2
+      const AU = 1.495978707e11; // m
+      const DAY = 86400; // s
+      const YEAR = 365.256363004 * DAY; // s (sidereal year)
+
+      // 시각화용(대략) 반지름: 실제와 관계 없는 보기용
+      const VISUAL_RADIUS_PX = {
+        sun: 9.5,
+        mercury: 3.2,
+        venus: 4.2,
+        earth: 4.4,
+        mars: 3.8,
+        jupiter: 7.2,
+      };
+
+      // 실제 값 기반 (질량 kg, 평균 궤도 반지름 m, 원궤도 근사 속도 m/s)
+      // NOTE: 엄밀한 천문력(추가 섭동/이심률/경사/근일점 등)은 생략하고 "원형 궤도 초기조건"으로 시작합니다.
+      const BODIES_SEED = [
+        {
+          key: "sun",
+          name: "태양",
+          mass: 1.98847e30,
+          color: "#ffd56a",
+          rPx: VISUAL_RADIUS_PX.sun,
+          a: 0,
+          x: 0,
+          y: 0,
+          vx: 0,
+          vy: 0,
+        },
+        {
+          key: "mercury",
+          name: "수성",
+          mass: 3.3011e23,
+          color: "#c9c2bd",
+          rPx: VISUAL_RADIUS_PX.mercury,
+          a: 0.387098 * AU,
+          v: 47.36e3,
+        },
+        {
+          key: "venus",
+          name: "금성",
+          mass: 4.8675e24,
+          color: "#f2c078",
+          rPx: VISUAL_RADIUS_PX.venus,
+          a: 0.723332 * AU,
+          v: 35.02e3,
+        },
+        {
+          key: "earth",
+          name: "지구",
+          mass: 5.97237e24,
+          color: "#7bd0ff",
+          rPx: VISUAL_RADIUS_PX.earth,
+          a: 1.0 * AU,
+          v: 29.78e3,
+        },
+        {
+          key: "mars",
+          name: "화성",
+          mass: 6.4171e23,
+          color: "#ff8a6a",
+          rPx: VISUAL_RADIUS_PX.mars,
+          a: 1.523679 * AU,
+          v: 24.077e3,
+        },
+        {
+          key: "jupiter",
+          name: "목성",
+          mass: 1.8982e27,
+          color: "#f0d7b5",
+          rPx: VISUAL_RADIUS_PX.jupiter,
+          a: 5.2044 * AU,
+          v: 13.07e3,
+        },
+      ];
+
+      const JUPITER_ORBIT_A = BODIES_SEED.find((b) => b.key === "jupiter")?.a ?? 5.2044 * AU;
+      const AUTO_RELAUNCH_RADIUS = 2 * JUPITER_ORBIT_A; // "목성 거리 2배" (태양으로부터)
+
+      function clamp(n, min, max) {
+        return Math.max(min, Math.min(max, n));
+      }
+
+      function nowMs() {
+        return performance.now();
+      }
+
+      // 간단한 2D N-body용 바디 구조
+      function cloneBodies() {
+        // 시작 각도들을 조금씩 달리 주면 보기 좋음
+        const angles = {
+          mercury: 10 * (Math.PI / 180),
+          venus: 75 * (Math.PI / 180),
+          earth: 140 * (Math.PI / 180),
+          mars: 220 * (Math.PI / 180),
+          jupiter: 310 * (Math.PI / 180),
+        };
+
+        const bodies = BODIES_SEED.map((b) => ({ ...b }));
+
+        for (const body of bodies) {
+          if (body.key === "sun") continue;
+          const theta = angles[body.key] ?? 0;
+          // 원형 궤도: 위치 (a, 0), 속도 (0, v) -> 회전 적용
+          const x = body.a * Math.cos(theta);
+          const y = body.a * Math.sin(theta);
+          const vx = -body.v * Math.sin(theta);
+          const vy = body.v * Math.cos(theta);
+          body.x = x;
+          body.y = y;
+          body.vx = vx;
+          body.vy = vy;
+          body.ax = 0;
+          body.ay = 0;
+        }
+
+        const sun = bodies.find((b) => b.key === "sun");
+        sun.ax = 0;
+        sun.ay = 0;
+
+        // 전체 운동량을 0에 가깝게 맞추기 위해 태양 속도를 조정
+        let px = 0;
+        let py = 0;
+        for (const body of bodies) {
+          if (body.key === "sun") continue;
+          px += body.mass * body.vx;
+          py += body.mass * body.vy;
+        }
+        sun.vx = -px / sun.mass;
+        sun.vy = -py / sun.mass;
+
+        return bodies;
+      }
+
+      function computeAccelerations(bodies, { enableSoftening }) {
+        // 중력 소프트닝(수치적 폭주 방지용). 천체가 아주 가까워질 경우를 완화.
+        // 이 프로젝트에서는 충돌/근접 조우를 정밀하게 다루는 게 목표가 아니라 안정적 시각화를 위해 사용.
+        const eps = enableSoftening ? 2.5e9 : 0; // m (대략 0.016 AU)
+        const eps2 = eps * eps;
+
+        for (const b of bodies) {
+          b.ax = 0;
+          b.ay = 0;
+        }
+
+        for (let i = 0; i < bodies.length; i++) {
+          const a = bodies[i];
+          for (let j = i + 1; j < bodies.length; j++) {
+            const b = bodies[j];
+            const dx = b.x - a.x;
+            const dy = b.y - a.y;
+            const r2 = dx * dx + dy * dy + eps2;
+            const invR = 1 / Math.sqrt(r2);
+            const invR3 = invR * invR * invR;
+            const f = G * invR3;
+            // a <- b
+            a.ax += f * b.mass * dx;
+            a.ay += f * b.mass * dy;
+            // b <- a (뉴턴 3법칙)
+            b.ax -= f * a.mass * dx;
+            b.ay -= f * a.mass * dy;
+          }
+        }
+      }
+
+      // Velocity Verlet(=kick-drift-kick) 계열: 에너지 보존 특성이 좋아 장시간 궤도에 유리
+      function stepVerlet(bodies, dt, opts) {
+        // a(t) 계산
+        computeAccelerations(bodies, opts);
+
+        // v(t+dt/2)
+        for (const b of bodies) {
+          b.vx += 0.5 * b.ax * dt;
+          b.vy += 0.5 * b.ay * dt;
+        }
+
+        // x(t+dt)
+        for (const b of bodies) {
+          b.x += b.vx * dt;
+          b.y += b.vy * dt;
+        }
+
+        // a(t+dt) 계산
+        computeAccelerations(bodies, opts);
+
+        // v(t+dt)
+        for (const b of bodies) {
+          b.vx += 0.5 * b.ax * dt;
+          b.vy += 0.5 * b.ay * dt;
+        }
+      }
+
+      // ---- 렌더링/인터랙션 ----
+      const canvas = document.getElementById("c");
+      const ctx = canvas.getContext("2d", { alpha: false });
+
+      const ui = {
+        yearsPer10Min: document.getElementById("yearsPer10Min"),
+        stepsPerFrame: document.getElementById("stepsPerFrame"),
+        zoom: document.getElementById("zoom"),
+        showTrails: document.getElementById("showTrails"),
+        showLabels: document.getElementById("showLabels"),
+        followEarth: document.getElementById("followEarth"),
+        followProbe: document.getElementById("followProbe"),
+        autoZoom: document.getElementById("autoZoom"),
+        softening: document.getElementById("softening"),
+        autoProbe: document.getElementById("autoProbe"),
+        bgm: document.getElementById("bgm"),
+        reset: document.getElementById("reset"),
+        pause: document.getElementById("pause"),
+        centerSun: document.getElementById("centerSun"),
+        clearTrails: document.getElementById("clearTrails"),
+        findEscape: document.getElementById("findEscape"),
+        clearProbe: document.getElementById("clearProbe"),
+        panel: document.getElementById("panel"),
+        status: document.getElementById("status"),
+        minPanel: document.getElementById("minPanel"),
+        launchOverlay: document.getElementById("launchOverlay"),
+        launchOverlayText: document.getElementById("launchOverlayText"),
+      };
+
+      const state = {
+        paused: false,
+        // 카메라: world(m) -> screen(px) 변환
+        camX: 0,
+        camY: 0,
+        zoom: 1,
+        // 픽셀/미터 스케일: 1 AU를 몇 px로 볼지
+        pxPerAU: 120,
+        // 드래그
+        dragging: false,
+        dragStartX: 0,
+        dragStartY: 0,
+        camStartX: 0,
+        camStartY: 0,
+        // 시간
+        lastT: nowMs(),
+        simStartWallMs: nowMs(),
+        // trails
+        trailMax: 2200,
+        trails: new Map(), // key -> [{x,y}]
+
+        // probe(탐사선)
+        // probe: {x,y,vx,vy,color,points:[{x,y}],predicted:[{x,y}]}
+        // - points: 실제(라이브) 시뮬레이션 중 누적
+        // - predicted: 버튼으로 찾은 예측 경로(점선)
+        probe: null,
+        probeMaxPoints: 6000,
+        optimizerRunning: false,
+
+        // auto-probe scheduling
+        nextAutoLaunchWallMs: nowMs() + 10_000,
+        autoLaunchCount: 0,
+        // cached best candidate from optimizer
+        bestCandidate: null, // {init, predicted, finalEnergy, maxR}
+
+        // audio (lazy)
+        audio: null, // {ctx, master, stopFns: []}
+
+        // panel
+        panelMinimized: false,
+      };
+
+      function resize() {
+        const dpr = Math.max(1, window.devicePixelRatio || 1);
+        const w = Math.floor(window.innerWidth * dpr);
+        const h = Math.floor(window.innerHeight * dpr);
+        canvas.width = w;
+        canvas.height = h;
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.scale(dpr, dpr);
+      }
+      window.addEventListener("resize", resize);
+      resize();
+
+      function pxPerMeter() {
+        return (state.pxPerAU * state.zoom) / AU;
+      }
+
+      function worldToScreen(wx, wy) {
+        const s = pxPerMeter();
+        const cx = window.innerWidth / 2;
+        const cy = window.innerHeight / 2;
+        return {
+          x: cx + (wx - state.camX) * s,
+          y: cy + (wy - state.camY) * s,
+        };
+      }
+
+      function screenToWorld(sx, sy) {
+        const s = pxPerMeter();
+        const cx = window.innerWidth / 2;
+        const cy = window.innerHeight / 2;
+        return {
+          x: state.camX + (sx - cx) / s,
+          y: state.camY + (sy - cy) / s,
+        };
+      }
+
+      function clearTrails() {
+        state.trails.clear();
+      }
+
+      function setStatus(text) {
+        ui.status.textContent = text || "";
+      }
+
+      function setLaunchOverlay(visible, detailText) {
+        ui.launchOverlay.style.display = visible ? "flex" : "none";
+        ui.launchOverlay.setAttribute("aria-hidden", visible ? "false" : "true");
+        if (typeof detailText === "string") ui.launchOverlayText.textContent = detailText;
+      }
+
+      function setPanelMinimized(minimized) {
+        state.panelMinimized = Boolean(minimized);
+        ui.panel.classList.toggle("minimized", state.panelMinimized);
+        ui.minPanel.textContent = state.panelMinimized ? "열기" : "최소화";
+        ui.minPanel.title = state.panelMinimized ? "세팅 패널 열기" : "세팅 패널 최소화";
+      }
+
+      function pushTrail(body) {
+        if (!ui.showTrails.checked) return;
+        const arr = state.trails.get(body.key) ?? [];
+        arr.push({ x: body.x, y: body.y });
+        if (arr.length > state.trailMax) arr.splice(0, arr.length - state.trailMax);
+        state.trails.set(body.key, arr);
+      }
+
+      let bodies = cloneBodies();
+
+      function resetSim() {
+        bodies = cloneBodies();
+        clearTrails();
+        state.probe = null;
+        state.optimizerRunning = false;
+        setStatus("");
+        setLaunchOverlay(false);
+        state.camX = 0;
+        state.camY = 0;
+        state.lastT = nowMs();
+        state.simStartWallMs = state.lastT;
+        state.nextAutoLaunchWallMs = state.lastT + 10_000;
+        state.autoLaunchCount = 0;
+      }
+
+      function launchProbeFromCandidate(candidate) {
+        if (!candidate) return;
+        state.bestCandidate = candidate;
+        state.probe = {
+          x: candidate.init.x,
+          y: candidate.init.y,
+          vx: candidate.init.vx,
+          vy: candidate.init.vy,
+          color: "#b7ff7a",
+          points: [{ x: candidate.init.x, y: candidate.init.y }],
+          predicted: candidate.predicted.slice(),
+        };
+        ui.followProbe.checked = true;
+        ui.followEarth.checked = false;
+      }
+
+      function earthTimeScale() {
+        // "지구 1년을 N분"으로 가정: wall 1초가 sim 몇 초인지
+        const minutes = Number(ui.yearsPer10Min.value);
+        const wallYear = minutes * 60; // s (벽시계)
+        return YEAR / wallYear; // simSecondsPerWallSecond
+      }
+
+      function simulateFrame(dtWall) {
+        const simSecondsPerWallSecond = earthTimeScale();
+        const dtSim = dtWall * simSecondsPerWallSecond;
+
+        // 프레임당 substep으로 dtSim을 분할
+        const steps = Number(ui.stepsPerFrame.value);
+        const dt = dtSim / steps;
+
+        // 너무 큰 dt는 수치적으로 불안정할 수 있어 안전장치
+        const dtClamped = clamp(dt, 0, 4 * 3600); // 최대 4시간(sim) per substep
+
+        const opts = { enableSoftening: ui.softening.checked };
+        for (let i = 0; i < steps; i++) {
+          stepVerlet(bodies, dtClamped, opts);
+          // probe는 질량 0으로 가정(행성/태양에 영향 없음)
+          if (state.probe) {
+            stepProbe(state.probe, bodies, dtClamped, opts);
+            // 너무 자주 찍으면 무거우니 substep 중 일부만 기록
+            if (i === steps - 1 || i % 4 === 0) pushProbePoint(state.probe);
+          }
+        }
+      }
+
+      function computeProbeAcceleration(probe, bodies, { enableSoftening }) {
+        const eps = enableSoftening ? 2.5e9 : 0;
+        const eps2 = eps * eps;
+        let ax = 0;
+        let ay = 0;
+        for (const b of bodies) {
+          const dx = b.x - probe.x;
+          const dy = b.y - probe.y;
+          const r2 = dx * dx + dy * dy + eps2;
+          const invR = 1 / Math.sqrt(r2);
+          const invR3 = invR * invR * invR;
+          const f = G * b.mass * invR3;
+          ax += f * dx;
+          ay += f * dy;
+        }
+        return { ax, ay };
+      }
+
+      function stepProbe(probe, bodies, dt, opts) {
+        // velocity verlet (probe 전용)
+        const a0 = computeProbeAcceleration(probe, bodies, opts);
+        probe.vx += 0.5 * a0.ax * dt;
+        probe.vy += 0.5 * a0.ay * dt;
+        probe.x += probe.vx * dt;
+        probe.y += probe.vy * dt;
+        const a1 = computeProbeAcceleration(probe, bodies, opts);
+        probe.vx += 0.5 * a1.ax * dt;
+        probe.vy += 0.5 * a1.ay * dt;
+      }
+
+      function pushProbePoint(probe) {
+        if (!probe.points) probe.points = [];
+        probe.points.push({ x: probe.x, y: probe.y });
+        if (probe.points.length > state.probeMaxPoints) {
+          probe.points.splice(0, probe.points.length - state.probeMaxPoints);
+        }
+      }
+
+      function scheduleAutoLaunch(delayMs) {
+        state.nextAutoLaunchWallMs = nowMs() + delayMs;
+      }
+
+      function maybeTriggerAutoLaunch() {
+        if (!ui.autoProbe.checked) return;
+        if (state.optimizerRunning) return;
+        if (state.probe) return;
+        if (state.nextAutoLaunchWallMs == null) return;
+        if (nowMs() < state.nextAutoLaunchWallMs) return;
+
+        state.nextAutoLaunchWallMs = null;
+        state.autoLaunchCount += 1;
+
+        // 캐시된 후보가 있으면 즉시 발사, 없으면 빠른 탐색 후 발사
+        if (state.bestCandidate) {
+          launchProbeFromCandidate(state.bestCandidate);
+          setStatus(`자동 발사 #${state.autoLaunchCount}: 캐시된 경로로 출발`);
+          return;
+        }
+
+        findEscapeTrajectory({
+          trials: 360,
+          statusLabel: `자동 발사 #${state.autoLaunchCount} 경로 탐색`,
+          setProbe: true,
+        });
+      }
+
+      function maybeRelaunchOnDistance() {
+        if (!ui.autoProbe.checked) return;
+        if (!state.probe) return;
+        if (state.optimizerRunning) return;
+
+        const r = Math.sqrt(state.probe.x * state.probe.x + state.probe.y * state.probe.y);
+        if (r >= AUTO_RELAUNCH_RADIUS) {
+          state.probe = null;
+          ui.followProbe.checked = false;
+          setStatus(`자동 재발사: 탐사선이 ${Math.round((AUTO_RELAUNCH_RADIUS / AU) * 100) / 100} AU 도달 → 새 탐사선 발사`);
+          scheduleAutoLaunch(0);
+        }
+      }
+
+      function draw() {
+        // 배경
+        ctx.fillStyle = "#070b16";
+        ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
+
+        // 그리드(참고용)
+        const s = pxPerMeter();
+        const cx = window.innerWidth / 2;
+        const cy = window.innerHeight / 2;
+        ctx.save();
+        ctx.globalAlpha = 0.18;
+        ctx.strokeStyle = "rgba(255,255,255,0.13)";
+        ctx.lineWidth = 1;
+        const gridAU = 1;
+        const gridStep = gridAU * AU * s;
+        const maxLines = 80;
+        for (let i = -maxLines; i <= maxLines; i++) {
+          const x = cx + (i * gridStep) - (state.camX * s);
+          ctx.beginPath();
+          ctx.moveTo(x, 0);
+          ctx.lineTo(x, window.innerHeight);
+          ctx.stroke();
+          const y = cy + (i * gridStep) - (state.camY * s);
+          ctx.beginPath();
+          ctx.moveTo(0, y);
+          ctx.lineTo(window.innerWidth, y);
+          ctx.stroke();
+        }
+        ctx.restore();
+
+        // trails
+        if (ui.showTrails.checked) {
+          for (const body of bodies) {
+            const points = state.trails.get(body.key);
+            if (!points || points.length < 2) continue;
+
+            ctx.save();
+            ctx.globalAlpha = body.key === "sun" ? 0.25 : 0.42;
+            ctx.strokeStyle = body.color;
+            ctx.lineWidth = body.key === "sun" ? 1 : 1.5;
+            ctx.beginPath();
+            for (let i = 0; i < points.length; i++) {
+              const p = points[i];
+              const sp = worldToScreen(p.x, p.y);
+              if (i === 0) ctx.moveTo(sp.x, sp.y);
+              else ctx.lineTo(sp.x, sp.y);
+            }
+            ctx.stroke();
+            ctx.restore();
+          }
+        }
+
+        // bodies
+        for (const body of bodies) {
+          const p = worldToScreen(body.x, body.y);
+          ctx.save();
+          ctx.fillStyle = body.color;
+          ctx.shadowColor = body.color;
+          ctx.shadowBlur = body.key === "sun" ? 18 : 10;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, body.rPx, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+
+          if (ui.showLabels.checked) {
+            ctx.save();
+            ctx.font = "12px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Noto Sans KR, Arial";
+            ctx.fillStyle = "rgba(255,255,255,0.85)";
+            ctx.textBaseline = "middle";
+            ctx.fillText(body.name, p.x + body.rPx + 6, p.y);
+            ctx.restore();
+          }
+        }
+
+        // probe predicted path (점선)
+        if (state.probe && state.probe.predicted && state.probe.predicted.length > 1) {
+          ctx.save();
+          ctx.globalAlpha = 0.75;
+          ctx.strokeStyle = state.probe.color;
+          ctx.lineWidth = 2;
+          ctx.setLineDash([6, 6]);
+          ctx.beginPath();
+          for (let i = 0; i < state.probe.predicted.length; i++) {
+            const wp = state.probe.predicted[i];
+            const sp = worldToScreen(wp.x, wp.y);
+            if (i === 0) ctx.moveTo(sp.x, sp.y);
+            else ctx.lineTo(sp.x, sp.y);
+          }
+          ctx.stroke();
+          ctx.restore();
+        }
+
+        // probe live path
+        if (state.probe && state.probe.points && state.probe.points.length > 1) {
+          ctx.save();
+          ctx.globalAlpha = 0.9;
+          ctx.strokeStyle = state.probe.color;
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          for (let i = 0; i < state.probe.points.length; i++) {
+            const wp = state.probe.points[i];
+            const sp = worldToScreen(wp.x, wp.y);
+            if (i === 0) ctx.moveTo(sp.x, sp.y);
+            else ctx.lineTo(sp.x, sp.y);
+          }
+          ctx.stroke();
+          ctx.restore();
+        }
+
+        // probe point + label (항상)
+        if (state.probe) {
+          const pp = worldToScreen(state.probe.x, state.probe.y);
+          ctx.save();
+          ctx.fillStyle = state.probe.color;
+          ctx.shadowColor = state.probe.color;
+          ctx.shadowBlur = 12;
+          ctx.beginPath();
+          ctx.arc(pp.x, pp.y, 4.2, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+
+          if (ui.showLabels.checked) {
+            ctx.save();
+            ctx.font = "12px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Noto Sans KR, Arial";
+            ctx.fillStyle = "rgba(255,255,255,0.9)";
+            ctx.textBaseline = "middle";
+            ctx.fillText("탐사선", pp.x + 10, pp.y);
+            ctx.restore();
+          }
+        }
+
+        // HUD
+        ctx.save();
+        ctx.font = "12px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace";
+        ctx.fillStyle = "rgba(255,255,255,0.78)";
+        const minutes = Number(ui.yearsPer10Min.value);
+        const speed = earthTimeScale();
+        const lines = [
+          `지구 1년 = ${minutes}분`,
+          `시간 배율: x${Math.round(speed).toLocaleString()}`,
+          `줌: ${(state.zoom).toFixed(2)}  (1AU≈${Math.round(state.pxPerAU * state.zoom)}px)`,
+          state.probe ? `탐사선 속도: ${(Math.sqrt(state.probe.vx ** 2 + state.probe.vy ** 2) / 1000).toFixed(2)} km/s` : "",
+          state.paused ? "PAUSED" : "",
+        ].filter(Boolean);
+        for (let i = 0; i < lines.length; i++) {
+          ctx.fillText(lines[i], 16, window.innerHeight - 16 - (lines.length - 1 - i) * 16);
+        }
+        ctx.restore();
+      }
+
+      function loop() {
+        const t = nowMs();
+        let dtWall = (t - state.lastT) / 1000;
+        state.lastT = t;
+
+        // 탭 비활성화 등으로 dtWall이 튀는 경우, 갑자기 큰 점프 방지
+        dtWall = clamp(dtWall, 0, 0.05); // 최대 50ms
+
+        if (!state.paused) {
+          simulateFrame(dtWall);
+          for (const body of bodies) pushTrail(body);
+        }
+
+        maybeRelaunchOnDistance();
+        maybeTriggerAutoLaunch();
+
+        if (ui.followEarth.checked) {
+          const earth = bodies.find((b) => b.key === "earth");
+          if (earth) {
+            state.camX = earth.x;
+            state.camY = earth.y;
+          }
+        }
+        if (ui.followProbe.checked && state.probe) {
+          ui.followEarth.checked = false;
+
+          if (ui.autoZoom.checked) {
+            const sun = bodies.find((b) => b.key === "sun");
+            const earth = bodies.find((b) => b.key === "earth");
+            const fit = fitViewToPoints([sun, earth, state.probe], { marginPx: 110 });
+            if (fit) {
+              state.camX = lerp(state.camX, fit.centerX, 0.12);
+              state.camY = lerp(state.camY, fit.centerY, 0.12);
+              // 줌은 "필요하면" 줄이되(줌아웃), 다시 급격히 줌인되지는 않게 완만히 따라가게
+              const nextZoom = lerp(state.zoom, fit.targetZoom, 0.10);
+              state.zoom = clamp(Math.min(state.zoom, nextZoom), 0.12, 8);
+              ui.zoom.value = String(state.zoom);
+            } else {
+              state.camX = state.probe.x;
+              state.camY = state.probe.y;
+            }
+          } else {
+            state.camX = state.probe.x;
+            state.camY = state.probe.y;
+          }
+        }
+
+        draw();
+        requestAnimationFrame(loop);
+      }
+
+      // ---- 우주 BGM (Web Audio) ----
+      function stopBgm() {
+        if (!state.audio) return;
+        try {
+          for (const stop of state.audio.stopFns) stop();
+        } catch {}
+        try {
+          state.audio.ctx.close();
+        } catch {}
+        state.audio = null;
+      }
+
+      function startBgm() {
+        if (state.audio) return;
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        const ctx = new AudioCtx();
+
+        const master = ctx.createGain();
+        master.gain.value = 0.18;
+        master.connect(ctx.destination);
+
+        const stopFns = [];
+
+        // 저주파 패드(두 개의 디튠)
+        function pad(freq, detuneCents, gain) {
+          const osc = ctx.createOscillator();
+          osc.type = "triangle";
+          osc.frequency.value = freq;
+          osc.detune.value = detuneCents;
+          const g = ctx.createGain();
+          g.gain.value = gain;
+
+          const lp = ctx.createBiquadFilter();
+          lp.type = "lowpass";
+          lp.frequency.value = 420;
+          lp.Q.value = 0.7;
+
+          osc.connect(g);
+          g.connect(lp);
+          lp.connect(master);
+          osc.start();
+          stopFns.push(() => osc.stop());
+        }
+
+        pad(48, -8, 0.22);
+        pad(48, +9, 0.22);
+        pad(72, -6, 0.10);
+
+        // 노이즈 + 밴드패스(우주풍 느낌)
+        const noiseBuf = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
+        const data = noiseBuf.getChannelData(0);
+        for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * 0.5;
+        const noise = ctx.createBufferSource();
+        noise.buffer = noiseBuf;
+        noise.loop = true;
+
+        const bp = ctx.createBiquadFilter();
+        bp.type = "bandpass";
+        bp.frequency.value = 420;
+        bp.Q.value = 0.9;
+
+        const ng = ctx.createGain();
+        ng.gain.value = 0.06;
+
+        // 느린 LFO로 노이즈 볼륨을 흔들기
+        const lfo = ctx.createOscillator();
+        lfo.type = "sine";
+        lfo.frequency.value = 0.06;
+        const lfoGain = ctx.createGain();
+        lfoGain.gain.value = 0.04;
+        lfo.connect(lfoGain);
+        lfoGain.connect(ng.gain);
+
+        noise.connect(bp);
+        bp.connect(ng);
+
+        // 딜레이(잔향 느낌)
+        const delay = ctx.createDelay(2.0);
+        delay.delayTime.value = 0.28;
+        const fb = ctx.createGain();
+        fb.gain.value = 0.35;
+        delay.connect(fb);
+        fb.connect(delay);
+
+        ng.connect(delay);
+        delay.connect(master);
+        ng.connect(master);
+
+        noise.start();
+        lfo.start();
+        stopFns.push(() => noise.stop());
+        stopFns.push(() => lfo.stop());
+
+        state.audio = { ctx, master, stopFns };
+      }
+
+      function ensureBgmState() {
+        if (!ui.bgm.checked) {
+          stopBgm();
+          return;
+        }
+        startBgm();
+        if (state.audio && state.audio.ctx.state === "suspended") {
+          state.audio.ctx.resume().catch(() => {});
+        }
+      }
+
+      // ---- 입력 ----
+      // 패널 클릭/드래그가 캔버스 드래그로 이어지지 않도록
+      ui.panel.addEventListener("pointerdown", (e) => e.stopPropagation());
+      ui.panel.addEventListener("wheel", (e) => e.stopPropagation(), { passive: true });
+      ui.panel.addEventListener("pointerdown", () => ensureBgmState(), { passive: true });
+      ui.minPanel.addEventListener("click", (e) => {
+        e.stopPropagation();
+        setPanelMinimized(!state.panelMinimized);
+      });
+
+      canvas.addEventListener("pointerdown", (e) => {
+        ensureBgmState();
+        state.dragging = true;
+        state.dragStartX = e.clientX;
+        state.dragStartY = e.clientY;
+        state.camStartX = state.camX;
+        state.camStartY = state.camY;
+        canvas.setPointerCapture(e.pointerId);
+      });
+      canvas.addEventListener("pointermove", (e) => {
+        if (!state.dragging) return;
+        const dx = e.clientX - state.dragStartX;
+        const dy = e.clientY - state.dragStartY;
+        const s = pxPerMeter();
+        state.camX = state.camStartX - dx / s;
+        state.camY = state.camStartY - dy / s;
+      });
+      canvas.addEventListener("pointerup", (e) => {
+        state.dragging = false;
+        canvas.releasePointerCapture(e.pointerId);
+      });
+
+      canvas.addEventListener(
+        "wheel",
+        (e) => {
+          // 마우스 위치를 기준으로 확대/축소
+          const before = screenToWorld(e.clientX, e.clientY);
+          const z = state.zoom;
+          const factor = Math.exp(-e.deltaY * 0.0012);
+          state.zoom = clamp(z * factor, 0.12, 8);
+          ui.zoom.value = String(state.zoom);
+          const after = screenToWorld(e.clientX, e.clientY);
+          state.camX += before.x - after.x;
+          state.camY += before.y - after.y;
+        },
+        { passive: true }
+      );
+
+      ui.zoom.addEventListener("input", () => {
+        state.zoom = Number(ui.zoom.value);
+      });
+
+      ui.autoZoom.addEventListener("change", () => {
+        // 자동 줌을 켜면 현재 줌 슬라이더 값을 즉시 반영(이후 자동으로 필요 시 줌아웃)
+        if (!ui.autoZoom.checked) state.zoom = Number(ui.zoom.value);
+      });
+
+      ui.bgm.addEventListener("change", () => ensureBgmState());
+      ui.autoProbe.addEventListener("change", () => {
+        if (!ui.autoProbe.checked) return;
+        if (state.probe) return;
+        if (state.optimizerRunning) return;
+        // 자동 발사를 켰으면, 지금부터 10초 뒤에 발사 예약(요청: 시작 10초)
+        scheduleAutoLaunch(10_000);
+      });
+
+      ui.reset.addEventListener("click", resetSim);
+      ui.pause.addEventListener("click", () => {
+        state.paused = !state.paused;
+        ui.pause.textContent = state.paused ? "재생" : "일시정지";
+      });
+      ui.centerSun.addEventListener("click", () => {
+        const sun = bodies.find((b) => b.key === "sun");
+        if (!sun) return;
+        state.camX = sun.x;
+        state.camY = sun.y;
+        ui.followEarth.checked = false;
+        ui.followProbe.checked = false;
+      });
+      ui.clearTrails.addEventListener("click", clearTrails);
+      ui.clearProbe.addEventListener("click", () => {
+        state.probe = null;
+        setStatus("");
+        ui.followProbe.checked = false;
+      });
+
+      function mulberry32(seed) {
+        let t = seed >>> 0;
+        return function () {
+          t += 0x6d2b79f5;
+          let r = Math.imul(t ^ (t >>> 15), 1 | t);
+          r ^= r + Math.imul(r ^ (r >>> 7), 61 | r);
+          return ((r ^ (r >>> 14)) >>> 0) / 4294967296;
+        };
+      }
+
+      function vecLen(x, y) {
+        return Math.sqrt(x * x + y * y);
+      }
+
+      function lerp(a, b, t) {
+        return a + (b - a) * t;
+      }
+
+      function fitViewToPoints(points, { marginPx = 90 } = {}) {
+        if (!points || points.length === 0) return null;
+        let minX = Infinity,
+          maxX = -Infinity,
+          minY = Infinity,
+          maxY = -Infinity;
+        for (const p of points) {
+          if (!p) continue;
+          minX = Math.min(minX, p.x);
+          maxX = Math.max(maxX, p.x);
+          minY = Math.min(minY, p.y);
+          maxY = Math.max(maxY, p.y);
+        }
+        if (!isFinite(minX) || !isFinite(minY)) return null;
+
+        const centerX = 0.5 * (minX + maxX);
+        const centerY = 0.5 * (minY + maxY);
+        const halfW = 0.5 * window.innerWidth - marginPx;
+        const halfH = 0.5 * window.innerHeight - marginPx;
+        const dx = Math.max(1, 0.5 * (maxX - minX));
+        const dy = Math.max(1, 0.5 * (maxY - minY));
+
+        // screenScale s (px/m) must satisfy: dx*s <= halfW and dy*s <= halfH
+        const sMax = Math.min(halfW / dx, halfH / dy);
+        const targetZoom = clamp((sMax * AU) / state.pxPerAU, 0.12, 8);
+        return { centerX, centerY, targetZoom };
+      }
+
+      function specificEnergyRelativeToSun(x, y, vx, vy, muSun) {
+        const r = Math.sqrt(x * x + y * y);
+        const v2 = vx * vx + vy * vy;
+        return 0.5 * v2 - muSun / r;
+      }
+
+      function cloneBodiesForSim(bodiesNow) {
+        return bodiesNow.map((b) => ({
+          key: b.key,
+          name: b.name,
+          mass: b.mass,
+          color: b.color,
+          rPx: b.rPx,
+          x: b.x,
+          y: b.y,
+          vx: b.vx,
+          vy: b.vy,
+          ax: 0,
+          ay: 0,
+        }));
+      }
+
+      function simulateCandidate({ dvMag, dvAngle }, bodiesNow, opts) {
+        const localBodies = cloneBodiesForSim(bodiesNow);
+        const earth = localBodies.find((b) => b.key === "earth");
+        const sun = localBodies.find((b) => b.key === "sun");
+        const jupiter = localBodies.find((b) => b.key === "jupiter");
+        if (!earth || !sun) return null;
+
+        // 초기 발사: 지구 위치에서 약간 바깥쪽으로 오프셋(저궤도 근사)
+        const ex = earth.x;
+        const ey = earth.y;
+        const evx = earth.vx;
+        const evy = earth.vy;
+
+        const eR = vecLen(ex, ey);
+        const rx = ex / eR;
+        const ry = ey / eR;
+        const offset = 7.0e6; // m (대략 지구 반지름 수준)
+
+        // dvAngle는 "지구 속도 벡터 기준" 회전(지구 진행방향=0)
+        const vLen = vecLen(evx, evy);
+        const tvx = evx / vLen;
+        const tvy = evy / vLen;
+        // 좌측 수직 벡터
+        const nvx = -tvy;
+        const nvy = tvx;
+
+        const dvx = dvMag * (Math.cos(dvAngle) * tvx + Math.sin(dvAngle) * nvx);
+        const dvy = dvMag * (Math.cos(dvAngle) * tvy + Math.sin(dvAngle) * nvy);
+
+        const init = {
+          x: ex + rx * offset,
+          y: ey + ry * offset,
+          vx: evx + dvx,
+          vy: evy + dvy,
+        };
+
+        const probe = { ...init, points: [] };
+
+        const muSun = G * sun.mass;
+
+        // 최적화용 시뮬레이션 파라미터(빠르게)
+        const horizonYears = 18; // 목성 스윙바이까지 여유
+        const dt = 8 * 3600; // 8시간(sim)
+        const steps = Math.floor((horizonYears * YEAR) / dt);
+
+        let maxR = 0;
+        let minR = Infinity;
+        let maxEnergy = -Infinity;
+        let minDistToJupiter = Infinity;
+
+        for (let i = 0; i < steps; i++) {
+          // 행성/태양 이동
+          stepVerlet(localBodies, dt, opts);
+          // probe 이동
+          stepProbe(probe, localBodies, dt, opts);
+
+          // 기록(간격 두고)
+          if (i % 2 === 0) probe.points.push({ x: probe.x, y: probe.y });
+
+          const r = vecLen(probe.x, probe.y);
+          maxR = Math.max(maxR, r);
+          minR = Math.min(minR, r);
+
+          const e = specificEnergyRelativeToSun(probe.x, probe.y, probe.vx, probe.vy, muSun);
+          maxEnergy = Math.max(maxEnergy, e);
+
+          if (jupiter) {
+            const dxj = probe.x - jupiter.x;
+            const dyj = probe.y - jupiter.y;
+            const dj = Math.sqrt(dxj * dxj + dyj * dyj);
+            if (dj < minDistToJupiter) minDistToJupiter = dj;
+          }
+
+          // 너무 태양에 가까우면(수치적으로도 위험) 실패 처리
+          if (r < 0.15 * AU) return null;
+        }
+
+        const finalEnergy = specificEnergyRelativeToSun(probe.x, probe.y, probe.vx, probe.vy, muSun);
+
+        // 점수: 태양 기준 탈출에 가까운 경로(특정 에너지 양수) + 먼 거리 + 목성 근접(슬링샷)
+        // 에너지(m^2/s^2)를 스케일링해서 거리와 비슷한 가중치로 합산
+        const baseScore =
+          (finalEnergy > 0 ? 5.0 : 1.0) * (finalEnergy / 1e7) + (maxR / AU) + (maxEnergy / 1e7) - (minR / AU) * 0.2;
+
+        // 목성 슬링샷을 "명시적으로" 선호하도록 보너스 추가
+        // - 0.2~0.6 AU 안쪽으로 근접할수록 큰 점수
+        // - 목성에 충분히 접근하지 못한 해는 점수 감소(지구 Δv로만 탈출하는 해를 억제)
+        const dJ = minDistToJupiter;
+        const jupiterBonus = jupiter ? 9.0 / (dJ / AU + 0.08) : 0; // 0.08AU(≈12M km) 근접이면 크게
+        const jupiterGate = jupiter ? (dJ < 0.8 * AU ? 1.0 : 0.35) : 1.0;
+        const score = baseScore * jupiterGate + jupiterBonus;
+
+        return { score, init, predicted: probe.points, finalEnergy, maxR, minDistToJupiter };
+      }
+
+      async function findEscapeTrajectory({ trials = 520, statusLabel = "최적 경로 탐색", setProbe = true } = {}) {
+        if (state.optimizerRunning) return;
+        state.optimizerRunning = true;
+        ui.findEscape.disabled = true;
+        const wasPaused = state.paused;
+        state.paused = true;
+        ui.pause.textContent = "재생";
+        const startMsg = `${statusLabel} 중… (간이 랜덤 탐색)\n잠시만 기다려주세요.`;
+        setStatus(startMsg);
+        setLaunchOverlay(true, `탐사선 발사 준비중…\n${startMsg}`);
+
+        const opts = { enableSoftening: ui.softening.checked };
+        const seed = Math.floor(nowMs()) ^ 0x9e3779b9;
+        const rnd = mulberry32(seed);
+
+        // 후보 탐색 범위(지구 기준 Δv)
+        const dvMin = 1.5e3; // m/s
+        const dvMax = 18e3; // m/s
+
+        let best = null;
+
+        // UI 프리즈 방지: 청크 단위로 양보
+        const chunk = 26;
+        for (let i = 0; i < trials; i++) {
+          // dv는 로그 분포로(작은 값도 자주)
+          const u = rnd();
+          const dvMag = dvMin * Math.pow(dvMax / dvMin, u);
+          // 각도: 진행방향 중심으로 +/- 150도
+          const dvAngle = (rnd() * 300 - 150) * (Math.PI / 180);
+
+          const result = simulateCandidate({ dvMag, dvAngle }, bodies, opts);
+          if (result && (!best || result.score > best.score)) {
+            best = result;
+          }
+
+          if (i % chunk === chunk - 1) {
+            if (best) {
+              const msg =
+                `${statusLabel} 중… ${i + 1}/${trials}\n` +
+                  `현재 최고: maxR≈${(best.maxR / AU).toFixed(2)} AU, ` +
+                  `ε_final≈${(best.finalEnergy / 1e6).toFixed(2)}×10^6 m²/s²` +
+                  (best.minDistToJupiter
+                    ? `, dJ_min≈${(best.minDistToJupiter / AU).toFixed(2)} AU`
+                    : "")
+              setStatus(msg);
+              setLaunchOverlay(true, `탐사선 발사 준비중…\n${msg}`);
+            } else {
+              const msg = `${statusLabel} 중… ${i + 1}/${trials}`;
+              setStatus(msg);
+              setLaunchOverlay(true, `탐사선 발사 준비중…\n${msg}`);
+            }
+            await new Promise((r) => requestAnimationFrame(() => r()));
+          }
+        }
+
+        if (!best) {
+          setStatus("탐색 실패: 유효한 경로를 찾지 못했습니다. (서브스텝/소프트닝/시간배율을 조정해보세요)");
+          state.optimizerRunning = false;
+          ui.findEscape.disabled = false;
+          state.paused = wasPaused;
+          ui.pause.textContent = state.paused ? "재생" : "일시정지";
+          setLaunchOverlay(false);
+          return;
+        }
+
+        if (setProbe) {
+          launchProbeFromCandidate(best);
+        } else {
+          state.bestCandidate = best;
+        }
+
+        // 카메라를 지구 근처로(출발점)
+        const earth = bodies.find((b) => b.key === "earth");
+        if (earth) {
+          state.camX = earth.x;
+          state.camY = earth.y;
+        }
+
+        setStatus(
+          "완료: 탐사선(초록) 경로 표시됨\n" +
+            `maxR≈${(best.maxR / AU).toFixed(2)} AU, ε_final≈${(best.finalEnergy / 1e6).toFixed(2)}×10^6 m²/s²` +
+            (best.minDistToJupiter ? `, dJ_min≈${(best.minDistToJupiter / AU).toFixed(2)} AU` : "") +
+            "\n" +
+            "(참고) 이 결과는 ‘간이’ 랜덤 탐색으로, 매번 조금 달라질 수 있어요."
+        );
+        state.optimizerRunning = false;
+        ui.findEscape.disabled = false;
+        state.paused = wasPaused;
+        ui.pause.textContent = state.paused ? "재생" : "일시정지";
+        setLaunchOverlay(false);
+        return best;
+      }
+
+      ui.findEscape.addEventListener("click", () => {
+        findEscapeTrajectory({ trials: 900, statusLabel: "목성 슬링샷 경로 탐색", setProbe: true });
+      });
+
+      window.addEventListener("keydown", (e) => {
+        if (e.code === "Space") {
+          e.preventDefault();
+          state.paused = !state.paused;
+          ui.pause.textContent = state.paused ? "재생" : "일시정지";
+          return;
+        }
+        if (e.key.toLowerCase() === "r") {
+          resetSim();
+        }
+      });
+
+      // 초기값 동기화
+      state.zoom = Number(ui.zoom.value);
+      resetSim();
+      setPanelMinimized(true);
+      requestAnimationFrame(loop);
+    </script>
+  </body>
+</html>
