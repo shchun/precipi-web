@@ -363,11 +363,11 @@
       function cloneBodies() {
         // 시작 각도들을 조금씩 달리 주면 보기 좋음
         const angles = {
-          mercury: 10 * (Math.PI / 180),
-          venus: 75 * (Math.PI / 180),
-          earth: 140 * (Math.PI / 180),
-          mars: 220 * (Math.PI / 180),
-          jupiter: 310 * (Math.PI / 180),
+          mercury: Math.random() * Math.PI * 2,
+          venus: Math.random() * Math.PI * 2,
+          earth: Math.random() * Math.PI * 2,
+          mars: Math.random() * Math.PI * 2,
+          jupiter: Math.random() * Math.PI * 2,
         };
 
         const bodies = BODIES_SEED.map((b) => ({ ...b }));
