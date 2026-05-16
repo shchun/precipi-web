@@ -439,7 +439,6 @@
             b.ay -= f * a.mass * dy;
           }
         }
-        state.simTime += steps * dtClamped;
       }
 
       // Velocity Verlet(=kick-drift-kick) 계열: 에너지 보존 특성이 좋아 장시간 궤도에 유리
@@ -671,6 +670,7 @@
             if (i === steps - 1 || i % 4 === 0) pushProbePoint(state.probe);
           }
         }
+        state.simTime += steps * dtClamped;
       }
 
       function computeProbeAcceleration(probe, bodies, { enableSoftening }) {
