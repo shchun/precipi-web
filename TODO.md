@@ -36,3 +36,23 @@
   - 1회 발사마다 로그에 연결(launchId로 매핑)
   - 다운로드한 JSON만으로 “그 상황 재현에 필요한 값”이 충분히 남아 있음
 
+## (나중에) `solar-system-sim/index.html` 리팩토링 플랜 (안전하게 진행)
+- 목표: 현재 단일 파일이 너무 커서 유지보수가 어려움. 동작을 최대한 유지하면서 점진적으로 분리.
+- 권장 단계
+  - 1단계(무위험): `<style>` → `solar-system-sim/styles.css`로 분리, `index.html`에 `<link rel="stylesheet">` 추가
+  - 2단계(저위험): `<script>`를 그대로 `solar-system-sim/app.js`로 이동, `index.html`은 `<script src="./app.js" defer></script>`만 남김
+  - 3단계(모듈화): `app.js`를 기능별 파일로 분해 후 ES Module 전환
+    - `physics.js`: 상수(G/AU/YEAR), 벡터 유틸, `stepVerlet`, 가속도 계산
+    - `bodies.js`: `BODIES_SEED`, `cloneBodies`, 초기조건/랜덤 초기각
+    - `probe.js`: probe 적분, 궤적 기록, 자동 발사/재발사, 2년 타임아웃
+    - `optimizer.js`: 후보 시뮬(`simulateCandidate`), 탐색(`findEscapeTrajectory`)
+    - `render.js`: `draw`, 좌표 변환, 오토줌/fit 로직
+    - `ui.js`: DOM 바인딩, 패널 최소화/복원, 상태/오버레이
+    - `audio.js`: 우주 BGM start/stop
+    - `main.js`: wire-up + 루프 시작 + fatal overlay
+- 회귀(Regression) 체크리스트(필수)
+  - 자동 발사(10초 후) / 재발사(2×목성 반경) / 재시작(2년 타임아웃) 동작 유지
+  - “슬링샷 경로 찾기” 계산 중 일시정지 및 중앙 패널 표시 유지
+  - 오토줌(태양+지구 유지) / 카메라 follow(지구/탐사선) 유지
+  - 패널 최소화 상태 시작 + 복원 버튼 UX 유지
+  - `ctrl+shift+R` 없이도 에러 원인 확인 가능한(fatal overlay) 상태 유지
