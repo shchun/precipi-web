@@ -355,6 +355,10 @@
         return Math.max(min, Math.min(max, n));
       }
 
+      function isFiniteNumber(n) {
+        return typeof n === "number" && Number.isFinite(n);
+      }
+
       function nowMs() {
         return performance.now();
       }
@@ -926,6 +930,17 @@
         if (!state.paused) {
           simulateFrame(dtWall);
           for (const body of bodies) pushTrail(body);
+        }
+
+        // Defensive: if a numerical issue makes bodies/camera invalid, auto-reset so planets remain visible.
+        if (
+          !isFiniteNumber(state.zoom) ||
+          !isFiniteNumber(state.camX) ||
+          !isFiniteNumber(state.camY) ||
+          bodies.some((b) => !isFiniteNumber(b.x) || !isFiniteNumber(b.y) || !isFiniteNumber(b.vx) || !isFiniteNumber(b.vy))
+        ) {
+          setStatus("수치 불안정 감지: 자동 리셋");
+          resetSim();
         }
 
         maybeRelaunchOnDistance();
