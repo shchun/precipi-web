@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>한강 불꽃축제</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;500&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #000;
+    overflow: hidden;
+    cursor: crosshair;
+    font-family: 'Cormorant Garamond', serif;
+  }
+
+  canvas { display: block; }
+
+  #ui {
+    position: fixed;
+    bottom: 28px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 18px;
+    align-items: center;
+    background: rgba(0,0,0,0.4);
+    border: 1px solid rgba(255,200,100,0.15);
+    backdrop-filter: blur(10px);
+    padding: 12px 26px;
+    border-radius: 100px;
+    color: rgba(255,220,180,0.55);
+    font-size: 13px;
+    letter-spacing: 0.12em;
+    white-space: nowrap;
+    pointer-events: none;
+    font-style: italic;
+  }
+  #ui span { color: rgba(255,220,180,0.95); font-weight: 500; }
+
+  #title {
+    position: fixed;
+    top: 28px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: rgba(255,220,180,0.7);
+    font-size: 22px;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    font-weight: 300;
+    pointer-events: none;
+    text-shadow: 0 0 30px rgba(255,180,80,0.3);
+  }
+  #title::after {
+    content: '';
+    display: block;
+    width: 60px;
+    height: 1px;
+    background: rgba(255,200,120,0.4);
+    margin: 8px auto 0;
+  }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="title">Hanang Fireworks</div>
+<div id="ui">
+  Click · Drag &nbsp;·&nbsp; Auto <span id="autoLabel">ON</span> &nbsp;·&nbsp; [Space]
+</div>
+
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+
+let W = canvas.width = window.innerWidth;
+let H = canvas.height = window.innerHeight;
+
+window.addEventListener('resize', () => {
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+});
+
+// 사진 분위기에 맞춘 풍경 비율
+// 상단 ~70%: 하늘, 70~78%: 다리/지평선, 78~100%: 강물
+const HORIZON = () => H * 0.74;
+const BRIDGE_Y = () => H * 0.74;
+const WATER_TOP = () => H * 0.76;
+
+// ── 파티클 풀 ────────────────────────────────────────
+const POOL_SIZE = 10000;
+const pool = [];
+let poolIdx = 0;
+
+class Particle {
+  constructor() { this.reset(); }
+  reset() {
+    this.x = 0; this.y = 0;
+    this.vx = 0; this.vy = 0;
+    this.alpha = 0; this.decay = 0;
+    this.size = 0; this.color = '#FFD89B';
+    this.trail = []; this.maxTrail = 0;
+    this.type = 'spark';
+    this.gravity = 0;
+    this.alive = false;
+    this.flicker = 0;
+    this.targetY = 0;
+  }
+}
+
+for (let i = 0; i < POOL_SIZE; i++) pool.push(new Particle());
+
+function getParticle() {
+  for (let i = 0; i < POOL_SIZE; i++) {
+    const idx = (poolIdx + i) % POOL_SIZE;
+    if (!pool[idx].alive) {
+      poolIdx = idx + 1;
+      const p = pool[idx];
+      p.alive = true;
+      p.trail = [];
+      return p;
+    }
+  }
+  poolIdx++;
+  return pool[poolIdx % POOL_SIZE];
+}
+
+// ── 사진 톤 팔레트 (황금/주황 위주) ──────────────────
+const GOLD_PALETTE = [
+  '#FFE9B5', '#FFD89B', '#FFC579', '#FFA94D', '#FF8C2E',
+  '#FFCC66', '#FFB347', '#F4A340', '#E89940', '#FFE0A3',
+];
+
+const ACCENT_PALETTE = [
+  '#FFF4D6', '#FFFAE5',  // 가끔 섞이는 흰빛
+];
+
+function goldColor() {
+  return GOLD_PALETTE[Math.floor(Math.random() * GOLD_PALETTE.length)];
+}
+
+// ── 폭발: 크고 풍성한 국화 (사진과 동일한 큰 구) ─────
+function burst(x, y, scale = 1) {
+  const baseCount = Math.floor(280 * scale);
+
+  // 1. 메인 국화: 길게 늘어지는 빛줄기 (사진의 핵심 모양)
+  for (let i = 0; i < baseCount; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    // 균등한 구를 만들기 위해 sqrt 분포
+    const speedFactor = Math.sqrt(Math.random());
+    const speed = speedFactor * (5.5 * scale) + 1;
+
+    const p = getParticle();
+    p.x = x; p.y = y;
+    p.vx = Math.cos(angle) * speed;
+    p.vy = Math.sin(angle) * speed;
+    p.alpha = 1;
+    p.decay = 0.008 + Math.random() * 0.006;  // 천천히 사라짐 → 빛줄기 길게
+    p.size = 1.8 + Math.random() * 1.4;
+    p.color = Math.random() < 0.9 ? goldColor() : ACCENT_PALETTE[Math.floor(Math.random()*ACCENT_PALETTE.length)];
+    p.type = 'streak';
+    p.gravity = 0.045;
+    p.maxTrail = 18 + Math.floor(Math.random() * 8);  // 긴 꼬리
+    p.flicker = 0;
+  }
+
+  // 2. 끝부분 반짝임 (글리터)
+  const glitterCount = Math.floor(80 * scale);
+  for (let i = 0; i < glitterCount; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const speed = Math.random() * (5 * scale) + 0.5;
+
+    const p = getParticle();
+    p.x = x; p.y = y;
+    p.vx = Math.cos(angle) * speed;
+    p.vy = Math.sin(angle) * speed;
+    p.alpha = 1;
+    p.decay = 0.012;
+    p.size = 1 + Math.random();
+    p.color = goldColor();
+    p.type = 'glitter';
+    p.gravity = 0.05;
+    p.maxTrail = 3;
+    p.flicker = Math.random() * Math.PI * 2;
+  }
+
+  // 3. 중심 빛 (감마 플래시)
+  const p = getParticle();
+  p.x = x; p.y = y;
+  p.vx = 0; p.vy = 0;
+  p.alpha = 1;
+  p.decay = 0.04;
+  p.size = 30 * scale;
+  p.color = '#FFFAE5';
+  p.type = 'flash';
+  p.gravity = 0;
+  p.maxTrail = 0;
+}
+
+// ── 로켓 ────────────────────────────────────────────
+function launchRocket(tx, ty) {
+  const p = getParticle();
+  // 다리 너머 (지평선 부근)에서 발사
+  p.x = tx + (Math.random() - 0.5) * 60;
+  p.y = HORIZON() - 10;
+  const dx = tx - p.x;
+  const dy = ty - p.y;
+  const dist = Math.sqrt(dx*dx + dy*dy);
+  const speed = 13 + Math.random() * 4;
+  p.vx = (dx/dist) * speed * 0.35;
+  p.vy = -(speed * 0.95 + Math.random() * 2);
+  p.alpha = 1;
+  p.decay = 0;
+  p.size = 2.5;
+  p.color = '#FFD89B';
+  p.type = 'rocket';
+  p.gravity = 0.18;
+  p.maxTrail = 10;
+  p.targetY = ty;
+  p.scaleHint = 0.85 + Math.random() * 0.4;  // 폭발 크기 변동
+}
+
+// ── 업데이트 ────────────────────────────────────────
+const particles = pool;
+
+function update() {
+  for (const p of particles) {
+    if (!p.alive) continue;
+
+    if (p.type === 'flash') {
+      p.alpha -= p.decay;
+      p.size *= 0.92;
+      if (p.alpha <= 0) p.alive = false;
+      continue;
+    }
+
+    // trail
+    if (p.maxTrail > 0) {
+      p.trail.push({ x: p.x, y: p.y, a: p.alpha });
+      if (p.trail.length > p.maxTrail) p.trail.shift();
+    }
+
+    p.vy += p.gravity;
+    p.x += p.vx;
+    p.y += p.vy;
+
+    if (p.type === 'rocket') {
+      p.vx *= 0.99;
+      if (p.vy >= -1 || p.y <= p.targetY) {
+        burst(p.x, p.y, p.scaleHint || 1);
+        p.alive = false;
+        continue;
+      }
+      // 로켓 트레일
+      if (Math.random() < 0.7) {
+        const t = getParticle();
+        t.x = p.x + (Math.random() - 0.5) * 2;
+        t.y = p.y;
+        t.vx = (Math.random() - 0.5) * 0.4;
+        t.vy = Math.random() * 1.2 + 0.5;
+        t.alpha = 0.8;
+        t.decay = 0.08;
+        t.size = 1.5;
+        t.color = Math.random() < 0.5 ? '#FFA94D' : '#FFD89B';
+        t.type = 'spark';
+        t.gravity = 0.04;
+        t.maxTrail = 0;
+      }
+    } else {
+      p.vx *= 0.985;
+      p.vy *= 0.985;
+      p.alpha -= p.decay;
+      if (p.type === 'glitter') {
+        p.flicker += 0.5;
+      }
+      if (p.alpha <= 0) p.alive = false;
+
+      // 물에 닿으면 사라짐
+      if (p.y > WATER_TOP()) {
+        p.alpha *= 0.5;
+      }
+    }
+  }
+}
+
+// ── 드로우 ──────────────────────────────────────────
+function drawBackground() {
+  // 그라데이션 하늘 — 사진처럼 약간 따뜻한 검정
+  const sky = ctx.createLinearGradient(0, 0, 0, HORIZON());
+  sky.addColorStop(0, '#050507');
+  sky.addColorStop(0.5, '#0a0805');
+  sky.addColorStop(1, '#1a0f08');
+  ctx.fillStyle = sky;
+  ctx.fillRect(0, 0, W, HORIZON());
+
+  // 지평선 멀리 산/언덕 실루엣 (사진처럼 오른쪽)
+  ctx.fillStyle = '#000';
+  ctx.beginPath();
+  ctx.moveTo(W * 0.55, BRIDGE_Y());
+  ctx.bezierCurveTo(W * 0.7, BRIDGE_Y() - 30, W * 0.85, BRIDGE_Y() - 45, W, BRIDGE_Y() - 35);
+  ctx.lineTo(W, BRIDGE_Y());
+  ctx.closePath();
+  ctx.fill();
+
+  // 다리 (사진의 아치 다리 — 왼쪽에서 시작)
+  drawBridge();
+
+  // 강물
+  const water = ctx.createLinearGradient(0, WATER_TOP(), 0, H);
+  water.addColorStop(0, '#0a0805');
+  water.addColorStop(1, '#000');
+  ctx.fillStyle = water;
+  ctx.fillRect(0, WATER_TOP(), W, H - WATER_TOP());
+}
+
+function drawBridge() {
+  const y = BRIDGE_Y();
+  const bridgeLeft = 0;
+  const bridgeRight = W;
+
+  // 다리 본체 라인
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.moveTo(bridgeLeft, y);
+  ctx.lineTo(bridgeRight, y);
+  ctx.stroke();
+
+  // 아치 (왼쪽 부분 — 사진처럼)
+  const archCount = 4;
+  const archWidth = W * 0.18 / archCount;
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 2.5;
+  for (let i = 0; i < archCount; i++) {
+    const ax = bridgeLeft + i * archWidth;
+    ctx.beginPath();
+    ctx.arc(ax + archWidth/2, y, archWidth/2 * 0.95, Math.PI, 0, false);
+    ctx.stroke();
+  }
+
+  // 다리 위 황금 가로등 (왼쪽 부분)
+  for (let x = 0; x < W * 0.4; x += 24) {
+    const flicker = 0.7 + Math.sin(x * 0.3 + Date.now() * 0.001) * 0.1;
+    ctx.beginPath();
+    ctx.arc(x, y - 4, 2, 0, Math.PI * 2);
+    const grad = ctx.createRadialGradient(x, y - 4, 0, x, y - 4, 8);
+    grad.addColorStop(0, `rgba(255, 200, 100, ${flicker})`);
+    grad.addColorStop(1, 'rgba(255, 200, 100, 0)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(x - 8, y - 12, 16, 16);
+
+    ctx.fillStyle = `rgba(255, 220, 140, ${flicker})`;
+    ctx.beginPath();
+    ctx.arc(x, y - 4, 1.5, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // 다리 위 보라색 LED 라인 (오른쪽 — 사진의 특징)
+  const ledStart = W * 0.5;
+  for (let x = ledStart; x < W; x += 10) {
+    const t = (x - ledStart) / (W - ledStart);
+    // 보라→파랑 그라데이션
+    const r = Math.floor(120 + t * 40);
+    const g = Math.floor(60 + t * 60);
+    const b = Math.floor(200 + t * 55);
+    const flicker = 0.8 + Math.sin(x * 0.2 + Date.now() * 0.002) * 0.15;
+
+    const grad = ctx.createRadialGradient(x, y, 0, x, y, 5);
+    grad.addColorStop(0, `rgba(${r}, ${g}, ${b}, ${flicker})`);
+    grad.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
+    ctx.fillStyle = grad;
+    ctx.fillRect(x - 5, y - 5, 10, 10);
+
+    ctx.fillStyle = `rgba(${r+50}, ${g+50}, ${b}, ${flicker})`;
+    ctx.beginPath();
+    ctx.arc(x, y, 1.2, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+function drawWaterReflection() {
+  // 강 위 빛 반영 — 흔들리는 가로 띠
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+
+  // 모든 불꽃 파티클이 강에 반사된 듯한 따뜻한 빛
+  let totalBrightness = 0;
+  let centerX = 0;
+  let count = 0;
+  for (const p of particles) {
+    if (p.alive && p.y < HORIZON() && p.type !== 'rocket') {
+      totalBrightness += p.alpha;
+      centerX += p.x;
+      count++;
+    }
+  }
+
+  if (count > 0) {
+    centerX /= count;
+    const intensity = Math.min(0.4, totalBrightness / 200);
+
+    const grad = ctx.createRadialGradient(
+      centerX, WATER_TOP() + 30, 0,
+      centerX, WATER_TOP() + 30, W * 0.6
+    );
+    grad.addColorStop(0, `rgba(255, 180, 80, ${intensity})`);
+    grad.addColorStop(0.4, `rgba(255, 150, 60, ${intensity * 0.4})`);
+    grad.addColorStop(1, 'rgba(255, 150, 60, 0)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, WATER_TOP(), W, H - WATER_TOP());
+
+    // 흔들리는 가로 띠
+    for (let i = 0; i < 8; i++) {
+      const yy = WATER_TOP() + 10 + i * (H - WATER_TOP()) / 8;
+      const wobble = Math.sin(Date.now() * 0.002 + i) * 20;
+      const a = intensity * (1 - i / 8) * 0.6;
+      const ww = W * 0.5;
+      const gx = ctx.createLinearGradient(centerX - ww + wobble, yy, centerX + ww + wobble, yy);
+      gx.addColorStop(0, 'rgba(255, 180, 80, 0)');
+      gx.addColorStop(0.5, `rgba(255, 200, 100, ${a})`);
+      gx.addColorStop(1, 'rgba(255, 180, 80, 0)');
+      ctx.fillStyle = gx;
+      ctx.fillRect(0, yy - 1, W, 2 + i * 0.5);
+    }
+  }
+
+  ctx.restore();
+}
+
+function drawParticles() {
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+
+  for (const p of particles) {
+    if (!p.alive) continue;
+
+    if (p.type === 'flash') {
+      const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size);
+      grad.addColorStop(0, `rgba(255, 250, 220, ${p.alpha})`);
+      grad.addColorStop(0.4, `rgba(255, 200, 100, ${p.alpha * 0.5})`);
+      grad.addColorStop(1, 'rgba(255, 200, 100, 0)');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      ctx.fill();
+      continue;
+    }
+
+    // 긴 빛줄기 (streak) — 사진의 핵심
+    if (p.type === 'streak' && p.trail.length > 1) {
+      ctx.beginPath();
+      ctx.moveTo(p.trail[0].x, p.trail[0].y);
+      for (let i = 1; i < p.trail.length; i++) {
+        ctx.lineTo(p.trail[i].x, p.trail[i].y);
+      }
+      // 줄기 자체에 그라데이션 효과를 단계별 alpha로
+      ctx.strokeStyle = p.color;
+      ctx.globalAlpha = p.alpha * 0.4;
+      ctx.lineWidth = p.size * 0.8;
+      ctx.lineCap = 'round';
+      ctx.stroke();
+
+      // 끝부분 밝은 점
+      ctx.globalAlpha = p.alpha;
+      const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size * 3);
+      grad.addColorStop(0, p.color);
+      grad.addColorStop(0.5, p.color.replace(')', ',0.5)').replace('rgb', 'rgba'));
+      grad.addColorStop(1, 'transparent');
+      // 단순화: 그냥 점
+      ctx.fillStyle = p.color;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 끝에 따뜻한 후광
+      ctx.globalAlpha = p.alpha * 0.4;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size * 2.5, 0, Math.PI * 2);
+      ctx.fillStyle = p.color;
+      ctx.fill();
+
+    } else if (p.type === 'glitter') {
+      // 반짝이는 작은 점
+      const twinkle = 0.6 + Math.sin(p.flicker) * 0.4;
+      ctx.globalAlpha = p.alpha * twinkle;
+      ctx.fillStyle = p.color;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      ctx.fill();
+
+    } else if (p.type === 'rocket') {
+      ctx.globalAlpha = p.alpha;
+      ctx.fillStyle = p.color;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 글로우
+      ctx.globalAlpha = p.alpha * 0.5;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size * 3, 0, Math.PI * 2);
+      const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size * 3);
+      grad.addColorStop(0, p.color);
+      grad.addColorStop(1, 'transparent');
+      ctx.fillStyle = grad;
+      ctx.fill();
+
+    } else {
+      // 일반 spark
+      ctx.globalAlpha = p.alpha;
+      ctx.fillStyle = p.color;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  ctx.globalAlpha = 1;
+  ctx.restore();
+}
+
+function drawSmoke() {
+  // 폭발 후 남는 옅은 연기 (사진처럼 왼쪽 위에 떠다님)
+  ctx.save();
+  ctx.globalCompositeOperation = 'screen';
+
+  for (const cloud of smokeClouds) {
+    cloud.x += cloud.vx;
+    cloud.y += cloud.vy;
+    cloud.alpha *= 0.998;
+    cloud.size += 0.15;
+
+    const grad = ctx.createRadialGradient(cloud.x, cloud.y, 0, cloud.x, cloud.y, cloud.size);
+    grad.addColorStop(0, `rgba(180, 140, 100, ${cloud.alpha * 0.15})`);
+    grad.addColorStop(1, 'rgba(180, 140, 100, 0)');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(cloud.x, cloud.y, cloud.size, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  // 사라진 것 제거
+  for (let i = smokeClouds.length - 1; i >= 0; i--) {
+    if (smokeClouds[i].alpha < 0.01) smokeClouds.splice(i, 1);
+  }
+  ctx.restore();
+}
+
+const smokeClouds = [];
+
+// burst를 후킹: 연기 추가
+const _burst = burst;
+burst = function(x, y, scale) {
+  _burst(x, y, scale);
+  for (let i = 0; i < 3; i++) {
+    smokeClouds.push({
+      x: x + (Math.random() - 0.5) * 30,
+      y: y + (Math.random() - 0.5) * 30,
+      vx: (Math.random() - 0.5) * 0.3 - 0.1,  // 왼쪽으로 흐름
+      vy: -0.15 - Math.random() * 0.1,
+      alpha: 1,
+      size: 30 + Math.random() * 40,
+    });
+  }
+};
+
+// ── 자동 발사 ────────────────────────────────────────
+let auto = true;
+let autoTimer = 0;
+
+function autoLaunch(dt) {
+  autoTimer += dt;
+  const interval = 700 + Math.random() * 900;
+  if (autoTimer > interval) {
+    autoTimer = 0;
+    // 폭발 위치: 중앙~우측 위쪽 (사진처럼)
+    const tx = W * 0.35 + Math.random() * W * 0.4;
+    const ty = H * 0.2 + Math.random() * H * 0.25;
+    launchRocket(tx, ty);
+
+    // 가끔 동시에 2-3발
+    if (Math.random() < 0.4) {
+      setTimeout(() => {
+        const tx2 = W * 0.3 + Math.random() * W * 0.5;
+        const ty2 = H * 0.25 + Math.random() * H * 0.2;
+        launchRocket(tx2, ty2);
+      }, 200 + Math.random() * 400);
+    }
+    if (Math.random() < 0.2) {
+      setTimeout(() => {
+        const tx3 = W * 0.3 + Math.random() * W * 0.5;
+        const ty3 = H * 0.25 + Math.random() * H * 0.2;
+        launchRocket(tx3, ty3);
+      }, 500 + Math.random() * 400);
+    }
+  }
+}
+
+// ── 루프 ────────────────────────────────────────────
+let last = 0;
+function loop(ts) {
+  const dt = ts - last;
+  last = ts;
+
+  drawBackground();
+  update();
+  drawSmoke();
+  drawParticles();
+  drawWaterReflection();
+
+  if (auto) autoLaunch(dt);
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+
+// ── 인터랙션 ────────────────────────────────────────
+canvas.addEventListener('click', e => {
+  launchRocket(e.clientX, e.clientY);
+});
+
+let dragging = false;
+canvas.addEventListener('mousedown', () => dragging = true);
+canvas.addEventListener('mouseup', () => dragging = false);
+canvas.addEventListener('mousemove', e => {
+  if (dragging && Math.random() < 0.15) {
+    launchRocket(e.clientX, e.clientY);
+  }
+});
+
+canvas.addEventListener('touchstart', e => {
+  e.preventDefault();
+  for (const t of e.touches) {
+    launchRocket(t.clientX, t.clientY);
+  }
+}, { passive: false });
+
+document.addEventListener('keydown', e => {
+  if (e.code === 'Space') {
+    auto = !auto;
+    document.getElementById('autoLabel').textContent = auto ? 'ON' : 'OFF';
+  }
+});
+</script>
+</body>
+</html>
