@@ -5,7 +5,10 @@ const skyCtx = skyCanvas.getContext("2d");
 
 const controls = {
   hud: document.querySelector(".hud"),
+  rightPanels: document.querySelector(".rightPanels"),
   togglePanel: document.getElementById("togglePanel"),
+  toggleRightPanels: document.getElementById("toggleRightPanels"),
+  fullscreen: document.getElementById("fullscreen"),
   spaceSound: document.getElementById("spaceSound"),
   playPause: document.getElementById("playPause"),
   newSystem: document.getElementById("newSystem"),
@@ -809,6 +812,27 @@ controls.togglePanel.addEventListener("click", () => {
   const collapsed = controls.hud.classList.contains("collapsed");
   controls.togglePanel.textContent = collapsed ? "설정" : "닫기";
   controls.togglePanel.title = collapsed ? "설정 열기" : "설정 닫기";
+});
+
+controls.toggleRightPanels.addEventListener("click", () => {
+  controls.rightPanels.classList.toggle("collapsed");
+  const collapsed = controls.rightPanels.classList.contains("collapsed");
+  controls.toggleRightPanels.textContent = collapsed ? "관측 패널 ▴" : "관측 패널 ▾";
+  controls.toggleRightPanels.title = collapsed ? "관측 패널 열기" : "관측 패널 접기";
+});
+
+controls.fullscreen.addEventListener("click", () => {
+  if (document.fullscreenElement) {
+    document.exitFullscreen();
+  } else {
+    document.documentElement.requestFullscreen().catch(() => {});
+  }
+});
+
+document.addEventListener("fullscreenchange", () => {
+  const active = Boolean(document.fullscreenElement);
+  controls.fullscreen.textContent = active ? "⛶ 전체 화면 종료" : "⛶ 전체 화면";
+  controls.fullscreen.title = active ? "전체 화면 종료" : "전체 화면";
 });
 
 controls.spaceSound.addEventListener("click", async () => {
