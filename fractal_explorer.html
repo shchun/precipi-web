@@ -733,10 +733,17 @@
         const r = holder.getBoundingClientRect();
         const nw = Math.floor(r.width), nh = Math.floor(r.height);
         if (nw !== W || nh !== H){
-          // 중심점(viewX, viewY)과 배율(픽셀당 복소 단위)을 유지한다.
-          // viewScale은 가로 폭의 복소 단위이므로 폭 변화에 비례시켜야
-          // 전체화면 전환 시 확대/축소 없이 주변 영역만 더 드러난다.
-          if (W > 0 && nw > 0) state.viewScale *= nw / W;
+          // 중심점(viewX, viewY)을 고정한 채, 기존에 보이던 복소 영역을
+          // 새 화면 비율에 맞춰 'contain'(전체가 보이도록) 방식으로 다시 맞춘다.
+          // → 전체화면(넓은 비율)에서는 세로 프레이밍이 그대로 유지되고
+          //   여백이 좌우로만 늘어나며 프랙탈이 가운데에 머문다.
+          // viewScale은 가로 폭의 복소 단위.
+          if (W > 0 && H > 0 && nw > 0 && nh > 0){
+            const halfW = state.viewScale / 2;
+            const halfH = halfW * (H / W);          // 기존 세로 반폭(복소 단위)
+            const newHalfW = Math.max(halfW, halfH * (nw / nh));
+            state.viewScale = newHalfW * 2;
+          }
           W = nw; H = nh;
           p.resizeCanvas(W, H);
           syncViewportInputs();
