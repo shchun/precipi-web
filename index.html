@@ -42,19 +42,101 @@
     }
 
     .logo {
-      max-width: 250px;
-      margin-bottom: 20px;
-      background: rgba(255, 255, 255, 0.9);
-      padding: 20px 30px;
-      border-radius: 15px;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
       display: inline-block;
+      margin-bottom: 8px;
     }
 
-    .logo svg {
-      display: block;
-      width: 100%;
-      height: auto;
+    .logo-badge {
+      position: relative;
+      display: inline-block;
+      background: rgba(255, 255, 255, 0.94);
+      padding: 22px 44px;
+      border-radius: 18px;
+      box-shadow: 0 12px 34px rgba(0, 0, 0, 0.32);
+    }
+
+    /* 배지 뒤로 은은하게 번지는 컬러 글로우 */
+    .logo-badge::before {
+      content: "";
+      position: absolute;
+      inset: -7px;
+      border-radius: 24px;
+      background: linear-gradient(120deg, #667eea, #764ba2, #5b8def, #667eea);
+      background-size: 300% 100%;
+      filter: blur(16px);
+      opacity: 0.55;
+      z-index: -1;
+      animation: brandShift 6s ease-in-out infinite;
+    }
+
+    .brand {
+      font-size: 3rem;
+      font-weight: 800;
+      letter-spacing: -1.5px;
+      line-height: 1;
+      background: linear-gradient(110deg, #667eea, #764ba2, #5b8def, #667eea);
+      background-size: 300% 100%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      color: transparent;
+      animation: brandShift 6s ease-in-out infinite;
+    }
+
+    .brand .tld {
+      font-size: 1.4rem;
+      font-weight: 600;
+      letter-spacing: 0;
+    }
+
+    /* 배지 주위를 도는 작은 행성 */
+    .orbit {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 132%;
+      height: 220%;
+      transform: translate(-50%, -50%);
+      animation: orbit 9s linear infinite;
+      pointer-events: none;
+    }
+
+    .orbit-dot {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      width: 13px;
+      height: 13px;
+      margin-left: -6.5px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 32% 30%, #ffffff, #7bd0ff 55%, #4a90e2);
+      box-shadow: 0 0 14px #7bd0ff, 0 0 4px #ffffff;
+    }
+
+    .tagline {
+      margin-top: 22px;
+      font-size: 1.05rem;
+      font-weight: 500;
+      letter-spacing: 2px;
+      color: rgba(255, 255, 255, 0.92);
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.45);
+    }
+
+    @keyframes brandShift {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+    }
+
+    @keyframes orbit {
+      to { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .logo-badge::before,
+      .brand,
+      .orbit {
+        animation: none;
+      }
     }
 
     .header h1 {
@@ -184,19 +266,12 @@
   <div class="container">
     <div class="header">
       <div class="logo">
-        <svg viewBox="0 0 200 60" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
-              <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
-            </linearGradient>
-          </defs>
-          <text x="10" y="40" font-family="Arial, sans-serif" font-size="36" font-weight="bold" fill="url(#logoGradient)">precipi</text>
-          <text x="10" y="55" font-family="Arial, sans-serif" font-size="12" fill="#999">.com</text>
-        </svg>
+        <div class="logo-badge">
+          <span class="brand">precipi<span class="tld">.com</span></span>
+          <span class="orbit"><span class="orbit-dot"></span></span>
+        </div>
       </div>
-      <h1>인터랙티브 데모</h1>
-      <p>다양한 웹 데모와 인터랙티브 작품을 경험해보세요</p>
+      <p class="tagline">물리 · 우주 · 인터랙션 실험실</p>
     </div>
 
     <div class="demos-grid">

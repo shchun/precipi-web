@@ -262,12 +262,13 @@
           <button id="clearTrails">궤적 지우기</button>
           <button id="findEscape">슬링샷 경로 찾기</button>
           <button id="clearProbe">탐사선 지우기</button>
+          <button id="fullscreen">전체화면</button>
         </div>
 
         <div class="status" id="status"></div>
 
         <div class="help">
-          드래그: 화면 이동 · 휠: 줌 · <span class="kbd">Space</span>: 일시정지 · <span class="kbd">R</span>: 리셋
+          드래그: 화면 이동 · 휠: 줌 · <span class="kbd">Space</span>: 일시정지 · <span class="kbd">R</span>: 리셋 · <span class="kbd">F</span>: 전체화면
           <br />
           “슬링샷 경로 찾기”는 지구 출발 탐사선의 태양계 탈출 경로를 간이 탐색해 표시합니다.
           <br />
@@ -527,6 +528,7 @@
         clearTrails: document.getElementById("clearTrails"),
         findEscape: document.getElementById("findEscape"),
         clearProbe: document.getElementById("clearProbe"),
+        fullscreen: document.getElementById("fullscreen"),
         panel: document.getElementById("panel"),
         status: document.getElementById("status"),
         minPanel: document.getElementById("minPanel"),
@@ -1212,6 +1214,43 @@
         ui.followProbe.checked = false;
       });
 
+      // ---- 전체화면 ----
+      function isFullscreen() {
+        return Boolean(document.fullscreenElement || document.webkitFullscreenElement);
+      }
+      function syncFullscreenButton() {
+        const on = isFullscreen();
+        ui.fullscreen.textContent = on ? "전체화면 해제" : "전체화면";
+        ui.fullscreen.title = on ? "전체화면 종료" : "전체화면 시작";
+      }
+      async function toggleFullscreen() {
+        try {
+          if (!isFullscreen()) {
+            const el = document.documentElement;
+            const req = el.requestFullscreen || el.webkitRequestFullscreen;
+            if (req) await req.call(el);
+          } else {
+            const exit = document.exitFullscreen || document.webkitExitFullscreen;
+            if (exit) await exit.call(document);
+          }
+        } catch (err) {
+          setStatus("전체화면 전환에 실패했습니다: " + (err && err.message ? err.message : err));
+        }
+      }
+      ui.fullscreen.addEventListener("click", (e) => {
+        e.stopPropagation();
+        toggleFullscreen();
+      });
+      document.addEventListener("fullscreenchange", () => {
+        syncFullscreenButton();
+        resize();
+      });
+      document.addEventListener("webkitfullscreenchange", () => {
+        syncFullscreenButton();
+        resize();
+      });
+      syncFullscreenButton();
+
       function mulberry32(seed) {
         let t = seed >>> 0;
         return function () {
@@ -1481,6 +1520,9 @@
         }
         if (e.key.toLowerCase() === "r") {
           resetSim();
+        }
+        if (e.key.toLowerCase() === "f") {
+          toggleFullscreen();
         }
       });
 
