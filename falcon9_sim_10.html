@@ -82,6 +82,37 @@
   }
   canvas { display: block; width: 100%; height: 100%; }
 
+  .fs-btn {
+    position: absolute;
+    top: 56px; right: 12px;
+    z-index: 6;
+    padding: 6px 12px;
+    border: 1px solid var(--border-strong);
+    background: rgba(0,0,0,0.55);
+    color: var(--text);
+    border-radius: 3px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    backdrop-filter: blur(6px);
+    transition: background 0.2s ease, border-color 0.2s ease;
+  }
+  .fs-btn:hover {
+    background: rgba(0,0,0,0.8);
+    border-color: var(--accent-warm);
+  }
+
+  /* 뷰포트(스테이지 캔버스)만 전체화면 — 4:3 제약 해제 후 화면을 꽉 채운다 */
+  #canvasHolder:fullscreen,
+  #canvasHolder:-webkit-full-screen {
+    width: 100vw;
+    height: 100vh;
+    aspect-ratio: auto;
+    border-radius: 0;
+    border: none;
+  }
+
   .hud-top {
     position: absolute; top: 0; left: 0; right: 0;
     padding: 12px 16px;
@@ -138,7 +169,7 @@
 
   .minimap {
     position: absolute;
-    top: 60px; right: 12px;
+    top: 96px; right: 12px;
     width: 130px; height: 90px;
     background: rgba(0,0,0,0.6);
     border: 1px solid var(--border);
@@ -624,6 +655,7 @@
     <div>
       <div class="stage-canvas" id="canvasHolder">
         <canvas id="main"></canvas>
+        <button id="fsBtn" class="fs-btn" type="button" title="뷰포트 전체화면">전체화면</button>
 
         <div class="hud-top">
           <div id="phaseBadge" class="phase-badge ascent">Pre-launch</div>
@@ -2958,6 +2990,34 @@
   state.payload = 5000;
   reset();
   loop();
+})();
+</script>
+<script>
+(function () {
+  var btn = document.getElementById('fsBtn');
+  var holder = document.getElementById('canvasHolder');
+  if (!btn || !holder) return;
+  function fsElement() {
+    return document.fullscreenElement || document.webkitFullscreenElement || null;
+  }
+  function toggleFullscreen() {
+    if (fsElement() !== holder) {
+      var req = holder.requestFullscreen || holder.webkitRequestFullscreen;
+      if (req) { var p = req.call(holder); if (p && p.catch) p.catch(function(){}); }
+    } else {
+      var exit = document.exitFullscreen || document.webkitExitFullscreen;
+      if (exit) { var q = exit.call(document); if (q && q.catch) q.catch(function(){}); }
+    }
+  }
+  function sync() {
+    var on = fsElement() === holder;
+    btn.textContent = on ? '전체화면 해제' : '전체화면';
+    // 컨테이너 크기 변화에 맞춰 캔버스가 다시 측정되도록 resizeCanvas를 깨운다
+    window.dispatchEvent(new Event('resize'));
+  }
+  btn.addEventListener('click', function (e) { e.stopPropagation(); toggleFullscreen(); });
+  document.addEventListener('fullscreenchange', sync);
+  document.addEventListener('webkitfullscreenchange', sync);
 })();
 </script>
 </body>

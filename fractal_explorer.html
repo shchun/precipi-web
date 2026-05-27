@@ -134,6 +134,39 @@
   }
   .hud span:first-child { color: var(--accent); }
 
+  .fs-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 5;
+    padding: 7px 13px;
+    border: 1px solid var(--border-strong);
+    background: rgba(0,0,0,0.5);
+    color: var(--text);
+    border-radius: 4px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    backdrop-filter: blur(6px);
+    transition: background 0.2s ease, border-color 0.2s ease;
+  }
+  .fs-btn:hover {
+    background: rgba(0,0,0,0.75);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  /* 뷰포트(캔버스 컨테이너)만 전체화면 — 4:3 비율 제약 해제하고 화면을 꽉 채운다 */
+  #canvasHolder:fullscreen,
+  #canvasHolder:-webkit-full-screen {
+    width: 100vw;
+    height: 100vh;
+    aspect-ratio: auto;
+    border-radius: 0;
+    border: none;
+  }
+
   .help-bar {
     margin-top: 10px;
     font-family: var(--font-mono);
@@ -371,6 +404,7 @@
   <div class="layout">
     <div>
       <div class="canvas-wrap" id="canvasHolder">
+        <button id="fsBtn" class="fs-btn" type="button" title="뷰포트 전체화면">전체화면</button>
         <div class="hud">
           <span id="zoomInfo">zoom 1.00×</span>
           <span id="coordInfo">—</span>
@@ -960,6 +994,34 @@
     });
   });
 
+})();
+</script>
+<script>
+(function () {
+  var btn = document.getElementById('fsBtn');
+  var holder = document.getElementById('canvasHolder');
+  if (!btn || !holder) return;
+  function fsElement() {
+    return document.fullscreenElement || document.webkitFullscreenElement || null;
+  }
+  function toggleFullscreen() {
+    if (fsElement() !== holder) {
+      var req = holder.requestFullscreen || holder.webkitRequestFullscreen;
+      if (req) { var p = req.call(holder); if (p && p.catch) p.catch(function(){}); }
+    } else {
+      var exit = document.exitFullscreen || document.webkitExitFullscreen;
+      if (exit) { var q = exit.call(document); if (q && q.catch) q.catch(function(){}); }
+    }
+  }
+  function sync() {
+    var on = fsElement() === holder;
+    btn.textContent = on ? '전체화면 해제' : '전체화면';
+    // 컨테이너 크기 변화에 맞춰 캔버스가 다시 그려지도록 resize 핸들러를 깨운다
+    window.dispatchEvent(new Event('resize'));
+  }
+  btn.addEventListener('click', function (e) { e.stopPropagation(); toggleFullscreen(); });
+  document.addEventListener('fullscreenchange', sync);
+  document.addEventListener('webkitfullscreenchange', sync);
 })();
 </script>
 </body>
