@@ -172,11 +172,56 @@ document.addEventListener('DOMContentLoaded', async function() {
     if (window.Babel && typeof window.Babel.transformScriptTags === 'function') {
       window.Babel.transformScriptTags();
     }
+
+    // 우상단 전체화면 버튼 주입 (번들 렌더 이후라 새 document.body에 붙는다)
+    injectFullscreenButton();
   } catch (err) {
     setStatus('Error unpacking: ' + err.message);
     console.error('Bundle unpack error:', err);
   }
 });
+
+function injectFullscreenButton() {
+  if (document.getElementById('__fsBtn')) return;
+
+  function isFullscreen() {
+    return Boolean(document.fullscreenElement || document.webkitFullscreenElement);
+  }
+  function toggleFullscreen() {
+    if (!isFullscreen()) {
+      var el = document.documentElement;
+      var req = el.requestFullscreen || el.webkitRequestFullscreen;
+      if (req) { var p = req.call(el); if (p && p.catch) p.catch(function(){}); }
+    } else {
+      var exit = document.exitFullscreen || document.webkitExitFullscreen;
+      if (exit) { var q = exit.call(document); if (q && q.catch) q.catch(function(){}); }
+    }
+  }
+
+  var btn = document.createElement('button');
+  btn.id = '__fsBtn';
+  btn.type = 'button';
+  btn.textContent = '전체화면';
+  btn.title = '전체화면 시작';
+  btn.style.cssText =
+    'position:fixed;top:12px;right:12px;z-index:2147483647;padding:8px 14px;' +
+    'border:1px solid rgba(255,255,255,0.18);background:rgba(20,24,34,0.72);color:#f5f5f5;' +
+    'border-radius:999px;font:13px/1 -apple-system,BlinkMacSystemFont,sans-serif;cursor:pointer;' +
+    'box-shadow:0 6px 18px rgba(0,0,0,0.35);backdrop-filter:blur(8px);';
+  btn.addEventListener('mouseenter', function(){ btn.style.background = 'rgba(20,24,34,0.92)'; });
+  btn.addEventListener('mouseleave', function(){ btn.style.background = 'rgba(20,24,34,0.72)'; });
+  btn.addEventListener('click', toggleFullscreen);
+
+  function sync() {
+    var on = isFullscreen();
+    btn.textContent = on ? '전체화면 해제' : '전체화면';
+    btn.title = on ? '전체화면 종료' : '전체화면 시작';
+  }
+  document.addEventListener('fullscreenchange', sync);
+  document.addEventListener('webkitfullscreenchange', sync);
+
+  document.body.appendChild(btn);
+}
 
   </script>
 

@@ -27,12 +27,59 @@
         }
         /* The p5.js canvas will be created by the script and will fill the window */
         /* main is the default canvas container in p5.js */
-        main { 
+        main {
             display: block; /* Ensure it behaves as a block element */
+        }
+        #fsBtn {
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            z-index: 100;
+            padding: 8px 15px;
+            border: 1px solid rgba(180, 200, 255, 0.3);
+            background: rgba(8, 8, 38, 0.55);
+            backdrop-filter: blur(8px);
+            color: rgba(210, 220, 255, 0.92);
+            border-radius: 999px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            font-size: 13px;
+            letter-spacing: 0.05em;
+            cursor: pointer;
+            transition: background 0.2s ease, color 0.2s ease;
+        }
+        #fsBtn:hover {
+            background: rgba(8, 8, 38, 0.85);
+            color: #fff;
         }
     </style>
 </head>
 <body>
+    <button id="fsBtn" type="button" title="Fullscreen">전체화면</button>
+    <script>
+        (function () {
+            var btn = document.getElementById('fsBtn');
+            if (!btn) return;
+            function isFullscreen() {
+                return Boolean(document.fullscreenElement || document.webkitFullscreenElement);
+            }
+            function toggleFullscreen() {
+                if (!isFullscreen()) {
+                    var el = document.documentElement;
+                    var req = el.requestFullscreen || el.webkitRequestFullscreen;
+                    if (req) { var p = req.call(el); if (p && p.catch) p.catch(function(){}); }
+                } else {
+                    var exit = document.exitFullscreen || document.webkitExitFullscreen;
+                    if (exit) { var q = exit.call(document); if (q && q.catch) q.catch(function(){}); }
+                }
+            }
+            function sync() {
+                btn.textContent = isFullscreen() ? '전체화면 해제' : '전체화면';
+            }
+            btn.addEventListener('click', function (e) { e.stopPropagation(); toggleFullscreen(); });
+            document.addEventListener('fullscreenchange', sync);
+            document.addEventListener('webkitfullscreenchange', sync);
+        })();
+    </script>
     <script>
         // Global variables
         let octopuses = [];
