@@ -213,11 +213,18 @@
       );
       const ours = callsHere.filter((c) => c.assignedTo === e.id);
       // Which way are we about to go? Board people heading that same way.
-      const heading =
-        e.direction !== 0 ? e.direction :
-        e.targets.size > 0
-          ? ([...e.targets].some((t) => t > e.floor) ? 1 : -1)
-          : (ours[0] ? ours[0].dir : (callsHere[0] ? callsHere[0].dir : 0));
+      // If we can't continue in our current direction (no onward targets),
+      // reverse toward remaining work, or adopt the direction of the people
+      // waiting here — we came for them, so don't strand them.
+      const upTarget = [...e.targets].some((t) => t > e.floor);
+      const downTarget = [...e.targets].some((t) => t < e.floor);
+      let heading = e.direction;
+      if (heading === 1 && !upTarget) heading = downTarget ? -1 : 0;
+      else if (heading === -1 && !downTarget) heading = upTarget ? 1 : 0;
+      if (heading === 0) {
+        const ref = ours[0] || callsHere[0];
+        heading = ref ? ref.dir : 0;
+      }
       // Board same-direction waiters up to capacity — ours first, then anyone
       // else going our way (opportunistic), earliest waiting first.
       const toBoard = callsHere
@@ -242,6 +249,12 @@
         if (call.dest != null) e.targets.add(call.dest);
         call.boarded = true;
         boardedCount += 1;
+      }
+      // Anyone we were assigned but didn't board (opposite direction, or we filled
+      // up) goes back into the pool so another car/trip can serve them — never
+      // leave a call stuck to a car that's driving away.
+      for (const c of callsHere) {
+        if (!c.boarded && c.assignedTo === e.id) c.assignedTo = null;
       }
       state.calls = state.calls.filter((c) => !c.boarded);
       if (departing.length > 0) {

@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -c ' *)",
+      "Bash(sed -n '1488,1496p' _template_extracted.html)",
+      "Bash(python -m http.server 8731)",
+      "Bash(echo \"server pid $!\")",
+      "Bash(curl -s -o /dev/null -w \"index:%{http_code} \" http://localhost:8731/index.html)",
+      "Bash(curl -s -o /dev/null -w \"app:%{http_code} \" http://localhost:8731/src/app.jsx)",
+      "Bash(curl -s -o /dev/null -w \"babel:%{http_code}\\\\n\" http://localhost:8731/vendor/babel.min.js)",
+      "Bash(\"C:/Program Files/Google/Chrome/Application/chrome.exe\" --headless --disable-gpu --no-sandbox --virtual-time-budget=8000 --dump-dom \"http://localhost:8731/index.html\")",
+      "Bash(\"C:/Program Files/Google/Chrome/Application/chrome.exe\" --headless --disable-gpu --no-sandbox --virtual-time-budget=9000 --window-size=1200,1400 --screenshot=\"C:/projects/precipi-web/elevator-sim/_shot.png\" \"http://localhost:8731/index.html\")",
+      "Bash(ls -la _shot.png)",
+      "Bash(rm -f _template_extracted.html _app1.jsx _app2.js _app3.js _app4.js _unbundle.py _check.js _simtest.js _dom.html _shot.png)",
+      "Bash(kill 1326)",
+      "Bash(rm -f _t_*.png _t2_*.png _t3_*.png _t4_*.png)",
+      "Bash(kill 1366)"
+    ]
+  }
+}

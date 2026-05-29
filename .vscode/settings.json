@@ -1,0 +1,8 @@
+{
+  // Scope the "node:test runner" extension (connor4312.nodejs-testing) to where
+  // our tests live, so the Testing panel discovers them quickly.
+  // (It finds *.test.js automatically; this just narrows the search.)
+  "nodejs-testing.include": [
+    "elevator-sim"
+  ]
+}

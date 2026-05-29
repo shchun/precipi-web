@@ -1,0 +1,9 @@
+{
+  "name": "elevator-sim",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Tower 10 elevator simulator",
+  "scripts": {
+    "test": "node --test"
+  }
+}
