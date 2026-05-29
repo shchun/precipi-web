@@ -66,11 +66,13 @@
     // ---------- actions ----------
 
     function callElevator(floor, dir, dest) {
-      // Don't allow duplicate pending call on same floor+dir
-      const exists = state.calls.find(
-        (c) => c.floor === floor && c.dir === dir && c.assignedTo == null
+      // Several people can wait at the same floor going the same way — each is a
+      // distinct passenger so a car can fill to capacity. Cap the queue per
+      // floor+dir so auto-traffic can't pile up without bound.
+      const waitingHere = state.calls.filter(
+        (c) => c.floor === floor && c.dir === dir && !c.boarded
       );
-      if (exists) return;
+      if (waitingHere.length >= CAPACITY) return;
       const call = {
         id: nextCallId++,
         personId: nextPersonId++,
@@ -130,11 +132,20 @@
     }
 
     function tryDispatch() {
+      // A floor+dir is "covered" once any car is assigned/heading there — one car
+      // serves the whole group, so we don't send several cars to the same waiters.
+      const covered = new Set();
+      for (const c of state.calls) {
+        if (c.assignedTo != null) covered.add(c.floor + ":" + c.dir);
+      }
       for (const call of state.calls) {
         if (call.assignedTo != null) continue;
+        const key = call.floor + ":" + call.dir;
+        if (covered.has(key)) continue;
         const best = pickElevator(call);
         if (!best) continue;
         call.assignedTo = best.id;
+        covered.add(key);
         best.targets.add(call.floor);
         // wake an idle car
         if (best.state === "idle") {
@@ -195,25 +206,28 @@
       const departing = e.passengers.filter((p) => p.toFloor === e.floor);
       for (let i = 0; i < departing.length; i++) state.stats.served += 1;
       e.passengers = e.passengers.filter((p) => p.toFloor !== e.floor);
-      // Pick up any waiting calls at this floor that are assigned to us
-      const matching = state.calls.filter(
-        (c) => c.assignedTo === e.id && c.floor === e.floor
+
+      // Everyone waiting at this floor (not yet boarded).
+      const callsHere = state.calls.filter(
+        (c) => c.floor === e.floor && !c.boarded
       );
-      // Also opportunistically pick up unassigned calls at this floor that go the
-      // same direction as we're heading (or were heading).
+      const ours = callsHere.filter((c) => c.assignedTo === e.id);
+      // Which way are we about to go? Board people heading that same way.
       const heading =
         e.direction !== 0 ? e.direction :
         e.targets.size > 0
           ? ([...e.targets].some((t) => t > e.floor) ? 1 : -1)
-          : (matching[0] ? matching[0].dir : 0);
-      const opportunistic = state.calls.filter(
-        (c) =>
-          c.assignedTo == null &&
-          c.floor === e.floor &&
-          (heading === 0 || c.dir === heading) &&
-          e.passengers.length + matching.length < CAPACITY
-      );
-      const toBoard = matching.concat(opportunistic);
+          : (ours[0] ? ours[0].dir : (callsHere[0] ? callsHere[0].dir : 0));
+      // Board same-direction waiters up to capacity — ours first, then anyone
+      // else going our way (opportunistic), earliest waiting first.
+      const toBoard = callsHere
+        .filter((c) => heading === 0 || c.dir === heading)
+        .sort(
+          (a, b) =>
+            (a.assignedTo === e.id ? 0 : 1) - (b.assignedTo === e.id ? 0 : 1) ||
+            a.placedAt - b.placedAt
+        );
+      let boardedCount = 0;
       for (const call of toBoard) {
         if (e.passengers.length >= CAPACITY) break;
         const wait = state.time - call.placedAt;
@@ -227,13 +241,14 @@
         });
         if (call.dest != null) e.targets.add(call.dest);
         call.boarded = true;
+        boardedCount += 1;
       }
       state.calls = state.calls.filter((c) => !c.boarded);
       if (departing.length > 0) {
         pushLog("idle", `Car ${e.id + 1} dropped ${departing.length} · ${fmtFloor(e.floor)}`);
       }
-      if (toBoard.length > 0) {
-        pushLog("pickup", `Car ${e.id + 1} boarded ${toBoard.length} · ${fmtFloor(e.floor)}`);
+      if (boardedCount > 0) {
+        pushLog("pickup", `Car ${e.id + 1} boarded ${boardedCount} · ${fmtFloor(e.floor)}`);
       }
     }
 

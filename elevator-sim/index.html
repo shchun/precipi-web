@@ -1487,6 +1487,92 @@ body {
 @keyframes fadeIn { to { opacity: 1; } }
 
 [data-tweaks-panel] { font-family: var(--display); }
+
+/* ===== Time-of-day themes (driven by .app.mode-*) ===== */
+/* Full-viewport sky behind everything, tinted by the selected mode. */
+.app::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: var(--bg);
+  transition: background 1.4s ease;
+  pointer-events: none;
+}
+/* 수동/off — original dark studio backdrop */
+.app.mode-off::before {
+  background:
+    radial-gradient(ellipse 80% 60% at 50% -10%, rgba(245,177,72,0.05), transparent 60%),
+    radial-gradient(ellipse 60% 50% at 100% 100%, rgba(106,168,255,0.04), transparent 60%),
+    var(--bg);
+}
+/* 아침 — dawn: cool sky warming to a peach horizon */
+.app.mode-morning::before {
+  background:
+    radial-gradient(ellipse 95% 55% at 50% 100%, rgba(255,193,130,0.55), transparent 72%),
+    linear-gradient(180deg, #20304f 0%, #3a4e74 35%, #7d7f9c 62%, #d99a72 86%, #f4c08a 100%);
+}
+/* 낮 — bright clear daylight */
+.app.mode-day::before {
+  background:
+    radial-gradient(ellipse 70% 42% at 50% 4%, rgba(255,255,255,0.38), transparent 60%),
+    linear-gradient(180deg, #3f7fc4 0%, #6aa6e0 45%, #a9cdf0 75%, #d8ebf9 100%);
+}
+/* 저녁 — sunset 노을: indigo → magenta → orange (warm band lifted up high) */
+.app.mode-evening::before {
+  background:
+    radial-gradient(ellipse 120% 70% at 50% 95%, rgba(255,140,60,0.7), transparent 78%),
+    linear-gradient(180deg, #2a2150 0%, #6b2f6a 22%, #aa3f63 42%, #d65a4e 60%, #ef8a4d 80%, #f6c074 100%);
+}
+
+/* The building card becomes the sky — the cross-section sits against it.
+   Structure (facade, shafts, cars) stays opaque so it reads clearly. */
+.building-card { border-color: rgba(255,255,255,0.12); }
+.app.mode-morning .building-card {
+  background: linear-gradient(180deg, #2e3e5f 0%, #4a5e84 32%, #9a93a6 62%, #e0a479 86%, #f4c08a 100%);
+}
+.app.mode-day .building-card {
+  background: linear-gradient(180deg, #4f8bca 0%, #7fb0e2 50%, #b6d6f1 100%);
+}
+.app.mode-evening .building-card {
+  background: linear-gradient(180deg, #3a2860 0%, #8e3a6e 38%, #cf5a55 62%, #ef8a4d 84%, #f6c074 100%);
+}
+/* Sky shows through the building's open interior */
+.app.mode-morning .building,
+.app.mode-day .building,
+.app.mode-evening .building { background: transparent; }
+.app.mode-morning .floor-corridor,
+.app.mode-day .floor-corridor,
+.app.mode-evening .floor-corridor { background: rgba(255,255,255,0.06); }
+/* Header text stays legible against bright daytime skies */
+.app.mode-day .card-header,
+.app.mode-morning .card-header { color: rgba(18,26,42,0.78); }
+.app.mode-day .card-header .dot,
+.app.mode-morning .card-header .dot { box-shadow: 0 0 8px rgba(0,0,0,0.3); }
+
+/* Building lit to match the time of day */
+.building-card { transition: filter 1.4s ease, background 1.4s ease; }
+.app.mode-day .building-card     { filter: brightness(1.22) saturate(1.05); }
+.app.mode-morning .building-card { filter: brightness(1.1) saturate(1.02); }
+.app.mode-evening .building-card { filter: brightness(1.0) saturate(1.14) sepia(0.12); }
+
+/* Windows: warm lights in the evening, sky-reflective by day */
+.window,
+.window.lit { transition: background 1.4s ease, box-shadow 1.4s ease, border-color 1.4s ease; }
+.app.mode-evening .window.lit {
+  background: linear-gradient(180deg, #ffd98a 0%, #f5b148 100%);
+  border-color: #ffcf7a;
+  box-shadow: 0 0 8px rgba(245,177,72,0.55), inset 0 0 4px rgba(255,255,255,0.4);
+}
+.app.mode-day .window,
+.app.mode-morning .window {
+  background: linear-gradient(180deg, #b8d6f0 0%, #8fb4dc 100%);
+  border-color: #6f93bf;
+}
+.app.mode-day .window.lit,
+.app.mode-morning .window.lit {
+  background: linear-gradient(180deg, #dceaf7 0%, #b2cbe6 100%);
+}
 </style>
 </head>
 <body>

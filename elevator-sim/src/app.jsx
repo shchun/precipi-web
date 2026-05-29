@@ -14,28 +14,39 @@ const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
 //   morning : 아침 — everyone heads down to the lobby (floor 1)
 //   day     : 낮 — random mix of going out / coming home / inter-floor
 //   evening : 저녁 — everyone rides up from the lobby to their home floor
-//   night   : 밤 — no new traffic; cars settle to idle
 const TRAFFIC_MODES = [
   { key: "off",     label: "수동", desc: "직접 호출" },
   { key: "morning", label: "아침", desc: "모두 1층으로" },
   { key: "day",     label: "낮",   desc: "랜덤 이동" },
   { key: "evening", label: "저녁", desc: "각자 귀가" },
-  { key: "night",   label: "밤",   desc: "정지" },
 ];
-const MODE_INTERVAL_MS = { morning: 1200, evening: 1200, day: 2000 };
+// Base gap (ms) between auto-generated arrivals at speed ×1; divided by the
+// user's arrival-speed setting (느림 0.25 … 빠름 3).
+const MODE_BASE_MS = { morning: 1400, evening: 1400, day: 2200 };
+const MIN_INTERVAL_MS = 250;
 
 function randFloor() {
   // 2..FLOORS (an upper, residential floor)
   return 2 + Math.floor(Math.random() * 9);
 }
 
-function ModeBar({ mode, onChange }) {
+const barLabelStyle = {
+  alignSelf: "center",
+  marginRight: "4px",
+  fontSize: "11px",
+  letterSpacing: "0.08em",
+  textTransform: "uppercase",
+  color: "var(--muted)",
+};
+
+function ModeBar({ mode, onChange, arrivalSpeed, onSpeedChange }) {
   return (
     <div
       style={{
         display: "flex",
         gap: "8px",
         flexWrap: "wrap",
+        alignItems: "center",
         padding: "10px 14px",
         margin: "0 0 12px",
         background: "var(--panel)",
@@ -43,18 +54,7 @@ function ModeBar({ mode, onChange }) {
         borderRadius: "12px",
       }}
     >
-      <span
-        style={{
-          alignSelf: "center",
-          marginRight: "4px",
-          fontSize: "11px",
-          letterSpacing: "0.08em",
-          textTransform: "uppercase",
-          color: "var(--muted)",
-        }}
-      >
-        시간대
-      </span>
+      <span style={barLabelStyle}>시간대</span>
       {TRAFFIC_MODES.map((m) => {
         const active = mode === m.key;
         return (
@@ -82,6 +82,50 @@ function ModeBar({ mode, onChange }) {
           </button>
         );
       })}
+
+      <span
+        style={{
+          width: "1px",
+          alignSelf: "stretch",
+          margin: "2px 6px",
+          background: "var(--line)",
+        }}
+      />
+
+      <span style={barLabelStyle}>도착 속도</span>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "8px",
+          opacity: mode === "off" ? 0.4 : 1,
+          transition: "opacity 0.15s",
+        }}
+        title={mode === "off" ? "시간대를 선택하면 적용됩니다" : "사람들이 도착하는 빈도"}
+      >
+        <span style={{ fontSize: "11px", color: "var(--ink-2)" }}>느림</span>
+        <input
+          type="range"
+          min={0.25}
+          max={3}
+          step={0.25}
+          value={arrivalSpeed}
+          disabled={mode === "off"}
+          onChange={(e) => onSpeedChange(parseFloat(e.target.value))}
+          style={{ width: "120px", accentColor: "var(--amber)", cursor: mode === "off" ? "default" : "pointer" }}
+        />
+        <span style={{ fontSize: "11px", color: "var(--ink-2)" }}>빠름</span>
+        <span
+          style={{
+            minWidth: "30px",
+            fontFamily: "var(--mono)",
+            fontSize: "11px",
+            color: "var(--amber)",
+          }}
+        >
+          {arrivalSpeed}×
+        </span>
+      </div>
     </div>
   );
 }
@@ -91,6 +135,7 @@ function App() {
 
   const [tweaks, setTweak] = useTweaks(TWEAK_DEFAULTS);
   const [mode, setMode] = useState("off");
+  const [arrivalSpeed, setArrivalSpeed] = useState(1);
 
   const simRef = useRef(null);
   if (simRef.current == null) {
@@ -144,8 +189,9 @@ function App() {
 
   // Traffic-mode generator: emits hall calls with pre-chosen destinations.
   useEffect(() => {
-    const interval = MODE_INTERVAL_MS[mode];
-    if (!interval) return; // off / night → no auto traffic
+    const base = MODE_BASE_MS[mode];
+    if (!base) return; // 수동 → no auto traffic
+    const interval = Math.max(MIN_INTERVAL_MS, Math.round(base / arrivalSpeed));
     const gen = () => {
       if (mode === "morning") {
         // upper floor → lobby
@@ -170,12 +216,12 @@ function App() {
     gen();
     const id = setInterval(gen, interval);
     return () => clearInterval(id);
-  }, [mode, sim]);
+  }, [mode, arrivalSpeed, sim]);
 
   const state = sim.state;
 
   return (
-    <div className="app">
+    <div className={"app mode-" + mode}>
       <header className="topbar">
         <div className="brand">
           <span className="logo"></span>
@@ -187,7 +233,12 @@ function App() {
         <StatsBar stats={state.stats} />
       </header>
 
-      <ModeBar mode={mode} onChange={setMode} />
+      <ModeBar
+        mode={mode}
+        onChange={setMode}
+        arrivalSpeed={arrivalSpeed}
+        onSpeedChange={setArrivalSpeed}
+      />
 
       <main className="main">
         <Building state={state} onCall={(f, d) => sim.callElevator(f, d)} />
