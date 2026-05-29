@@ -40,29 +40,34 @@
       }
       .overlay {
         position: absolute;
-        inset: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
         display: none;
-        align-items: center;
+        align-items: flex-end;
         justify-content: center;
         z-index: 25;
-        background: rgba(0, 0, 0, 0.22);
-        backdrop-filter: blur(2px);
+        padding: 0 16px 18px;
         pointer-events: none;
       }
       .overlay .card {
-        min-width: min(520px, calc(100vw - 48px));
         max-width: min(720px, calc(100vw - 48px));
-        background: rgba(15, 22, 45, 0.82);
+        background: rgba(15, 22, 45, 0.9);
         border: 1px solid rgba(255, 255, 255, 0.14);
-        border-radius: 14px;
-        padding: 14px 16px 12px;
-        box-shadow: 0 18px 60px rgba(0, 0, 0, 0.45);
+        border-radius: 12px;
+        padding: 10px 14px;
+        box-shadow: 0 10px 34px rgba(0, 0, 0, 0.45);
+        display: flex;
+        align-items: baseline;
+        gap: 10px;
+        flex-wrap: wrap;
       }
       .overlay .card .t {
-        font-size: 14px;
-        margin: 0 0 6px 0;
+        font-size: 13px;
+        margin: 0;
         color: rgba(255, 255, 255, 0.92);
         letter-spacing: -0.2px;
+        white-space: nowrap;
       }
       .overlay .card .d {
         font-size: 12px;
@@ -1441,7 +1446,7 @@
         ui.pause.textContent = "재생";
         const startMsg = `${statusLabel} 중… (간이 랜덤 탐색)\n잠시만 기다려주세요.`;
         setStatus(startMsg);
-        setLaunchOverlay(true, `탐사선 발사 준비중…\n${startMsg}`);
+        setLaunchOverlay(true, startMsg);
 
         const opts = { enableSoftening: ui.softening.checked };
         const seed = Math.floor(nowMs()) ^ 0x9e3779b9;
@@ -1477,11 +1482,11 @@
                     ? `, dJ_min≈${(best.minDistToJupiter / AU).toFixed(2)} AU`
                     : "")
               setStatus(msg);
-              setLaunchOverlay(true, `탐사선 발사 준비중…\n${msg}`);
+              setLaunchOverlay(true, msg);
             } else {
               const msg = `${statusLabel} 중… ${i + 1}/${trials}`;
               setStatus(msg);
-              setLaunchOverlay(true, `탐사선 발사 준비중…\n${msg}`);
+              setLaunchOverlay(true, msg);
             }
             await new Promise((r) => requestAnimationFrame(() => r()));
           }
