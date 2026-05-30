@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fractal Explorer · 카오스 프랙탈 탐색기</title>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-K7BBKNKZYM"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-K7BBKNKZYM');
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.4/p5.min.js"></script>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="grain"></div>
+
+<div class="app">
+  <header>
+    <div>
+      <h1>Fractal <em>Explorer</em></h1>
+      <div class="subtitle">Chaos · Iteration · Complex plane</div>
+    </div>
+    <div class="meta">
+      <div>z<sub>n+1</sub> = z<sub>n</sub><sup>p</sup> + c</div>
+      <div>p5.js · standalone</div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <div>
+      <div class="canvas-wrap" id="canvasHolder">
+        <button id="fsBtn" class="fs-btn" type="button" title="뷰포트 전체화면">전체화면</button>
+        <div class="hud">
+          <span id="zoomInfo">zoom 1.00×</span>
+          <span id="coordInfo">—</span>
+        </div>
+      </div>
+      <div class="help-bar">
+        <span><kbd>drag</kbd> 영역 확대</span>
+        <span><kbd>click</kbd> 중심 이동 + 2× 줌</span>
+        <span><kbd>right-click</kbd> 축소</span>
+      </div>
+    </div>
+
+    <aside>
+
+      <div class="panel">
+        <h2 data-num="01">Formula</h2>
+
+        <div class="field">
+          <label>Mode</label>
+          <select id="mode">
+            <option value="mandelbrot">Mandelbrot — z² + c</option>
+            <option value="julia">Julia set</option>
+            <option value="burningship">Burning ship</option>
+            <option value="tricorn">Tricorn (Mandelbar)</option>
+            <option value="phoenix">Phoenix</option>
+          </select>
+        </div>
+
+        <div class="row">
+          <label>Power n</label>
+          <input type="range" id="power" min="2" max="8" step="0.1" value="2">
+          <span class="val" id="powerVal">2.0</span>
+        </div>
+
+        <div id="juliaControls" class="hidden">
+          <div class="row">
+            <label>c.re</label>
+            <input type="range" id="cRe" min="-2" max="2" step="0.001" value="-0.7">
+            <span class="val" id="cReVal">-0.700</span>
+          </div>
+          <div class="row">
+            <label>c.im</label>
+            <input type="range" id="cIm" min="-2" max="2" step="0.001" value="0.27015">
+            <span class="val" id="cImVal">0.270</span>
+          </div>
+          <div class="field">
+            <label>Julia preset</label>
+            <select id="juliaPreset">
+              <option value="">— manual —</option>
+              <option value="-0.7,0.27015">Classic</option>
+              <option value="-0.8,0.156">Lightning</option>
+              <option value="0.285,0.01">Vortex</option>
+              <option value="-0.4,0.6">Dendrite</option>
+              <option value="0.355,0.355">Spiral</option>
+              <option value="-0.123,0.745">Douady rabbit</option>
+              <option value="-1.476,0">Needle</option>
+              <option value="-0.835,-0.2321">Glynn</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="phoenixControls" class="hidden">
+          <div class="row">
+            <label>Feedback p</label>
+            <input type="range" id="phoenixP" min="-1" max="1" step="0.001" value="-0.5">
+            <span class="val" id="phoenixPVal">-0.500</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2 data-num="02">Compute</h2>
+        <div class="row">
+          <label>Iter</label>
+          <input type="range" id="iter" min="50" max="1500" step="10" value="200">
+          <span class="val" id="iterVal">200</span>
+        </div>
+        <div class="row">
+          <label>Bailout</label>
+          <input type="range" id="bailout" min="4" max="1000" step="1" value="4">
+          <span class="val" id="bailoutVal">4</span>
+        </div>
+        <div class="field">
+          <label>Resolution</label>
+          <select id="resolution">
+            <option value="1">1× fast</option>
+            <option value="2" selected>2× balanced</option>
+            <option value="3">3× sharp</option>
+            <option value="4">4× ultra (slow)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2 data-num="03">Color</h2>
+        <div class="field">
+          <label>Palette</label>
+          <select id="palette">
+            <option value="fire">Fire</option>
+            <option value="ocean">Ocean</option>
+            <option value="psyche">Psychedelic</option>
+            <option value="electric">Electric</option>
+            <option value="forest">Forest</option>
+            <option value="ember">Ember</option>
+            <option value="mono">Monochrome</option>
+            <option value="rainbow">Rainbow</option>
+          </select>
+        </div>
+        <div class="row">
+          <label>Cycle</label>
+          <input type="range" id="colorCycle" min="0.5" max="20" step="0.1" value="4">
+          <span class="val" id="colorCycleVal">4.0</span>
+        </div>
+        <div class="row">
+          <label>Offset</label>
+          <input type="range" id="colorOffset" min="0" max="1" step="0.01" value="0">
+          <span class="val" id="colorOffsetVal">0.00</span>
+        </div>
+        <div class="row">
+          <label>Gamma</label>
+          <input type="range" id="gamma" min="0.2" max="3" step="0.05" value="1">
+          <span class="val" id="gammaVal">1.00</span>
+        </div>
+        <div class="check-row">
+          <label><input type="checkbox" id="smooth" checked> Smooth</label>
+          <label><input type="checkbox" id="invert"> Invert</label>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2 data-num="04">Viewport</h2>
+        <div class="grid-2">
+          <div class="field">
+            <label>center.x</label>
+            <input type="number" id="centerX" value="-0.7" step="0.0001">
+          </div>
+          <div class="field">
+            <label>center.y</label>
+            <input type="number" id="centerY" value="0" step="0.0001">
+          </div>
+        </div>
+        <div class="field">
+          <label>scale</label>
+          <input type="number" id="scaleIn" value="3" step="0.0001">
+        </div>
+        <div class="btn-row">
+          <button id="apply" class="primary">Apply</button>
+          <button id="reset">Reset</button>
+          <button id="randomBtn">Random</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2 data-num="05">Locations</h2>
+        <div class="locations">
+          <button data-loc="seahorse">Seahorse</button>
+          <button data-loc="elephant">Elephant</button>
+          <button data-loc="mini">Minibrot</button>
+          <button data-loc="spiral">Triple spiral</button>
+          <button data-loc="needle">Needle</button>
+          <button data-loc="deep">Deep zoom</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2 data-num="06">Export</h2>
+        <div class="btn-row">
+          <button id="saveBtn">Save PNG</button>
+          <button id="copyParams">Copy params</button>
+        </div>
+      </div>
+
+    </aside>
+  </div>
+
+  <footer>
+    <span>Fractal Explorer</span>
+    <span>Made with p5.js · Chaos theory toolkit</span>
+  </footer>
+</div>
+
+<script src="src/palettes.js"></script>
+<script src="src/iterate.js"></script>
+<script src="src/engine.js"></script>
+<script src="src/controls.js"></script>
+<script src="src/fullscreen.js"></script>
+</body>
+</html>
