@@ -48,6 +48,10 @@ Precipi Web은 다양한 웹 기술을 활용한 인터랙티브 데모들의 �
 - 클릭 시 새로운 생각 생성 및 색상 변화
 - 부드러운 애니메이션과 파도치는 촉수 효과
 
+### ✏️ 스크리블 (`scribble/`)
+- 펜·형광펜·지우개로 그리는 간단한 브라우저 스케치 앱입니다.
+- 캔버스 전체 지우기, PNG 저장, 마우스/터치 입력을 지원합니다.
+
 ## 아카이브 데모
 
 현재 메인 목록에서는 제외했지만 `archive/index.html`에서 접근할 수 있는 이전 데모입니다. 관련 파일은 모두 `archive/` 폴더 안에 모여 있습니다.
@@ -124,6 +128,11 @@ precipi-web/
 │   ├── index.html
 │   ├── styles.css
 │   └── src/                # core·audio·particles·scene·effects·interaction·fullscreen
+├── scribble/               # 브라우저 스케치 앱
+│   ├── index.html
+│   ├── script.js
+│   ├── styles.css
+│   └── README.md
 ├── vita/                   # 비타미술 안내 페이지
 │   ├── index.html
 │   └── vita_logo.jpg
