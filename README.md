@@ -125,7 +125,7 @@ precipi-web/
 │   ├── styles.css
 │   └── src/                # core·audio·particles·scene·effects·interaction·fullscreen
 ├── vita/                   # 비타미술 안내 페이지
-│   ├── index-vita.html
+│   ├── index.html
 │   └── vita_logo.jpg
 └── archive/                # 아카이브 데모 모음
     ├── index.html          # 아카이브 목록
