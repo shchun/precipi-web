@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Falcon 9 Recovery · 1단 회수 시뮬레이터</title>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-K7BBKNKZYM"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-K7BBKNKZYM');
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+
+<div class="app">
+  <header>
+    <div>
+      <h1>Falcon 9 <em>Recovery</em></h1>
+      <div class="subtitle">Booster landing simulation · physics + control</div>
+    </div>
+    <div class="meta">
+      <div>Merlin 1D · 845 kN · Isp 282s</div>
+      <div>Mass 25.6t dry · 395.7t fuel</div>
+    </div>
+  </header>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="sim">▶ Simulation</button>
+    <button class="tab-btn" data-tab="tune">⚙ Auto-tune</button>
+  </div>
+
+  <div class="tab-content active" id="tab-sim">
+  <div class="layout">
+    <div>
+      <div class="stage-canvas" id="canvasHolder">
+        <canvas id="main"></canvas>
+        <button id="fsBtn" class="fs-btn" type="button" title="뷰포트 전체화면">전체화면</button>
+
+        <div class="hud-top">
+          <div id="phaseBadge" class="phase-badge ascent">Pre-launch</div>
+          <div class="mission-time">
+            <div class="label">T+ Mission time</div>
+            <div class="t" id="missionTime">00:00.0</div>
+          </div>
+        </div>
+
+        <div class="minimap">
+          <div class="label">Trajectory</div>
+          <canvas id="mini"></canvas>
+        </div>
+
+        <div class="hud-bottom">
+          <div class="hud-stat">
+            <div class="label">Altitude</div>
+            <div class="val" id="altVal">0 m</div>
+          </div>
+          <div class="hud-stat">
+            <div class="label">Velocity</div>
+            <div class="val" id="velVal">0 m/s</div>
+          </div>
+          <div class="hud-stat">
+            <div class="label">Downrange</div>
+            <div class="val" id="downrangeVal">0 m</div>
+          </div>
+          <div class="hud-stat">
+            <div class="label">Throttle</div>
+            <div class="val" id="throttleVal">0%</div>
+          </div>
+          <div class="hud-stat">
+            <div class="label">Fuel</div>
+            <div class="val" id="fuelVal">100%</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <aside>
+      <div class="panel">
+        <h2 data-num="01">Mission control</h2>
+        <div class="btn-row" style="margin-bottom: 8px;">
+          <button id="launchBtn" class="primary">Launch</button>
+          <button id="resetBtn">Reset</button>
+        </div>
+        <div class="speed-control">
+          <button data-speed="0">Pause</button>
+          <button data-speed="1" class="active">1×</button>
+          <button data-speed="2">2×</button>
+          <button data-speed="4">4×</button>
+          <button data-speed="8">8×</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2 data-num="02">Telemetry</h2>
+        <div class="telemetry">
+          <div class="tel-cell">
+            <div class="label">Pitch</div>
+            <div class="val" id="pitchVal">0°</div>
+          </div>
+          <div class="tel-cell">
+            <div class="label">Mass</div>
+            <div class="val" id="massVal">421.3 t</div>
+          </div>
+          <div class="tel-cell">
+            <div class="label">Thrust</div>
+            <div class="val" id="thrustVal">0 kN</div>
+          </div>
+          <div class="tel-cell">
+            <div class="label">Drag</div>
+            <div class="val" id="dragVal">0 N</div>
+          </div>
+          <div class="tel-cell">
+            <div class="label">Mach</div>
+            <div class="val" id="machVal">0.00</div>
+          </div>
+          <div class="tel-cell">
+            <div class="label">Dyn pressure</div>
+            <div class="val" id="qVal">0 Pa</div>
+          </div>
+          <div class="tel-cell">
+            <div class="label">Vert vel</div>
+            <div class="val" id="vyVal">0 m/s</div>
+          </div>
+          <div class="tel-cell">
+            <div class="label">Horz vel</div>
+            <div class="val" id="vxVal">0 m/s</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2 data-num="03">Octaweb · engine view</h2>
+        <div class="octaweb-wrap">
+          <div class="octaweb" id="octaweb">
+            <!-- Engines positioned via JS -->
+          </div>
+          <div class="octaweb-info">
+            <div class="row-info"><span>Active</span><span class="v" id="engActive">0 / 9</span></div>
+            <div class="row-info"><span>Throttle</span><span class="v" id="engThrottle">0%</span></div>
+            <div class="row-info"><span>Per engine</span><span class="v" id="engPerThrust">0 kN</span></div>
+            <div class="row-info"><span>Total</span><span class="v" id="engTotal">0 kN</span></div>
+            <div class="row-info"><span>TWR</span><span class="v" id="engTWR">0.00</span></div>
+          </div>
+        </div>
+        <div class="audio-toggle">
+          <label>
+            <input type="checkbox" id="audioOn" checked> Sound
+          </label>
+          <input type="range" id="volume" min="0" max="100" value="70">
+          <span class="vol-val" id="volVal">70</span>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2 data-num="04">Stage 2 · upper stage</h2>
+        <div class="telemetry">
+          <div class="tel-cell">
+            <div class="label">Status</div>
+            <div class="val" id="s2Status">Attached</div>
+          </div>
+          <div class="tel-cell">
+            <div class="label">Engine</div>
+            <div class="val" id="s2Engine">Off</div>
+          </div>
+          <div class="tel-cell">
+            <div class="label">Altitude</div>
+            <div class="val" id="s2Alt">— km</div>
+          </div>
+          <div class="tel-cell">
+            <div class="label">Velocity</div>
+            <div class="val" id="s2Vel">— km/s</div>
+          </div>
+          <div class="tel-cell">
+            <div class="label">Fuel</div>
+            <div class="val" id="s2Fuel">100%</div>
+          </div>
+          <div class="tel-cell">
+            <div class="label">Orbit progress</div>
+            <div class="val" id="s2Orbit">0%</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2 data-num="05">Parameters</h2>
+        <div class="row">
+          <label>Payload</label>
+          <input type="range" id="payload" min="0" max="22" step="0.5" value="5">
+          <span class="val" id="payloadVal">5.0 t</span>
+        </div>
+        <div class="row">
+          <label>Wind</label>
+          <input type="range" id="wind" min="-20" max="20" step="1" value="0">
+          <span class="val" id="windVal">0 m/s</span>
+        </div>
+        <div class="row">
+          <label>Target X</label>
+          <input type="range" id="targetX" min="-2" max="15" step="0.5" value="0">
+          <span class="val" id="targetXVal">0 km</span>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2 data-num="06">Debug · live state</h2>
+        <div class="dbg-section">
+          <div class="dbg-section-title">Phase logic</div>
+          <div class="debug-grid">
+            <div class="dbg-cell"><span class="label">Phase</span><span class="val" id="dbgPhase">—</span></div>
+            <div class="dbg-cell"><span class="label">Sub-step dt</span><span class="val" id="dbgDt">—</span></div>
+            <div class="dbg-cell"><span class="label">Engines</span><span class="val" id="dbgEng">0</span></div>
+            <div class="dbg-cell"><span class="label">Throttle cmd</span><span class="val" id="dbgThr">0%</span></div>
+          </div>
+        </div>
+        <div class="dbg-section">
+          <div class="dbg-section-title">Landing prediction</div>
+          <div class="debug-grid">
+            <div class="dbg-cell"><span class="label">Suicide alt</span><span class="val" id="dbgSuiAlt">—</span></div>
+            <div class="dbg-cell"><span class="label">Decel needed</span><span class="val" id="dbgDecel">—</span></div>
+            <div class="dbg-cell"><span class="label">Max decel</span><span class="val" id="dbgMaxDecel">—</span></div>
+            <div class="dbg-cell"><span class="label">TWR</span><span class="val" id="dbgTWR">—</span></div>
+            <div class="dbg-cell"><span class="label">Time to gnd</span><span class="val" id="dbgTTG">—</span></div>
+            <div class="dbg-cell"><span class="label">Predict impact</span><span class="val" id="dbgImpact">—</span></div>
+          </div>
+        </div>
+        <div class="dbg-section">
+          <div class="dbg-section-title">Stage 2 budget</div>
+          <div class="debug-grid">
+            <div class="dbg-cell"><span class="label">ΔV available</span><span class="val" id="dbgS2dv">—</span></div>
+            <div class="dbg-cell"><span class="label">ΔV needed</span><span class="val" id="dbgS2need">—</span></div>
+            <div class="dbg-cell"><span class="label">Pitch tgt</span><span class="val" id="dbgS2pitch">—</span></div>
+            <div class="dbg-cell"><span class="label">Burn time</span><span class="val" id="dbgS2burn">—</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2 data-num="07">Event log</h2>
+        <div class="events" id="events"></div>
+      </div>
+    </aside>
+  </div>
+  </div><!-- /tab-sim -->
+
+  <div class="tab-content" id="tab-tune">
+    <div class="tune-layout">
+      <div class="tune-main">
+
+        <div class="panel">
+          <h2 data-num="01">Tuning controller</h2>
+          <div class="tune-controls">
+            <button id="tuneRun" class="primary">▶ Run tuning</button>
+            <button id="tuneStop">⏹ Stop</button>
+            <div class="field-inline">
+              <span>iterations</span>
+              <input type="number" id="tuneIters" value="100" min="10" max="500" step="10">
+            </div>
+            <div class="field-inline">
+              <span>headless</span>
+              <input type="checkbox" id="tuneHeadless" checked>
+            </div>
+          </div>
+          <div class="tune-progress-bar">
+            <div class="tune-progress-fill" id="tuneProgress" style="width: 0%"></div>
+          </div>
+          <div style="display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.1em;">
+            <span id="tuneStatus">Idle</span>
+            <span id="tuneCount">0 / 0</span>
+          </div>
+        </div>
+
+        <div class="score-chart">
+          <canvas id="scoreChart"></canvas>
+        </div>
+
+        <div class="best-result">
+          <h3>
+            <span>Best result</span>
+            <span class="score-big" id="bestScore">—</span>
+          </h3>
+          <div class="result-summary" id="resultSummary">
+            <div class="line"><span class="key">Status</span><span class="v">Run tuning to begin</span></div>
+          </div>
+          <div class="btn-row">
+            <button id="applyBest" class="primary">✓ Apply to simulation</button>
+            <button id="copyJson">📋 Copy JSON</button>
+          </div>
+        </div>
+
+      </div>
+
+      <aside>
+        <div class="panel">
+          <h2 data-num="02">Parameter ranges</h2>
+          <div class="params-table" id="paramsTable">
+            <!-- populated by JS -->
+          </div>
+        </div>
+
+        <div class="panel">
+          <h2 data-num="03">Help</h2>
+          <div style="font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); line-height: 1.7;">
+            <p style="margin-bottom: 8px;"><strong style="color: var(--text);">Score</strong> = 10000 minus penalties</p>
+            <p style="margin-bottom: 8px;"><strong style="color: var(--accent-good);">+</strong> S1 lands soft, S2 in orbit</p>
+            <p style="margin-bottom: 8px;"><strong style="color: var(--accent-bad);">−</strong> S1 crashes, S2 misses orbit</p>
+            <p style="margin-bottom: 8px;"><strong style="color: var(--accent-warm);">Headless</strong> mode skips rendering — 100 runs in ~30 seconds</p>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div><!-- /tab-tune -->
+
+  <div class="footer">
+    <span>Falcon 9 Recovery Simulator</span>
+    <span>Convex landing · gravity turn · PID control</span>
+  </div>
+</div>
+
+<script src="src/core.js"></script>
+<script src="src/audio.js"></script>
+<script src="src/octaweb.js"></script>
+<script src="src/physics.js"></script>
+<script src="src/render.js"></script>
+<script src="src/tuner.js"></script>
+<script src="src/main.js"></script>
+<script src="src/fullscreen.js"></script>
+</body>
+</html>
