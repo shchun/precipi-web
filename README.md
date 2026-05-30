@@ -52,6 +52,10 @@ Precipi Web은 다양한 웹 기술을 활용한 인터랙티브 데모들의 �
 - 펜·형광펜·지우개로 그리는 간단한 브라우저 스케치 앱입니다.
 - 캔버스 전체 지우기, PNG 저장, 마우스/터치 입력을 지원합니다.
 
+### 🧩 Jsongo · JSON 린터 (`Jsongo.html`)
+- JSON을 실시간으로 검사·정렬하고 오류 위치와 원인을 짚어주는 린터입니다.
+- 라이트(paper)·다크(ink) 테마를 지원하는 단일 파일 도구입니다.
+
 ## 아카이브 데모
 
 현재 메인 목록에서는 제외했지만 `archive/index.html`에서 접근할 수 있는 이전 데모입니다. 관련 파일은 모두 `archive/` 폴더 안에 모여 있습니다.
@@ -103,6 +107,7 @@ Precipi Web은 다양한 웹 기술을 활용한 인터랙티브 데모들의 �
 precipi-web/
 ├── index.html              # 메인 인덱스 페이지
 ├── octo.html               # 문어 네뷸라
+├── Jsongo.html             # JSON 린터 (단일 파일)
 ├── CNAME                   # GitHub Pages 커스텀 도메인 설정
 ├── README.md
 ├── assets/                 # 공용 이미지 에셋
