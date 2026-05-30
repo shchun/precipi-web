@@ -107,12 +107,39 @@
 
     // ---------- dispatch ----------
 
+    // Hall calls this car will pick up. A full car can't board anyone, so it
+    // reports none — its only remaining stops are its passengers' drop-offs.
+    function carCalls(e) {
+      if (e.passengers.length >= CAPACITY) return [];
+      return state.calls.filter((c) => c.assignedTo === e.id && !c.boarded);
+    }
+    // People already aboard + hall calls promised to this car. Used to avoid
+    // promising a car more riders than it can ever hold.
+    function assignedLoad(e) {
+      return (
+        e.passengers.length +
+        state.calls.filter((c) => c.assignedTo === e.id && !c.boarded).length
+      );
+    }
+    function hasWork(e) {
+      return e.targets.size > 0 || carCalls(e).length > 0;
+    }
+    // Let go of every hall call still pinned to this car (back into the pool).
+    function releaseCalls(e) {
+      for (const c of state.calls) {
+        if (c.assignedTo === e.id && !c.boarded) c.assignedTo = null;
+      }
+    }
+
     function pickElevator(call) {
       let best = null;
       let bestCost = Infinity;
       for (const e of state.elevators) {
         let cost = Infinity;
-        const isIdle = e.passengers.length === 0 && e.targets.size === 0;
+        const isIdle =
+          e.passengers.length === 0 &&
+          e.targets.size === 0 &&
+          carCalls(e).length === 0;
         if (isIdle) {
           cost = Math.abs(e.position - call.floor);
         } else if (
@@ -122,6 +149,15 @@
         ) {
           // moving in matching direction & still ahead → cheap swing-by
           cost = Math.abs(e.position - call.floor) + 0.5;
+        } else if (
+          assignedLoad(e) < CAPACITY &&
+          carCalls(e).some((c) => c.dir === call.dir)
+        ) {
+          // batch onto a car already collecting calls in this direction so a
+          // group of same-way hall calls shares one sweep (e.g. 6▼ then 4▼)
+          // rather than waking a second car. Cheaper than an idle car at equal
+          // distance so the group consolidates onto the one collector.
+          cost = Math.abs(e.position - call.floor) - 1;
         }
         if (cost < bestCost) {
           bestCost = cost;
@@ -132,6 +168,11 @@
     }
 
     function tryDispatch() {
+      // A full car can't board anyone — unpin its hall calls so another car
+      // can serve those waiters instead of stranding them behind a packed car.
+      for (const e of state.elevators) {
+        if (e.passengers.length >= CAPACITY) releaseCalls(e);
+      }
       // A floor+dir is "covered" once any car is assigned/heading there — one car
       // serves the whole group, so we don't send several cars to the same waiters.
       const covered = new Set();
@@ -146,7 +187,6 @@
         if (!best) continue;
         call.assignedTo = best.id;
         covered.add(key);
-        best.targets.add(call.floor);
         // wake an idle car
         if (best.state === "idle") {
           if (call.floor === best.floor) {
@@ -165,7 +205,7 @@
     // Opportunistic pickup: while moving, snag any unassigned call ahead of us
     // that's going the same direction and has remaining capacity.
     function opportunisticPickup(e) {
-      if (e.passengers.length >= CAPACITY) return;
+      if (assignedLoad(e) >= CAPACITY) return;
       for (const call of state.calls) {
         if (call.assignedTo != null) continue;
         if (call.dir !== e.direction) continue;
@@ -174,30 +214,71 @@
           e.direction === -1 ? call.floor <= Math.floor(e.position) : false;
         if (!ahead) continue;
         call.assignedTo = e.id;
-        e.targets.add(call.floor);
+        if (assignedLoad(e) >= CAPACITY) break;
       }
     }
 
     function pickNextTarget(e) {
-      if (e.targets.size === 0) return null;
-      const arr = [...e.targets];
-      // Try current direction first
-      const tryDir = (dir) => {
-        if (dir === 1) return arr.filter((t) => t > e.position).sort((a, b) => a - b)[0];
-        if (dir === -1) return arr.filter((t) => t < e.position).sort((a, b) => b - a)[0];
-        return null;
+      const drops = [...e.targets];   // drop-off floors — stop regardless of direction
+      const calls = carCalls(e);      // hall calls to collect (none while full)
+      if (drops.length === 0 && calls.length === 0) return null;
+
+      // Floors we'd actually stop at while travelling `dir`: drop-offs ahead that
+      // way, plus hall calls ahead whose rider wants to go `dir` (you only board
+      // people heading your way — a 4▼ call is NOT a stop while you're going up).
+      const stopsInDir = (dir) => {
+        const out = [];
+        for (const f of drops) {
+          if (dir === 1 ? f > e.position : f < e.position) out.push(f);
+        }
+        for (const c of calls) {
+          const ahead = dir === 1 ? c.floor > e.position : c.floor < e.position;
+          if (ahead && c.dir === dir) out.push(c.floor);
+        }
+        return out;
       };
-      let next = tryDir(e.direction);
-      if (next == null) {
-        // flip direction
-        e.direction = e.direction === 1 ? -1 : 1;
-        next = tryDir(e.direction);
+      // How far we must travel `dir` before it's worth reversing — the farthest
+      // pending drop-off OR hall call that way. A down-call above us is reached by
+      // riding up to it first, then sweeping back down: it's a turning point on
+      // the way up, a boarding stop on the way down.
+      const reachInDir = (dir) => {
+        let far = null;
+        const consider = (f) => {
+          if (dir === 1 ? f > e.position : f < e.position) {
+            if (far == null || (dir === 1 ? f > far : f < far)) far = f;
+          }
+        };
+        for (const f of drops) consider(f);
+        for (const c of calls) consider(c.floor);
+        return far;
+      };
+      const nextFor = (dir) => {
+        const stops = stopsInDir(dir);
+        if (stops.length > 0) return dir === 1 ? Math.min(...stops) : Math.max(...stops);
+        return reachInDir(dir);   // nothing to board ahead, but ride to the turning point
+      };
+
+      // Settle on a direction if we don't have one yet (head toward the nearer end).
+      if (e.direction === 0) {
+        const up = reachInDir(1);
+        const down = reachInDir(-1);
+        if (up != null && (down == null || up - e.position <= e.position - down)) {
+          e.direction = 1;
+        } else if (down != null) {
+          e.direction = -1;
+        }
       }
-      if (next == null) {
-        // anything else (target at current floor)
-        next = arr[0];
+
+      if (e.direction !== 0) {
+        const n = nextFor(e.direction);
+        if (n != null) return n;
+        const flip = e.direction === 1 ? -1 : 1;
+        const r = nextFor(flip);
+        if (r != null) { e.direction = flip; return r; }
       }
-      return next;
+      // fallback: a target sitting at the current floor
+      if (drops.includes(e.floor)) return e.floor;
+      return calls.some((c) => c.floor === e.floor) ? e.floor : null;
     }
 
     function processArrival(e) {
@@ -216,11 +297,15 @@
       // If we can't continue in our current direction (no onward targets),
       // reverse toward remaining work, or adopt the direction of the people
       // waiting here — we came for them, so don't strand them.
-      const upTarget = [...e.targets].some((t) => t > e.floor);
-      const downTarget = [...e.targets].some((t) => t < e.floor);
+      const workAbove =
+        [...e.targets].some((t) => t > e.floor) ||
+        carCalls(e).some((c) => c.floor > e.floor);
+      const workBelow =
+        [...e.targets].some((t) => t < e.floor) ||
+        carCalls(e).some((c) => c.floor < e.floor);
       let heading = e.direction;
-      if (heading === 1 && !upTarget) heading = downTarget ? -1 : 0;
-      else if (heading === -1 && !downTarget) heading = upTarget ? 1 : 0;
+      if (heading === 1 && !workAbove) heading = workBelow ? -1 : 0;
+      else if (heading === -1 && !workBelow) heading = workAbove ? 1 : 0;
       if (heading === 0) {
         const ref = ours[0] || callsHere[0];
         heading = ref ? ref.dir : 0;
@@ -256,6 +341,9 @@
       for (const c of callsHere) {
         if (!c.boarded && c.assignedTo === e.id) c.assignedTo = null;
       }
+      // If boarding packed the car, drop any hall calls still promised to it —
+      // a full car would only waste a stop opening doors it can't take riders at.
+      if (e.passengers.length >= CAPACITY) releaseCalls(e);
       state.calls = state.calls.filter((c) => !c.boarded);
       if (departing.length > 0) {
         pushLog("idle", `Car ${e.id + 1} dropped ${departing.length} · ${fmtFloor(e.floor)}`);
@@ -274,8 +362,8 @@
         e.stateT += dt;
 
         if (e.state === "idle") {
-          // wake if we have targets
-          if (e.targets.size > 0) {
+          // wake if we have work (a drop-off or an assigned hall call)
+          if (hasWork(e)) {
             const next = pickNextTarget(e);
             if (next != null) {
               if (next === e.floor) {
@@ -350,7 +438,7 @@
           e.doorProgress = Math.max(0, 1 - e.stateT / DOOR_MS);
           if (e.stateT >= DOOR_MS) {
             e.doorProgress = 0;
-            if (e.targets.size === 0) {
+            if (!hasWork(e)) {
               e.state = "idle";
               e.direction = 0;
             } else {

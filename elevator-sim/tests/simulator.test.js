@@ -148,6 +148,129 @@ test("picks up a new pile that arrives after the cars go idle", () => {
   );
 });
 
+test("two down-calls (4▼ & 6▼) ride one car, served 6 before 4", () => {
+  const sim = makeSimulator();
+  // Down buttons pressed on 6 and on 4 at about the same time. The car should
+  // ride up to the higher call, then sweep down — collecting 6 first, then 4 —
+  // rather than stopping at 4 on the way up or splitting across two cars.
+  sim.callElevator(4, -1, 1); // 4 → lobby
+  sim.callElevator(6, -1, 2); // 6 → floor 2
+
+  const boardOrder = []; // {fromFloor, carId} in the order people stepped aboard
+  const seen = new Set();
+  for (let i = 0; i < 2000; i++) {
+    sim.tick(DT);
+    for (const e of sim.state.elevators) {
+      for (const p of e.passengers) {
+        if (seen.has(p.id)) continue;
+        seen.add(p.id);
+        boardOrder.push({ fromFloor: p.fromFloor, carId: e.id });
+      }
+    }
+    if (sim.state.stats.served === 2) break;
+  }
+
+  assert.equal(sim.state.stats.served, 2, "both riders should arrive");
+  const from6 = boardOrder.find((b) => b.fromFloor === 6);
+  const from4 = boardOrder.find((b) => b.fromFloor === 4);
+  assert.ok(from6 && from4, "both floors' riders should have boarded");
+  assert.equal(
+    from6.carId,
+    from4.carId,
+    "one car should collect both down-calls, not two cars"
+  );
+  assert.ok(
+    boardOrder.indexOf(from6) < boardOrder.indexOf(from4),
+    `car should reach 6 before 4; boarding order was ${boardOrder
+      .map((b) => b.fromFloor)
+      .join(" → ")}`
+  );
+});
+
+test("a full car ignores hall calls and rides straight to its drop-offs", () => {
+  const sim = makeSimulator();
+  // Pack one car in the lobby — four riders all bound for the top floor.
+  for (let i = 0; i < CAPACITY; i++) sim.callElevator(1, 1, FLOORS);
+  // Let it fill and pull away from the lobby.
+  drive(sim, 120);
+
+  const lobbyCar = sim.state.elevators.find(
+    (e) =>
+      e.passengers.length === CAPACITY &&
+      e.passengers.every((p) => p.fromFloor === 1)
+  );
+  assert.ok(lobbyCar, "one car should be packed with the lobby group");
+
+  // A same-direction hall call now appears on the packed car's path.
+  sim.callElevator(5, 1, 8);
+
+  const opensByCar = new Map(); // carId → [floors where it opened doors]
+  const prevState = new Map();
+  for (const e of sim.state.elevators) prevState.set(e.id, e.state);
+  let fifthRiderCar = null;
+
+  for (let i = 0; i < 3000; i++) {
+    sim.tick(DT);
+    for (const e of sim.state.elevators) {
+      if (prevState.get(e.id) !== "opening" && e.state === "opening") {
+        if (!opensByCar.has(e.id)) opensByCar.set(e.id, []);
+        opensByCar.get(e.id).push(e.floor);
+      }
+      prevState.set(e.id, e.state);
+      if (e.passengers.some((p) => p.fromFloor === 5)) fifthRiderCar = e.id;
+    }
+    if (sim.state.stats.served === CAPACITY + 1) break;
+  }
+
+  assert.equal(
+    sim.state.stats.served,
+    CAPACITY + 1,
+    "everyone, including the 5th-floor rider, should be served"
+  );
+  // The packed car must never open at floor 5 — it can't board anyone, so the
+  // stop is pure wasted time.
+  const lobbyCarOpens = opensByCar.get(lobbyCar.id) || [];
+  assert.ok(
+    !lobbyCarOpens.includes(5),
+    `full car should skip the hall-call floor; it opened at: ${lobbyCarOpens.join(",")}`
+  );
+  // The waiter on 5 is fetched by a different car.
+  assert.ok(fifthRiderCar != null, "the 5th-floor rider should have boarded");
+  assert.notEqual(
+    fifthRiderCar,
+    lobbyCar.id,
+    "a different car should serve the hall call the full car drove past"
+  );
+});
+
+test("hall calls never light the in-car destination panel", () => {
+  const sim = makeSimulator();
+  // Empty cars; press the DOWN hall buttons on 6 and 4 (no pre-chosen dest).
+  // A real car's interior floor buttons only light when someone aboard presses
+  // one — a hall call must not light them. The panel lights `elevator.targets`,
+  // so every lit floor must correspond to a real onboard passenger's choice.
+  sim.callElevator(6, -1);
+  sim.callElevator(4, -1);
+
+  for (let i = 0; i < 2000; i++) {
+    sim.tick(DT);
+    for (const e of sim.state.elevators) {
+      const chosen = new Set(
+        e.passengers.map((p) => p.toFloor).filter((f) => f != null)
+      );
+      for (const t of e.targets) {
+        assert.ok(
+          chosen.has(t),
+          `car ${e.id} lit floor ${t} that no onboard passenger chose ` +
+            `(targets={${[...e.targets]}})`
+        );
+      }
+    }
+    if (sim.state.stats.served === 2) break;
+  }
+  assert.equal(sim.state.stats.served, 2);
+});
+
 test("a call with a pre-chosen destination rides without a manual pick", () => {
   const sim = makeSimulator();
   // Traffic modes pass a destination so riders board already knowing their floor.

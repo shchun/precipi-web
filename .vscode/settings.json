@@ -4,5 +4,10 @@
   // (It finds *.test.js automatically; this just narrows the search.)
   "nodejs-testing.include": [
     "elevator-sim"
-  ]
+  ],
+  "python.testing.pytestArgs": [
+    "elevator-sim"
+  ],
+  "python.testing.unittestEnabled": false,
+  "python.testing.pytestEnabled": true
 }
