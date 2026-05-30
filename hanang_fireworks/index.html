@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>한강 불꽃축제</title>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-K7BBKNKZYM"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-K7BBKNKZYM');
+</script>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="title">Hanang Fireworks</div>
+<button id="fsBtn" type="button" title="전체화면">전체화면</button>
+<div id="ui">
+  Click · Drag &nbsp;·&nbsp; Auto <span id="autoLabel">ON</span> &nbsp;·&nbsp; [Space] &nbsp;·&nbsp; Sound <span id="soundLabel">ON</span> [M]
+</div>
+
+<div id="startOverlay" style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.85);z-index:10;cursor:pointer;backdrop-filter:blur(20px);">
+  <div style="text-align:center;color:rgba(255,220,180,0.9);font-family:'Cormorant Garamond',serif;">
+    <div style="font-size:38px;letter-spacing:0.3em;text-transform:uppercase;font-weight:300;text-shadow:0 0 40px rgba(255,180,80,0.4);">Hanang Fireworks</div>
+    <div style="width:80px;height:1px;background:rgba(255,200,120,0.4);margin:16px auto;"></div>
+    <div style="font-size:16px;letter-spacing:0.2em;opacity:0.7;font-style:italic;">화면을 클릭해 시작하세요</div>
+    <div style="font-size:12px;letter-spacing:0.15em;opacity:0.4;margin-top:8px;">(소리가 함께 재생됩니다)</div>
+  </div>
+</div>
+
+<script src="src/core.js"></script>
+<script src="src/audio.js"></script>
+<script src="src/particles.js"></script>
+<script src="src/scene.js"></script>
+<script src="src/effects.js"></script>
+<script src="src/interaction.js"></script>
+<script src="src/fullscreen.js"></script>
+</body>
+</html>
