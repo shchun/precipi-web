@@ -233,10 +233,17 @@
       text-decoration: underline;
     }
 
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 30px;
+    }
+
     .archive-link {
       display: block;
       width: fit-content;
-      margin: 30px auto 0;
       color: white;
       text-decoration: none;
       opacity: 0.9;
@@ -330,8 +337,10 @@
       </a>
     </div>
 
-    <a href="apks/index.html" class="archive-link">📱 APK 다운로드</a>
-    <a href="archive/index.html" class="archive-link">Archive demos</a>
+    <div class="footer-links">
+      <a href="apks/index.html" class="archive-link">📱 APK 다운로드</a>
+      <a href="archive/index.html" class="archive-link">Archive demos</a>
+    </div>
   </div>
 </body>
 </html>
