@@ -1,1 +1,4 @@
 .claude/settings.local.json
+
+# APK binaries are hosted on GitHub Releases, not in the repo
+apks/*.apk

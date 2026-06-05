@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-K7BBKNKZYM"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-K7BBKNKZYM');
+  </script>
+  <title>Precipi - APK 다운로드</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans KR', sans-serif;
+      background:
+        linear-gradient(180deg, rgba(9, 13, 22, 0.42), rgba(9, 13, 22, 0.72)),
+        url('../assets/teddy-snow-bg.png') center center / cover fixed;
+      min-height: 100vh;
+      padding: 40px 20px;
+      color: #333;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
+      color: white;
+    }
+
+    .header h1 {
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .header p {
+      font-size: 1.05rem;
+      opacity: 0.9;
+    }
+
+    .apks-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+
+    .apk-card {
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(8px);
+      border-radius: 15px;
+      padding: 26px 30px;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .apk-card:hover {
+      transform: translateY(-4px);
+      background: rgba(255, 255, 255, 0.97);
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.28);
+    }
+
+    .apk-info h2 {
+      font-size: 1.4rem;
+      color: #667eea;
+      margin-bottom: 6px;
+    }
+
+    .apk-info .meta {
+      font-size: 0.9rem;
+      color: #888;
+      font-family: 'Courier New', monospace;
+    }
+
+    .download-btn {
+      flex-shrink: 0;
+      display: inline-block;
+      background: linear-gradient(110deg, #667eea, #764ba2);
+      color: white;
+      text-decoration: none;
+      font-weight: 600;
+      padding: 12px 24px;
+      border-radius: 999px;
+      box-shadow: 0 6px 18px rgba(102, 126, 234, 0.45);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .download-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 24px rgba(102, 126, 234, 0.6);
+    }
+
+    .note {
+      margin-top: 30px;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 15px;
+      padding: 24px 30px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .note h2 {
+      color: #667eea;
+      margin-bottom: 12px;
+      font-size: 1.2rem;
+    }
+
+    .note ol {
+      padding-left: 20px;
+      line-height: 1.8;
+      color: #555;
+    }
+
+    .note strong {
+      color: #333;
+    }
+
+    .back-link {
+      display: block;
+      width: fit-content;
+      margin: 30px auto 0;
+      color: white;
+      text-decoration: none;
+      opacity: 0.9;
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      border-radius: 999px;
+      padding: 10px 16px;
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    .back-link:hover {
+      opacity: 1;
+      background: rgba(255, 255, 255, 0.18);
+    }
+
+    @media (max-width: 600px) {
+      .header h1 { font-size: 2rem; }
+      .apk-card { flex-direction: column; align-items: flex-start; }
+      .download-btn { width: 100%; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>📱 APK 다운로드</h1>
+      <p>안드로이드 사이드 로딩용 앱 설치 파일</p>
+    </div>
+
+    <div class="apks-grid">
+      <div class="apk-card">
+        <div class="apk-info">
+          <h2>☕ Coffigo</h2>
+          <p class="meta">coffigo_1.0.6.apk · 3.6 MB · v1.0.6</p>
+        </div>
+        <a class="download-btn" href="https://github.com/shchun/precipi-web/releases/download/apks-v1/coffigo_1.0.6.apk">다운로드</a>
+      </div>
+
+      <div class="apk-card">
+        <div class="apk-info">
+          <h2>🎙️ Zipformer (Debug)</h2>
+          <p class="meta">zipformer-debug.apk · 180 MB · debug build</p>
+        </div>
+        <a class="download-btn" href="https://github.com/shchun/precipi-web/releases/download/apks-v1/zipformer-debug.apk">다운로드</a>
+      </div>
+    </div>
+
+    <div class="note">
+      <h2>사이드 로딩 방법</h2>
+      <ol>
+        <li>위 버튼으로 APK 파일을 안드로이드 기기에 다운로드합니다.</li>
+        <li>설정 → 보안에서 <strong>출처를 알 수 없는 앱 설치</strong>(또는 사용 중인 브라우저/파일 관리자에 대한 설치 권한)를 허용합니다.</li>
+        <li>다운로드한 APK 파일을 탭하여 설치합니다.</li>
+        <li>설치 후 보안을 위해 출처 불명 앱 설치 권한을 다시 꺼두는 것을 권장합니다.</li>
+      </ol>
+    </div>
+
+    <a class="back-link" href="../index.html">← 데모 홈으로</a>
+  </div>
+</body>
+</html>
