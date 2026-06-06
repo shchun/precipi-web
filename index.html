@@ -197,6 +197,32 @@
       display: inline-block;
     }
 
+    .card-actions {
+      margin-top: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .install-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #fff;
+      background: linear-gradient(110deg, #667eea, #764ba2);
+      padding: 8px 16px;
+      border-radius: 999px;
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .install-pill:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 18px rgba(102, 126, 234, 0.55);
+    }
+
     .footer-links {
       display: flex;
       justify-content: center;
@@ -291,7 +317,10 @@
       <a href="scribble/index.html" class="demo-card">
         <h2>✏️ 스크리블</h2>
         <p>펜·형광펜·지우개로 그리고 PNG로 저장하는 간단한 브라우저 스케치 앱입니다.</p>
-        <span class="path">scribble/index.html</span>
+        <div class="card-actions">
+          <span class="path">scribble/index.html</span>
+          <span class="install-pill" role="button" onclick="event.preventDefault(); event.stopPropagation(); location.href='scribble/index.html?install';">⬇ 설치</span>
+        </div>
       </a>
 
       <a href="Jsongo.html" class="demo-card">

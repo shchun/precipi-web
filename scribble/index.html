@@ -5,6 +5,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Scribble - Premium Sketchbook</title>
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#667eea">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Scribble">
+    <link rel="apple-touch-icon" href="icon.svg">
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-K7BBKNKZYM"></script>
     <script>
@@ -54,6 +62,111 @@
         <canvas id="canvas"></canvas>
     </div>
 
+    <!-- PWA install button -->
+    <button id="install-btn" hidden>
+      <i class="ph ph-download-simple"></i>
+      <span>앱 설치</span>
+    </button>
+    <div id="ios-install-hint" hidden>
+      iOS: 공유 <i class="ph ph-export"></i> → <strong>홈 화면에 추가</strong>로 설치하세요
+    </div>
+    <style>
+      #install-btn {
+        position: fixed;
+        right: 18px;
+        bottom: 18px;
+        z-index: 1000;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #fff;
+        background: linear-gradient(110deg, #667eea, #764ba2);
+        border: none;
+        padding: 12px 20px;
+        border-radius: 999px;
+        cursor: pointer;
+        box-shadow: 0 8px 22px rgba(102, 126, 234, 0.5);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+      }
+      #install-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 28px rgba(102, 126, 234, 0.65);
+      }
+      #install-btn i { font-size: 1.2rem; }
+      #ios-install-hint {
+        position: fixed;
+        right: 18px;
+        bottom: 18px;
+        z-index: 1000;
+        max-width: 260px;
+        font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        font-size: 0.85rem;
+        line-height: 1.5;
+        color: #fff;
+        background: rgba(20, 24, 34, 0.92);
+        backdrop-filter: blur(6px);
+        padding: 12px 16px;
+        border-radius: 12px;
+        box-shadow: 0 8px 22px rgba(0, 0, 0, 0.4);
+      }
+      #ios-install-hint i { vertical-align: -2px; }
+    </style>
+    <script>
+      (function () {
+        const installBtn = document.getElementById('install-btn');
+        const iosHint = document.getElementById('ios-install-hint');
+        const wantsInstall = new URLSearchParams(location.search).has('install');
+
+        const isStandalone =
+          window.matchMedia('(display-mode: standalone)').matches ||
+          window.navigator.standalone === true;
+
+        // Register the service worker (required for installability).
+        if ('serviceWorker' in navigator) {
+          window.addEventListener('load', () => {
+            navigator.serviceWorker.register('sw.js').catch(() => {});
+          });
+        }
+
+        let deferredPrompt = null;
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+          e.preventDefault();
+          deferredPrompt = e;
+          installBtn.hidden = false;
+          if (wantsInstall) {
+            // Arrived from the hub "설치" button — surface the prompt right away.
+            promptInstall();
+          }
+        });
+
+        async function promptInstall() {
+          if (!deferredPrompt) return;
+          deferredPrompt.prompt();
+          const { outcome } = await deferredPrompt.userChoice;
+          gtag('event', 'pwa_install', { app_name: 'scribble', outcome: outcome });
+          deferredPrompt = null;
+          installBtn.hidden = true;
+        }
+
+        installBtn.addEventListener('click', promptInstall);
+
+        window.addEventListener('appinstalled', () => {
+          installBtn.hidden = true;
+          deferredPrompt = null;
+        });
+
+        // iOS Safari has no beforeinstallprompt — show a manual hint instead.
+        const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+        if (isIOS && !isStandalone) {
+          iosHint.hidden = false;
+          setTimeout(() => { iosHint.hidden = true; }, 8000);
+        }
+      })();
+    </script>
     <script src="script.js"></script>
 </body>
 
