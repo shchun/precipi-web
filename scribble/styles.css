@@ -27,6 +27,7 @@ body {
         radial-gradient(at 0% 100%, rgba(244, 63, 94, 0.15) 0px, transparent 50%);
     background-attachment: fixed;
     height: 100vh;
+    height: 100dvh; /* track the visible viewport as the address bar shows/hides */
     overflow: hidden;
     color: var(--primary-color);
     display: flex;
@@ -60,7 +61,7 @@ body {
 /* Toolbar Styling */
 .toolbar-container {
     position: absolute;
-    bottom: 40px;
+    bottom: calc(40px + env(safe-area-inset-bottom));
     left: 50%;
     transform: translateX(-50%);
     z-index: 10;
@@ -161,7 +162,7 @@ body {
     }
     
     .toolbar-container {
-        bottom: 20px;
+        bottom: calc(20px + env(safe-area-inset-bottom));
         width: 90%;
     }
     
