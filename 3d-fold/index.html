@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#03040c">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Fold Hologram — 3D</title>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="apple-touch-icon" href="./icons/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <canvas id="view"></canvas>
+  <div id="seam"></div>
+
+  <!-- object picker: sits on the near edge of the floor screen -->
+  <div id="objbar"></div>
+
+  <!-- top-right controls -->
+  <div class="top-ctrl">
+    <button id="install" class="icon-btn" hidden>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0 4-4m-4 4-4-4"/><path d="M5 21h14"/></svg>
+      <span>설치</span>
+    </button>
+    <button id="gear" class="icon-btn" aria-label="보정">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </button>
+  </div>
+
+  <!-- calibration panel -->
+  <div id="panel">
+    <div class="panel-head">
+      <div>
+        <h2>3D 보정</h2>
+        <p>화면을 90°로 세운 뒤, 눈에 가장 입체로 보이게 맞추세요</p>
+      </div>
+      <button id="panel-close" aria-label="닫기">&times;</button>
+    </div>
+    <div id="sliders"></div>
+    <div class="toggle-row">
+      <span>자동 회전</span>
+      <label class="switch"><input type="checkbox" id="autorotate"><span class="slider"></span></label>
+    </div>
+    <button id="reset">기본값으로 초기화</button>
+    <p class="hint">위쪽 화면은 벽, 아래쪽 화면은 바닥이 됩니다. 점선이 접는 선(크레이즈)이에요. 화면을 손으로 끌면 오브젝트가 돌아갑니다.</p>
+  </div>
+
+  <script type="module" src="./app.js"></script>
+
+  <template id="__bundler_thumbnail">
+    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <rect width="100" height="100" fill="#070b1c"/>
+      <g stroke="#35e8ff" stroke-width="0.7" opacity="0.35">
+        <line x1="20" y1="62" x2="80" y2="62"/><line x1="20" y1="70" x2="80" y2="70"/>
+        <line x1="20" y1="78" x2="80" y2="78"/>
+      </g>
+      <path d="M50 30 L66 44 L50 78 L34 44 Z" fill="#9bf3ff"/>
+      <path d="M34 44 L66 44 M42 44 L50 78 M58 44 L50 78 M50 30 L42 44 M50 30 L58 44" stroke="#0a1424" stroke-width="0.9" fill="none"/>
+    </svg>
+  </template>
+</body>
+</html>

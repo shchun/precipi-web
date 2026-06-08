@@ -45,6 +45,13 @@ const demos = [
     tags: ["space", "sim"],
   },
   {
+    icon: "📦",
+    title: "Fold Hologram 3D",
+    desc: "종이를 접듯 3D 도형을 펼치고 접으며 홀로그램처럼 관찰하는 인터랙티브 작품입니다.",
+    href: "3d-fold/fold3d-bundle.html",
+    tags: ["art"],
+  },
+  {
     icon: "🎆",
     title: "한강 불꽃축제",
     desc: "밤하늘 화면을 클릭하면 불꽃이 터지는 인터랙티브 불꽃놀이 작품입니다.",
