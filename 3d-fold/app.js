@@ -369,10 +369,8 @@ const OBJECTS = [
   { id: 'diamond', name: '다이아몬드', accent: 0x35e8ff, make: createDiamond },
   { id: 'heart',   name: '하트',       accent: 0xff4fd8, make: createHeart },
   { id: 'abstract',name: '기하 도형',   accent: 0xb085ff, make: createAbstract },
-  { id: 'planet',  name: '행성',       accent: 0x4fa8ff, make: createPlanet },
   { id: 'cube',    name: '큐브',       accent: 0x35e8ff, make: createCube },
   { id: 'tree',    name: '나무',       accent: 0x55f0a0, make: createTree },
-  { id: 'helmet',  name: '헬멧',       accent: 0xffd27a, make: createHelmet },
 ];
 
 // ===== app =====
