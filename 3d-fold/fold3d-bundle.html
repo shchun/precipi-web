@@ -203,6 +203,48 @@ document.addEventListener('DOMContentLoaded', async function() {
       render();
       document.body.appendChild(btn);
     })();
+
+    // Setup instructions — dismissible intro overlay added to the swapped-in
+    // document, telling the viewer how to position a fold phone.
+    (function addSetupGuide() {
+      if (document.getElementById('__setup_guide')) return;
+      const overlay = document.createElement('div');
+      overlay.id = '__setup_guide';
+      overlay.style.cssText = 'position:fixed;inset:0;z-index:99000;display:flex;' +
+        'align-items:center;justify-content:center;padding:24px;' +
+        'background:rgba(3,4,12,0.72);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);' +
+        'opacity:1;transition:opacity 0.8s ease;';
+      const card = document.createElement('div');
+      card.style.cssText = 'max-width:340px;width:100%;text-align:center;color:#e8f6ff;' +
+        'font-family:-apple-system,BlinkMacSystemFont,sans-serif;' +
+        'background:rgba(10,20,36,0.9);border:1px solid rgba(53,232,255,0.35);' +
+        'border-radius:16px;padding:26px 24px;box-shadow:0 8px 32px rgba(0,0,0,0.45);';
+      card.innerHTML =
+        '<div style="font-size:40px;line-height:1;margin-bottom:14px;">📱</div>' +
+        '<h2 style="font-size:19px;font-weight:600;margin:0 0 12px;color:#9bf3ff;">Fold 폰을 사용해 주세요</h2>' +
+        '<p style="font-size:15px;line-height:1.6;margin:0 0 22px;color:#cfe6f5;">' +
+        '화면을 <b>90°로 굽힌 상태</b>에서<br>한쪽 면을 바닥에 눕혀 주세요.</p>';
+      const startBtn = document.createElement('button');
+      startBtn.type = 'button';
+      startBtn.textContent = '시작하기';
+      startBtn.style.cssText = 'appearance:none;border:none;cursor:pointer;' +
+        'padding:11px 28px;border-radius:999px;font-size:15px;font-weight:600;' +
+        'color:#03040c;background:#35e8ff;box-shadow:0 2px 12px rgba(53,232,255,0.4);';
+      let dismissed = false;
+      function dismiss() {
+        if (dismissed) return;
+        dismissed = true;
+        overlay.style.opacity = '0';
+        overlay.addEventListener('transitionend', function() { overlay.remove(); }, { once: true });
+        setTimeout(function() { overlay.remove(); }, 1000); // fallback if transitionend misses
+      }
+      startBtn.addEventListener('click', dismiss);
+      card.appendChild(startBtn);
+      overlay.appendChild(card);
+      document.body.appendChild(overlay);
+      // Auto fade-out 10s after it appears.
+      setTimeout(dismiss, 10000);
+    })();
   } catch (err) {
     setStatus('Error unpacking: ' + err.message);
     console.error('Bundle unpack error:', err);
