@@ -122,9 +122,9 @@ document.addEventListener('DOMContentLoaded', async function() {
       JSON.stringify(resourceMap).split('</' + 'script>').join('<\\/' + 'script>') +
       ';</' + 'script>';
 
-    // Google tag (gtag.js) — injected into the rendered document's <head> so it
-    // survives the documentElement swap below. Concatenated so no literal
-    // </script> closes this outer bundler script.
+    // Google tag (gtag.js) — injected into the rendered document's head so it
+    // survives the documentElement swap below. Built by concatenation so no
+    // literal closing-script token can terminate this outer bundler script.
     const gtmId = 'G-K7BBKNKZYM';
     const gtmScript =
       '<script async src="https://www.googletagmanager.com/gtag/js?id=' + gtmId + '"></' + 'script>' +
