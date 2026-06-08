@@ -161,6 +161,39 @@ document.addEventListener('DOMContentLoaded', async function() {
     if (window.Babel && typeof window.Babel.transformScriptTags === 'function') {
       window.Babel.transformScriptTags();
     }
+
+    // Fullscreen toggle — added to the swapped-in document so it survives the
+    // documentElement.replaceWith() above.
+    (function addFullscreenToggle() {
+      if (document.getElementById('__fs_toggle')) return;
+      const btn = document.createElement('button');
+      btn.id = '__fs_toggle';
+      btn.type = 'button';
+      btn.setAttribute('aria-label', 'Toggle fullscreen');
+      btn.style.cssText = 'position:fixed;top:12px;right:12px;z-index:100000;width:40px;height:40px;' +
+        'display:flex;align-items:center;justify-content:center;cursor:pointer;' +
+        'border:1px solid rgba(255,255,255,0.25);border-radius:8px;' +
+        'background:rgba(10,20,36,0.55);color:#9bf3ff;font-size:18px;line-height:1;' +
+        '-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);' +
+        'box-shadow:0 1px 6px rgba(0,0,0,0.3);transition:background 0.15s;';
+      const enterIcon = '⛶';
+      const exitIcon = '✕';
+      function render() {
+        btn.textContent = document.fullscreenElement ? exitIcon : enterIcon;
+      }
+      btn.addEventListener('click', function() {
+        if (document.fullscreenElement) {
+          (document.exitFullscreen || document.webkitExitFullscreen || function(){}).call(document);
+        } else {
+          const el = document.documentElement;
+          (el.requestFullscreen || el.webkitRequestFullscreen || function(){}).call(el);
+        }
+      });
+      document.addEventListener('fullscreenchange', render);
+      document.addEventListener('webkitfullscreenchange', render);
+      render();
+      document.body.appendChild(btn);
+    })();
   } catch (err) {
     setStatus('Error unpacking: ' + err.message);
     console.error('Bundle unpack error:', err);
