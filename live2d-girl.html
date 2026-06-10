@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hana ✦</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{width:100%;height:100%;overflow:hidden;background:#0a0818;}
+  canvas{display:block;position:fixed;top:0;left:0;width:100%;height:100%;}
+  #hint{
+    position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
+    color:rgba(255,200,240,0.35);font-size:11px;letter-spacing:.14em;
+    pointer-events:none;text-transform:uppercase;
+    font-family:-apple-system,sans-serif;
+  }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="hint">move mouse · tilt phone · click to blush</div>
+<div id="debug" style="
+  position:fixed; top:16px; left:16px;
+  color:rgba(255,220,255,0.80); font-size:12px; font-family:monospace;
+  background:rgba(0,0,0,0.45); padding:8px 12px; border-radius:8px;
+  pointer-events:none; line-height:1.7;
+">자이로 대기중...</div>
+<button id="gyroBtn" onclick="requestGyro()" style="
+  position:fixed; bottom:56px; left:50%; transform:translateX(-50%);
+  padding:10px 22px; border-radius:999px;
+  border:1px solid rgba(255,180,230,0.30);
+  background:rgba(10,8,24,0.65); backdrop-filter:blur(10px);
+  color:rgba(255,200,240,0.88); font-size:13px; letter-spacing:.06em;
+  cursor:pointer; font-family:-apple-system,sans-serif;
+  display:none;
+">📱 자이로스코프 켜기</button>
+<script>
+const cv  = document.getElementById('c');
+const ctx = cv.getContext('2d');
+
+function resize(){ cv.width=innerWidth; cv.height=innerHeight; }
+resize(); window.addEventListener('resize',resize);
+
+const mouse={x:.5,y:.5};
+// ── mouse / touch (데스크탑) ──
+window.addEventListener('mousemove',e=>{mouse.x=e.clientX/innerWidth;mouse.y=e.clientY/innerHeight;});
+window.addEventListener('touchmove',e=>{mouse.x=e.touches[0].clientX/innerWidth;mouse.y=e.touches[0].clientY/innerHeight;},{passive:true});
+
+// ── gyroscope ──────────────────────────────────────────
+let gyroActive = false;
+
+function applyGyro(e){
+  if(e.gamma===null || e.beta===null) return;
+  gyroActive = true;
+
+  const g = e.gamma || 0;  // 좌우 -90~90
+  const b = e.beta  || 0;  // 앞뒤 -180~180
+
+  mouse.x = Math.min(1, Math.max(0, (g / 70 + 1) / 2));
+  mouse.y = Math.min(1, Math.max(0, ((b - 15) / 60 + 1) / 2));
+
+  if(Math.abs(g) > 60 || Math.abs(b) > 70){
+    blushA = Math.max(blushA, 0.5);
+  }
+
+  // 디버그 출력
+  const dbg = document.getElementById('debug');
+  if(dbg) dbg.innerHTML =
+    '✅ 자이로 연결됨<br>' +
+    'gamma (좌우): ' + g.toFixed(1) + '°<br>' +
+    'beta  (앞뒤): ' + b.toFixed(1) + '°<br>' +
+    'mouse.x: ' + mouse.x.toFixed(2) + '<br>' +
+    'mouse.y: ' + mouse.y.toFixed(2);
+}
+
+// iOS 13+: 권한 요청 필요
+function requestGyro(){
+  if(typeof DeviceOrientationEvent !== 'undefined' &&
+     typeof DeviceOrientationEvent.requestPermission === 'function'){
+    DeviceOrientationEvent.requestPermission()
+      .then(state => {
+        if(state === 'granted'){
+          window.addEventListener('deviceorientation', applyGyro);
+          hideGyroBtn();
+        }
+      }).catch(console.warn);
+  } else {
+    // Android / 구형 iOS: 권한 불필요
+    window.addEventListener('deviceorientation', applyGyro);
+    hideGyroBtn();
+  }
+}
+
+function hideGyroBtn(){
+  const btn = document.getElementById('gyroBtn');
+  if(btn) btn.style.display='none';
+}
+
+// Android은 바로 연결 시도
+if(typeof DeviceOrientationEvent !== 'undefined' &&
+   typeof DeviceOrientationEvent.requestPermission !== 'function'){
+  window.addEventListener('deviceorientation', applyGyro);
+}
+
+let blushA=0;
+window.addEventListener('click',()=>{blushA=1;});
+window.addEventListener('touchstart',()=>{blushA=1;},{passive:true});
+
+// smoothed look
+const lk={x:.5,y:.5};
+let breath=0, sway=0, blinkT=2.5, blinkV=0;
+
+function lerp(a,b,t){return a+(b-a)*t;}
+
+// ── BG ──────────────────────────────────────────────────
+function drawBG(cx,cy){
+  ctx.fillStyle='#0a0818';
+  ctx.fillRect(0,0,cv.width,cv.height);
+
+  // soft gradient glow behind character
+  const g=ctx.createRadialGradient(cx,cy+50,0,cx,cy+50,cv.height*.65);
+  g.addColorStop(0,'rgba(120,60,180,0.22)');
+  g.addColorStop(.5,'rgba(60,20,100,0.12)');
+  g.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=g; ctx.fillRect(0,0,cv.width,cv.height);
+
+  // stars
+  const t=Date.now()*.0008;
+  for(let i=0;i<60;i++){
+    const sx=((i*173.7)%100)/100*cv.width;
+    const sy=((i*91.3) %100)/100*cv.height;
+    const a =.06+.14*Math.abs(Math.sin(t+i*1.3));
+    ctx.beginPath(); ctx.arc(sx,sy,.8,0,Math.PI*2);
+    ctx.fillStyle=`rgba(220,190,255,${a.toFixed(2)})`; ctx.fill();
+  }
+}
+
+// ── ANIME GIRL ──────────────────────────────────────────
+function draw(cx,cy,S){
+  const lx=(lk.x-.5)*2, ly=(lk.y-.5)*2;
+  const br=Math.sin(breath)*.5;
+
+  // body
+  drawBody(cx,cy,S,br);
+
+  // head group with subtle tilt
+  ctx.save();
+  ctx.translate(cx,cy);
+  ctx.rotate(lx*.025);
+  ctx.translate(-cx,-cy);
+
+  drawBackHair(cx,cy,S);
+  drawFace(cx,cy,S,lx,ly);
+  drawFrontHair(cx,cy,S);
+  drawAccessory(cx,cy,S);
+
+  ctx.restore();
+}
+
+// ── BODY ────────────────────────────────────────────────
+function drawBody(cx,cy,S,br){
+  const neck_y=cy+S*.44;
+  const body_y=cy+S*.90+br*S*.008;
+
+  // shoulders
+  ctx.save();
+  ctx.beginPath();
+  ctx.ellipse(cx, body_y, S*.58, S*.50, 0,0,Math.PI*2);
+  const bg=ctx.createLinearGradient(cx-S*.5,body_y-S*.4,cx+S*.3,body_y+S*.5);
+  bg.addColorStop(0,'#9966cc'); bg.addColorStop(.5,'#7744aa'); bg.addColorStop(1,'#442277');
+  ctx.fillStyle=bg; ctx.fill();
+
+  // uniform collar detail
+  ctx.beginPath();
+  ctx.moveTo(cx-S*.14,neck_y+S*.10);
+  ctx.lineTo(cx,neck_y+S*.32);
+  ctx.lineTo(cx+S*.14,neck_y+S*.10);
+  ctx.strokeStyle='#ffccee'; ctx.lineWidth=S*.018; ctx.lineCap='round'; ctx.stroke();
+
+  // neck
+  ctx.beginPath();
+  ctx.ellipse(cx,neck_y,S*.13,S*.18,0,0,Math.PI*2);
+  ctx.fillStyle='#fce8d6'; ctx.fill();
+  ctx.restore();
+
+  // ribbon at collar
+  drawRibbon(cx, neck_y+S*.22, S*.095, S*.065);
+}
+
+function drawRibbon(x,y,rw,rh){
+  ctx.save(); ctx.translate(x,y);
+  for(const m of[-1,1]){
+    ctx.beginPath();
+    ctx.moveTo(0,0);
+    ctx.bezierCurveTo(m*rw*.5,-rh, m*rw*1.1,-rh*.3, m*rw, 0);
+    ctx.bezierCurveTo(m*rw*1.1,rh*.3, m*rw*.5,rh, 0,0);
+    ctx.fillStyle='#e83878'; ctx.fill();
+  }
+  ctx.beginPath(); ctx.arc(0,0,rw*.25,0,Math.PI*2);
+  ctx.fillStyle='#aa1050'; ctx.fill();
+  ctx.restore();
+}
+
+// ── BACK HAIR ───────────────────────────────────────────
+function drawBackHair(cx,cy,S){
+  const sw=Math.sin(sway)*S*.012;
+  const hy=cy-S*.14;
+
+  ctx.save();
+  const g=ctx.createLinearGradient(cx,hy-S*.3,cx,hy+S*1.1);
+  g.addColorStop(0,'#8844aa'); g.addColorStop(.3,'#331133'); g.addColorStop(1,'rgba(20,5,20,.4)');
+
+  // main back hair shape
+  ctx.beginPath();
+  ctx.moveTo(cx-S*.34,hy-S*.16);
+  ctx.bezierCurveTo(cx-S*.58,hy+S*.18+sw, cx-S*.54,hy+S*.78+sw, cx-S*.14,hy+S*1.08);
+  ctx.lineTo(cx+S*.14,hy+S*1.08);
+  ctx.bezierCurveTo(cx+S*.54,hy+S*.78-sw, cx+S*.58,hy+S*.18-sw, cx+S*.34,hy-S*.16);
+  ctx.closePath(); ctx.fillStyle=g; ctx.fill();
+
+  // highlight strands
+  ctx.globalAlpha=.28;
+  ctx.beginPath();
+  ctx.moveTo(cx-S*.28,hy-S*.14);
+  ctx.bezierCurveTo(cx-S*.48,hy+S*.26+sw, cx-S*.44,hy+S*.62+sw, cx-S*.18,hy+S*.98);
+  ctx.strokeStyle='#cc88cc'; ctx.lineWidth=S*.018; ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(cx+S*.10,hy-S*.10);
+  ctx.bezierCurveTo(cx+S*.24,hy+S*.28-sw, cx+S*.28,hy+S*.55-sw, cx+S*.18,hy+S*.96);
+  ctx.stroke();
+  ctx.globalAlpha=1;
+  ctx.restore();
+}
+
+// ── FACE (anime proportions) ────────────────────────────
+// Anime: tall forehead, wide cheeks, pointed chin
+function drawFace(cx,cy,S,lx,ly){
+  const fy=cy-S*.08; // face center Y
+
+  ctx.save();
+
+  // face shape: wide top, pointed chin
+  ctx.beginPath();
+  ctx.moveTo(cx-S*.34, fy-S*.22);          // left temple
+  ctx.bezierCurveTo(cx-S*.38,fy+S*.10, cx-S*.20,fy+S*.42, cx,fy+S*.54); // left jaw→chin
+  ctx.bezierCurveTo(cx+S*.20,fy+S*.42, cx+S*.38,fy+S*.10, cx+S*.34,fy-S*.22); // chin→right
+  ctx.bezierCurveTo(cx+S*.30,fy-S*.50, cx-S*.30,fy-S*.50, cx-S*.34,fy-S*.22); // top
+  ctx.closePath();
+
+  // cell-shaded skin: flat base + one shadow
+  ctx.fillStyle='#fce8d6'; ctx.fill();
+
+  // side shadow (simple cel shading)
+  const sh=ctx.createLinearGradient(cx-S*.38,fy,cx-S*.10,fy);
+  sh.addColorStop(0,'rgba(220,160,120,.22)'); sh.addColorStop(1,'rgba(220,160,120,0)');
+  ctx.fillStyle=sh; ctx.fill();
+  const sh2=ctx.createLinearGradient(cx+S*.38,fy,cx+S*.10,fy);
+  sh2.addColorStop(0,'rgba(220,160,120,.22)'); sh2.addColorStop(1,'rgba(220,160,120,0)');
+  ctx.fillStyle=sh2; ctx.fill();
+
+  ctx.restore();
+
+  // ── cheek blush ──
+  if(blushA>.01){
+    ctx.save(); ctx.globalAlpha=blushA*.55;
+    _ellipse(cx-S*.22,fy+S*.14,S*.12,S*.070,'#ffaacc');
+    _ellipse(cx+S*.22,fy+S*.14,S*.12,S*.070,'#ffaacc');
+    // cute blush lines
+    ctx.strokeStyle='#ff88aa'; ctx.lineWidth=S*.008; ctx.lineCap='round'; ctx.globalAlpha=blushA*.35;
+    for(let side of[-1,1]){
+      for(let j=0;j<3;j++){
+        const bx=cx+side*S*(.18+j*.038);
+        ctx.beginPath(); ctx.moveTo(bx,fy+S*.12); ctx.lineTo(bx,fy+S*.18); ctx.stroke();
+      }
+    }
+    ctx.restore();
+  }
+
+  // ── eyes ──
+  drawAnimeEye(cx,cy,S,lx,ly,-1);
+  drawAnimeEye(cx,cy,S,lx,ly, 1);
+
+  // ── eyebrows ──
+  drawEyebrow(cx,cy,S,lx,ly,-1);
+  drawEyebrow(cx,cy,S,lx,ly, 1);
+
+  // ── nose: just a tiny dot/curve ──
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(cx-S*.012, fy+S*.155);
+  ctx.quadraticCurveTo(cx+S*.008,fy+S*.170, cx+S*.022,fy+S*.155);
+  ctx.strokeStyle='rgba(200,130,100,.40)'; ctx.lineWidth=S*.012; ctx.lineCap='round'; ctx.stroke();
+  ctx.restore();
+
+  // ── mouth ──
+  drawMouth(cx,fy+S*.285,S);
+}
+
+// ── ANIME EYE ────────────────────────────────────────────
+// Large, expressive, with thick upper lash and multiple highlights
+function drawAnimeEye(cx,cy,S,lx,ly,side){
+  const ex = cx + side*S*.158;
+  const ey = cy - S*.055;   // eyes sit LOW on face for anime look
+  const ew = S*.130;        // wide
+  const eh = S*.118;        // tall
+  const opn = 1-blinkV;
+
+  if(opn<.04){
+    // blink line
+    ctx.save(); ctx.translate(ex,ey);
+    ctx.beginPath();
+    ctx.moveTo(-ew*.95,0); ctx.bezierCurveTo(-ew*.4,-eh*.3,ew*.4,-eh*.3,ew*.95,0);
+    ctx.strokeStyle='#110818'; ctx.lineWidth=S*.026; ctx.lineCap='round'; ctx.stroke();
+    ctx.restore(); return;
+  }
+
+  ctx.save(); ctx.translate(ex,ey);
+
+  const px=lx*ew*.24, py=ly*eh*.18;
+
+  // ── white sclera ──
+  ctx.save();
+  ctx.beginPath();
+  ctx.ellipse(0,0,ew,eh*opn,0,0,Math.PI*2);
+  ctx.fillStyle='#fefcff'; ctx.fill();
+  ctx.restore();
+
+  // ── iris (clipped) ──
+  ctx.save();
+  ctx.beginPath(); ctx.ellipse(0,0,ew,eh*opn,0,0,Math.PI*2); ctx.clip();
+
+  // iris base gradient
+  const ig=ctx.createRadialGradient(px,py-eh*.15,0,px,py,ew*.80);
+  ig.addColorStop(0,'#b060f0');
+  ig.addColorStop(.45,'#7030c0');
+  ig.addColorStop(1,'#1a0840');
+  ctx.beginPath(); ctx.ellipse(px,py,ew*.76,ew*.76*opn,0,0,Math.PI*2);
+  ctx.fillStyle=ig; ctx.fill();
+
+  // iris shimmer ring
+  ctx.beginPath(); ctx.ellipse(px,py,ew*.76,ew*.76*opn,0,0,Math.PI*2);
+  ctx.strokeStyle='rgba(200,140,255,.35)'; ctx.lineWidth=ew*.08; ctx.stroke();
+
+  // pupil
+  ctx.beginPath(); ctx.ellipse(px,py+eh*.04,ew*.28,ew*.34*opn,0,0,Math.PI*2);
+  ctx.fillStyle='#0a0020'; ctx.fill();
+
+  // ── highlights (anime-style multi-layer) ──
+  // large oval highlight top-left
+  ctx.beginPath(); ctx.ellipse(px-ew*.20,py-eh*.22,ew*.18,ew*.14,-.4,0,Math.PI*2);
+  ctx.fillStyle='rgba(255,255,255,.92)'; ctx.fill();
+  // small round highlight top-right
+  ctx.beginPath(); ctx.arc(px+ew*.12,py-eh*.12,ew*.07,0,Math.PI*2);
+  ctx.fillStyle='rgba(255,255,255,.70)'; ctx.fill();
+  // tiny dot highlight bottom
+  ctx.beginPath(); ctx.arc(px+ew*.04,py+eh*.18,ew*.04,0,Math.PI*2);
+  ctx.fillStyle='rgba(255,220,255,.50)'; ctx.fill();
+
+  // lower iris glow
+  const lg=ctx.createRadialGradient(px,py+ew*.5,0,px,py+ew*.5,ew*.5);
+  lg.addColorStop(0,'rgba(200,140,255,.30)'); lg.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=lg;
+  ctx.beginPath(); ctx.ellipse(px,py+ew*.5,ew*.5,ew*.3*opn,0,0,Math.PI*2); ctx.fill();
+
+  ctx.restore(); // clip
+
+  // ── upper eyelash (thick anime style) ──
+  ctx.save();
+  // thick upper lid
+  ctx.beginPath();
+  ctx.moveTo(-ew*1.08, -eh*opn*.08);
+  ctx.bezierCurveTo(-ew*.7,-eh*opn*.85, ew*.7,-eh*opn*.85, ew*1.08,-eh*opn*.08);
+  ctx.strokeStyle='#110818'; ctx.lineWidth=S*.030*(0.4+0.6*opn); ctx.lineCap='round'; ctx.stroke();
+
+  // eyelash spikes
+  const lashPts=[
+    [-ew*.90,-eh*opn*.58, -ew*1.08,-eh*opn*.78],
+    [-ew*.55,-eh*opn*.78, -ew*.60,-eh*opn*1.02],
+    [-ew*.15,-eh*opn*.88, -ew*.14,-eh*opn*1.10],
+    [ ew*.28,-eh*opn*.86,  ew*.32,-eh*opn*1.06],
+    [ ew*.68,-eh*opn*.72,  ew*.80,-eh*opn*.90],
+    [ ew*.96,-eh*opn*.50,  ew*1.12,-eh*opn*.62],
+  ];
+  ctx.lineWidth=S*.014; ctx.strokeStyle='#110818'; ctx.lineCap='round';
+  for(const [x1,y1,x2,y2] of lashPts){
+    ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+  }
+
+  // lower lash (thin)
+  ctx.beginPath();
+  ctx.ellipse(0,eh*opn*.22,ew*.90,eh*opn*.55,0,0,Math.PI);
+  ctx.strokeStyle='rgba(30,5,40,.45)'; ctx.lineWidth=S*.009; ctx.stroke();
+
+  // inner eye corner pink
+  ctx.beginPath(); ctx.ellipse(-ew*.82,0,ew*.12,eh*opn*.14,0,0,Math.PI*2);
+  ctx.fillStyle='rgba(255,160,180,.40)'; ctx.fill();
+
+  ctx.restore();
+  ctx.restore(); // translate
+}
+
+// ── EYEBROW ─────────────────────────────────────────────
+function drawEyebrow(cx,cy,S,lx,ly,side){
+  const ex=cx+side*S*.155;
+  const ey=cy-S*.198;
+  const tilt=ly*S*.010*side;
+
+  ctx.save(); ctx.translate(ex,ey+tilt);
+  // anime brow: thick inner, tapers to outer
+  ctx.beginPath();
+  ctx.moveTo(-S*.115, S*.005*side);
+  ctx.bezierCurveTo(-S*.060,-S*.030, S*.020,-S*.030, S*.115,S*.008*side);
+  ctx.strokeStyle='#2a0a30';
+  ctx.lineWidth=S*.026;
+  ctx.lineCap='round';
+  ctx.stroke();
+  // slight inner thickness
+  ctx.beginPath();
+  ctx.moveTo(-S*.115,S*.005*side);
+  ctx.bezierCurveTo(-S*.080,-S*.020, -S*.040,-S*.024, S*.000,-S*.022);
+  ctx.lineWidth=S*.014; ctx.stroke();
+  ctx.restore();
+}
+
+// ── MOUTH ───────────────────────────────────────────────
+function drawMouth(cx,my,S){
+  ctx.save(); ctx.translate(cx,my); ctx.lineCap='round';
+
+  // upper lip (small W shape)
+  ctx.beginPath();
+  ctx.moveTo(-S*.062,0);
+  ctx.bezierCurveTo(-S*.040,-S*.020, -S*.010,-S*.022, 0,-S*.014);
+  ctx.bezierCurveTo( S*.010,-S*.022,  S*.040,-S*.020, S*.062,0);
+  ctx.strokeStyle='#cc5070'; ctx.lineWidth=S*.014; ctx.stroke();
+
+  // lower lip (smile arc)
+  ctx.beginPath();
+  ctx.moveTo(-S*.050,S*.003);
+  ctx.bezierCurveTo(-S*.028,S*.034, S*.028,S*.034, S*.050,S*.003);
+  ctx.strokeStyle='#e87090'; ctx.lineWidth=S*.018; ctx.stroke();
+
+  // lip gloss dot
+  ctx.beginPath(); ctx.ellipse(S*.010,S*.018,S*.018,S*.008,-.2,0,Math.PI*2);
+  ctx.fillStyle='rgba(255,230,235,.55)'; ctx.fill();
+
+  ctx.restore();
+}
+
+// ── FRONT HAIR ──────────────────────────────────────────
+function drawFrontHair(cx,cy,S){
+  const sw=Math.sin(sway)*S*.007;
+  const hy=cy-S*.54;
+
+  ctx.save();
+  const g=ctx.createLinearGradient(cx,hy,cx,hy+S*.55);
+  g.addColorStop(0,'#9955bb'); g.addColorStop(.6,'#331133'); g.addColorStop(1,'#331133');
+
+  // crown
+  ctx.beginPath();
+  ctx.ellipse(cx,hy+S*.16,S*.40,S*.30,0,0,Math.PI*2);
+  ctx.fillStyle=g; ctx.fill();
+
+  // big left bang
+  ctx.beginPath();
+  ctx.moveTo(cx-S*.36,hy+S*.10);
+  ctx.bezierCurveTo(cx-S*.48,hy+S*.32+sw, cx-S*.36,hy+S*.56+sw, cx-S*.14,hy+S*.50);
+  ctx.bezierCurveTo(cx-S*.06,hy+S*.36, cx-S*.05,hy+S*.18, cx-S*.02,hy+S*.12);
+  ctx.closePath(); ctx.fillStyle='#331133'; ctx.fill();
+
+  // right bang (shorter)
+  ctx.beginPath();
+  ctx.moveTo(cx+S*.36,hy+S*.10);
+  ctx.bezierCurveTo(cx+S*.44,hy+S*.28-sw, cx+S*.34,hy+S*.46-sw, cx+S*.16,hy+S*.42);
+  ctx.bezierCurveTo(cx+S*.08,hy+S*.32, cx+S*.06,hy+S*.18, cx+S*.03,hy+S*.12);
+  ctx.closePath(); ctx.fillStyle='#331133'; ctx.fill();
+
+  // center strand
+  ctx.beginPath();
+  ctx.moveTo(cx-S*.06,hy+S*.05);
+  ctx.bezierCurveTo(cx-S*.02,hy+S*.36+sw*.5, cx+S*.02,hy+S*.36+sw*.5, cx+S*.06,hy+S*.05);
+  ctx.closePath(); ctx.fillStyle='#331133'; ctx.fill();
+
+  // hair sheen
+  ctx.beginPath();
+  ctx.ellipse(cx+S*.07,hy+S*.04,S*.10,S*.048,-.35,0,Math.PI*2);
+  ctx.fillStyle='rgba(200,140,220,.18)'; ctx.fill();
+
+  ctx.restore();
+}
+
+// ── ACCESSORY: cat ears ──────────────────────────────────
+function drawAccessory(cx,cy,S){
+  // small ribbon/bow on side
+  drawRibbon(cx+S*.28, cy-S*.50, S*.080, S*.055);
+
+  // side hair clip
+  ctx.save();
+  ctx.translate(cx-S*.30, cy-S*.44);
+  ctx.beginPath();
+  const _r=S*.012,_x=-S*.04,_y=-S*.024,_w=S*.08,_h=S*.048;
+  ctx.moveTo(_x+_r,_y);
+  ctx.arcTo(_x+_w,_y,_x+_w,_y+_h,_r);
+  ctx.arcTo(_x+_w,_y+_h,_x,_y+_h,_r);
+  ctx.arcTo(_x,_y+_h,_x,_y,_r);
+  ctx.arcTo(_x,_y,_x+_w,_y,_r);
+  ctx.closePath();
+  ctx.fillStyle='#ff88cc'; ctx.fill();
+  ctx.beginPath(); ctx.arc(0,0,S*.014,0,Math.PI*2);
+  ctx.fillStyle='white'; ctx.fill();
+  ctx.restore();
+}
+
+// ── ellipse helper ───────────────────────────────────────
+function _ellipse(cx,cy,rx,ry,color,rot=0){
+  ctx.save(); ctx.translate(cx,cy); if(rot)ctx.rotate(rot);
+  ctx.beginPath(); ctx.ellipse(0,0,rx,ry,0,0,Math.PI*2);
+  ctx.fillStyle=color; ctx.fill(); ctx.restore();
+}
+
+// ── LOOP ─────────────────────────────────────────────────
+let last=0;
+function frame(ts){
+  const dt=Math.min((ts-last)/1000,.05); last=ts;
+
+  lk.x+=( mouse.x-lk.x)*5*dt;
+  lk.y+=( mouse.y-lk.y)*5*dt;
+  breath +=dt*.80;
+  sway   +=dt*.60;
+  blushA  =Math.max(0,blushA-dt*.30);
+
+  blinkT-=dt;
+  if(blinkT<=0) blinkT=2.5+Math.random()*3.5;
+  blinkV = blinkT<.18 ? Math.sin(((.18-blinkT)/.18)*Math.PI) : 0;
+
+  const cx=cv.width*.5, cy=cv.height*.50;
+  const S =Math.min(cv.width,cv.height)*.44;
+
+  drawBG(cx,cy);
+  draw(cx,cy,S);
+
+  requestAnimationFrame(frame);
+
+// iOS면 자이로 버튼 노출
+if(/iPhone|iPad|iPod/.test(navigator.userAgent) &&
+   typeof DeviceOrientationEvent.requestPermission === 'function'){
+  const btn = document.getElementById('gyroBtn');
+  if(btn) btn.style.display = 'block';
+}
+}
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
