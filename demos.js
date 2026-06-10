@@ -38,6 +38,13 @@ const demos = [
     tags: ["art"],
   },
   {
+    icon: "✨",
+    title: "Live2D 하나",
+    desc: "캔버스로 구현한 일본 애니 스타일 인터랙티브 캐릭터. 마우스나 폰 자이로스코프로 시선을 따라오게 할 수 있어요. 클릭하면 볼이 빨개집니다.",
+    href: "live2d-girl.html",
+    tags: ["art"],
+  },
+  {
     icon: "🚀",
     title: "Falcon 9 1단 회수 시뮬레이터",
     desc: "발사부터 단 분리, 부스트백·역추진·착륙 번까지 Falcon 9 1단의 회수 과정을 시뮬레이션합니다.",
