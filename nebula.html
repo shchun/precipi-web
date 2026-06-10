@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nebula Thoughts</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.4/p5.js"></script>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body { width: 100%; height: 100%; overflow: hidden; background: #050818; }
+        main { display: block; }
+
+        /* ── floating buttons ── */
+        .fab {
+            position: fixed;
+            z-index: 200;
+            width: 40px; height: 40px;
+            border-radius: 50%;
+            border: 1px solid rgba(140,200,255,0.25);
+            background: rgba(5,8,24,0.60);
+            backdrop-filter: blur(10px);
+            color: rgba(180,230,255,0.88);
+            font-size: 17px;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: background .2s, color .2s, transform .15s;
+        }
+        .fab:hover { background: rgba(5,8,24,0.88); color:#fff; transform:scale(1.08); }
+        #gearBtn  { top:16px; right:16px; }
+        #fsBtn    { top:16px; right:64px;
+                    font-size:12px; letter-spacing:.04em;
+                    width:auto; padding:0 14px; border-radius:999px; }
+
+        /* ── settings overlay ── */
+        #settingsOverlay {
+            position: fixed; inset: 0; z-index: 300;
+            display: flex; align-items: center; justify-content: center;
+            background: rgba(3,5,18,0.72);
+            backdrop-filter: blur(6px);
+            opacity: 0; pointer-events: none;
+            transition: opacity .25s;
+        }
+        #settingsOverlay.open { opacity:1; pointer-events:all; }
+
+        #settingsPanel {
+            width: min(420px, 92vw);
+            border-radius: 20px;
+            border: 1px solid rgba(120,200,255,0.18);
+            background: rgba(8,12,36,0.92);
+            backdrop-filter: blur(18px);
+            padding: 28px 28px 24px;
+            color: rgba(200,230,255,0.90);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            transform: translateY(12px);
+            transition: transform .25s;
+        }
+        #settingsOverlay.open #settingsPanel { transform: translateY(0); }
+
+        .panel-header {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 24px;
+        }
+        .panel-title {
+            font-size: 15px; font-weight: 600; letter-spacing: .06em;
+            color: rgba(160,220,255,0.75); text-transform: uppercase;
+        }
+        .panel-close {
+            background: none; border: none; color: rgba(180,210,255,0.5);
+            font-size: 20px; cursor: pointer; line-height:1;
+            transition: color .15s;
+        }
+        .panel-close:hover { color: #fff; }
+
+        .section-label {
+            font-size: 11px; letter-spacing: .10em; text-transform: uppercase;
+            color: rgba(140,190,255,0.50); margin-bottom: 10px;
+        }
+        .section { margin-bottom: 22px; }
+
+        /* creature chips */
+        .chips { display: flex; gap: 8px; flex-wrap: wrap; }
+        .chip {
+            padding: 7px 16px; border-radius: 999px;
+            border: 1px solid rgba(120,180,255,0.22);
+            background: rgba(20,30,70,0.55);
+            color: rgba(180,220,255,0.70);
+            font-size: 13px; cursor: pointer;
+            transition: background .15s, border-color .15s, color .15s;
+            user-select: none;
+        }
+        .chip:hover { border-color: rgba(120,200,255,0.50); color:#fff; }
+        .chip.active {
+            background: rgba(80,160,255,0.22);
+            border-color: rgba(100,190,255,0.65);
+            color: #fff;
+        }
+
+        /* count slider */
+        .slider-row { display:flex; align-items:center; gap:12px; }
+        .slider-row input[type=range] {
+            flex:1; -webkit-appearance:none; appearance:none;
+            height:3px; border-radius:2px;
+            background: rgba(80,140,255,0.30);
+            outline:none; cursor:pointer;
+        }
+        .slider-row input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance:none; appearance:none;
+            width:16px; height:16px; border-radius:50%;
+            background: rgba(120,190,255,0.9);
+            box-shadow: 0 0 6px rgba(100,180,255,0.7);
+        }
+        .slider-val {
+            min-width: 28px; text-align:right;
+            font-size: 15px; font-weight:600;
+            color: rgba(160,220,255,0.85);
+        }
+
+        /* theme swatches */
+        .swatches { display:flex; gap:10px; flex-wrap:wrap; }
+        .swatch {
+            width:34px; height:34px; border-radius:50%;
+            cursor:pointer; border:2px solid transparent;
+            transition: border-color .15s, transform .15s;
+            position:relative;
+        }
+        .swatch:hover { transform:scale(1.12); }
+        .swatch.active { border-color: rgba(255,255,255,0.75); }
+
+        .divider {
+            height:1px; background:rgba(100,150,255,0.10);
+            margin-bottom:22px;
+        }
+
+        /* apply button */
+        #applyBtn {
+            width:100%; padding:11px;
+            border-radius:10px; border:none;
+            background: linear-gradient(135deg, rgba(60,130,255,0.55), rgba(140,80,255,0.45));
+            color:#fff; font-size:14px; font-weight:600;
+            letter-spacing:.04em; cursor:pointer;
+            transition: opacity .15s, transform .1s;
+        }
+        #applyBtn:hover { opacity:.85; transform:translateY(-1px); }
+        #applyBtn:active { transform:translateY(0); }
+    </style>
+</head>
+<body>
+    <button class="fab" id="fsBtn">전체화면</button>
+    <button class="fab" id="gearBtn" title="설정">⚙️</button>
+
+    <!-- Settings Overlay -->
+    <div id="settingsOverlay">
+        <div id="settingsPanel">
+            <div class="panel-header">
+                <span class="panel-title">✦ 설정</span>
+                <button class="panel-close" id="closePanel">✕</button>
+            </div>
+
+            <div class="section">
+                <div class="section-label">캐릭터</div>
+                <div class="chips" id="creatureChips"></div>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="section">
+                <div class="section-label">개수</div>
+                <div class="slider-row">
+                    <input type="range" id="countSlider" min="5" max="40" value="18">
+                    <span class="slider-val" id="countVal">18</span>
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="section">
+                <div class="section-label">색상 테마</div>
+                <div class="swatches" id="themeSwatches"></div>
+            </div>
+
+            <button id="applyBtn">적용하기</button>
+        </div>
+    </div>
+
+    <script>
+    // ═══════════════════════════════════════════════════════
+    //  CONFIG
+    // ═══════════════════════════════════════════════════════
+    const CONFIG = {
+        creature: 'jellyfish',
+        count: 18,
+        theme: 'neon'
+    };
+
+    // ═══════════════════════════════════════════════════════
+    //  COLOR THEMES
+    // ═══════════════════════════════════════════════════════
+    const THEMES = {
+        neon:    { name:'네온',   hMin:170, hMax:270, bgH:230, bgS:85, bgB:8,  swatchCss:'linear-gradient(135deg,#00f0ff,#8040ff)' },
+        coral:   { name:'산호',   hMin:0,   hMax:50,  bgH:20,  bgS:80, bgB:7,  swatchCss:'linear-gradient(135deg,#ff6060,#ffb040)' },
+        aurora:  { name:'오로라', hMin:100, hMax:200, bgH:160, bgS:80, bgB:6,  swatchCss:'linear-gradient(135deg,#40ffb0,#4080ff)' },
+        sakura:  { name:'벚꽃',   hMin:300, hMax:360, bgH:310, bgS:60, bgB:9,  swatchCss:'linear-gradient(135deg,#ff80c0,#c060ff)' },
+        gold:    { name:'황금',   hMin:30,  hMax:70,  bgH:40,  bgS:70, bgB:7,  swatchCss:'linear-gradient(135deg,#ffd040,#ff8020)' },
+    };
+
+    // ═══════════════════════════════════════════════════════
+    //  THOUGHTS
+    // ═══════════════════════════════════════════════════════
+    const THOUGHTS_LIST = [
+        "아, 퇴근하고 싶다...", "점심 뭐 먹지?", "오늘 커피 몇 잔째더라?",
+        "집에 가면 뭐부터 할까?", "주말 언제 와?", "이거 오늘 다 할 수 있을까?",
+        "회의 시간 너무 길어...", "월급날 D-며칠?", "로또 되면 바로 퇴사!",
+        "오늘 저녁은 치킨이다.", "아침에 5분만 더 잘걸.", "다음 휴가는 어디로 갈까?",
+        "왜 나만 바쁜 것 같지?", "이메일 또 쌓였네.", "오늘 야근 각인가?",
+        "피곤하다... 당 떨어져.", "내 통장은 왜 항상 비어있나.", "오늘도 수고했어, 나 자신!",
+        "칼퇴 성공 기원!", "부장님 오늘 기분 좋아 보이시네?", "내일의 내가 알아서 하겠지.",
+        "파일명 최종_진짜최종_수정본.html", "왜 저장은 꼭 닫고 나서 생각날까?",
+        "내 집중력은 점심시간에 출근한다.", "커피가 나를 조종하고 있어.",
+        "이건 버그가 아니라 개성입니다.", "회의가 짧으면 불안하고 길면 졸리다.",
+        "퇴근길 엘리베이터가 제일 빠르다.", "오늘의 목표: 안 들키고 멍때리기.",
+        "내 책상 위 케이블도 생태계가 있다.", "급한 일은 왜 항상 금요일 오후에 올까?",
+        "생각보다 생각이 많네, 나.", "다이어트는 내일부터, 진짜로.",
+        "알림 끄면 평화가 켜진다.", "내가 웃는 게 웃는 게 아니야.",
+        "복붙에도 장인정신이 필요하다.", "월요일은 누가 발명했을까?",
+        "지금 필요한 건 산소보다 간식.", "이 정도면 우주도 재택근무해야 한다."
+    ];
+
+    // ═══════════════════════════════════════════════════════
+    //  CREATURE REGISTRY
+    //  새 생물 추가: CREATURES 객체에 키/이름/draw 함수만 추가하면 끝
+    // ═══════════════════════════════════════════════════════
+    const CREATURES = {
+
+        jellyfish: {
+            label: '🪼 해파리',
+            factory: (x, y, theme) => new Jellyfish(x, y, theme),
+        },
+
+        octopus: {
+            label: '🐙 문어',
+            factory: (x, y, theme) => new Octopus(x, y, theme),
+        },
+
+        // ── 여기에 새 생물 추가 ──
+        // fish: { label: '🐠 물고기', factory: (x,y,theme) => new Fish(x,y,theme) },
+    };
+
+    // ═══════════════════════════════════════════════════════
+    //  STATE
+    // ═══════════════════════════════════════════════════════
+    let creatures = [];
+    let nebulaTime = 5;
+
+    // ═══════════════════════════════════════════════════════
+    //  p5 SKETCH
+    // ═══════════════════════════════════════════════════════
+    function setup() {
+        createCanvas(windowWidth, windowHeight);
+        colorMode(HSB, 360, 100, 100, 100);
+        rectMode(CENTER);
+        spawnCreatures();
+    }
+
+    function draw() {
+        const t = THEMES[CONFIG.theme];
+        background(t.bgH, t.bgS, t.bgB, 100);
+        drawNebula();
+        for (let c of creatures) { c.update(); c.display(); }
+        nebulaTime += 0.004;
+    }
+
+    function windowResized() { resizeCanvas(windowWidth, windowHeight); }
+
+    function mousePressed() {
+        if (document.getElementById('settingsOverlay').classList.contains('open')) return;
+        for (let c of creatures) c.handleClick(mouseX, mouseY);
+    }
+    function touchStarted() {
+        if (document.getElementById('settingsOverlay').classList.contains('open')) return false;
+        for (let c of creatures) c.handleClick(mouseX, mouseY);
+        return false;
+    }
+
+    function spawnCreatures() {
+        creatures = [];
+        const factory = CREATURES[CONFIG.creature].factory;
+        for (let i = 0; i < CONFIG.count; i++) {
+            creatures.push(factory(random(width), random(height), CONFIG.theme));
+        }
+    }
+
+    function drawNebula() {
+        const t = THEMES[CONFIG.theme];
+        noStroke();
+        for (let i = 0; i < 6; i++) {
+            let x  = noise(nebulaTime + i*10,    i)    * width  * 1.8 - width  * 0.4;
+            let y  = noise(nebulaTime + i*10+20,  i+5)  * height * 1.8 - height * 0.4;
+            let sx = noise(nebulaTime + i*10+40,  i+10) * width  * 0.9 + width  * 0.5;
+            let sy = noise(nebulaTime + i*10+60,  i+15) * height * 0.7 + height * 0.3;
+            let h  = map(noise(nebulaTime*0.5+i*5, i+20), 0, 1, t.hMin, t.hMax);
+            let s  = noise(nebulaTime + i*5+80,  i+25) * 35 + 55;
+            let b  = noise(nebulaTime + i*5+100, i+30) * 25 + 35;
+            let a  = noise(nebulaTime + i*5+120, i+35) * 20 + 6;
+            fill(h, s, b, a);
+            ellipse(x, y, sx, sy);
+        }
+    }
+
+    // ───────────────────────────────────────────────────────
+    //  BASE CLASS — 공통 로직 (thought bubble, flee)
+    // ───────────────────────────────────────────────────────
+    class BaseCreature {
+        constructor(x, y, theme) {
+            this.pos   = createVector(x, y);
+            this.vel   = p5.Vector.random2D().mult(random(0.3, 0.8));
+            this.size  = random(60, 115);
+            this.theme = theme;
+
+            const t = THEMES[theme];
+            this.baseColor    = color(random(t.hMin, t.hMax), random(68,90), random(62,88));
+            this.currentColor = this.baseColor;
+            this.targetColor  = this.baseColor;
+            this.colorLerpSpeed = 0.05;
+
+            this.thought         = '';
+            this.thoughtTimer    = 0;
+            this.thoughtDuration = random(250, 600);
+            this.fleeTimer       = 0;
+            this.newThought();
+        }
+
+        newThought() {
+            this.thought         = random(THOUGHTS_LIST);
+            this.thoughtTimer    = 0;
+            this.thoughtDuration = random(200, 500);
+        }
+
+        updateBase() {
+            this.pos.add(this.vel);
+            if (this.fleeTimer > 0) { this.fleeTimer--; this.vel.mult(0.985); }
+            else { this.vel.limit(0.9); }
+
+            if (this.pos.x < this.size/2 || this.pos.x > width  - this.size/2) { this.vel.x *= -1; this.pos.x = constrain(this.pos.x, this.size/2, width  - this.size/2); }
+            if (this.pos.y < this.size/2 || this.pos.y > height - this.size/2) { this.vel.y *= -1; this.pos.y = constrain(this.pos.y, this.size/2, height - this.size/2); }
+
+            this.thoughtTimer++;
+            if (this.thoughtTimer > this.thoughtDuration) this.newThought();
+
+            this.currentColor = lerpColor(this.currentColor, this.targetColor, this.colorLerpSpeed);
+            if (abs(hue(this.currentColor) - hue(this.targetColor)) < 1) this.targetColor = this.baseColor;
+        }
+
+        flee(mx, my) {
+            this.newThought();
+            this.targetColor = color(random(THEMES[this.theme].hMin, THEMES[this.theme].hMax), 95, 95);
+            let f = p5.Vector.sub(this.pos, createVector(mx, my));
+            if (f.mag() < 0.01) f = p5.Vector.random2D();
+            f.normalize().rotate(random(-PI/10, PI/10)).mult(random(3.2, 4.6));
+            this.vel = f;
+            this.pos.add(p5.Vector.mult(f, this.size * 0.08));
+            this.fleeTimer = 90;
+        }
+
+        handleClick(mx, my) {
+            if (dist(mx, my, this.pos.x, this.pos.y) < this.size / 1.5) {
+                this.flee(mx, my); return true;
+            }
+            return false;
+        }
+
+        displayThought(anchorY) {
+            let pad   = this.size * 0.15;
+            textSize(this.size * 0.15);
+            let tw    = textWidth(this.thought) + pad;
+            let th    = this.size * 0.25 + pad * 0.5;
+            let bx    = this.pos.x;
+            let by    = anchorY - th / 2 - this.size * 0.1;
+
+            const h = hue(this.currentColor);
+            fill(h, 12, 98, 78); stroke(h, 40, 90, 60); strokeWeight(1.5);
+            rect(bx, by, tw, th, this.size * 0.1);
+
+            noStroke();
+            let ts = anchorY, te = by + th / 2;
+            fill(h, 12, 96, 65);
+            ellipse(bx, lerp(ts, te, 0.3),  this.size * 0.09, this.size * 0.09);
+            ellipse(bx, lerp(ts, te, 0.55), this.size * 0.07, this.size * 0.07);
+            ellipse(bx, lerp(ts, te, 0.78), this.size * 0.05, this.size * 0.05);
+
+            fill(0, 0, 12, 88); noStroke();
+            textAlign(CENTER, CENTER);
+            text(this.thought, bx, by);
+        }
+    }
+
+    // ───────────────────────────────────────────────────────
+    //  JELLYFISH
+    // ───────────────────────────────────────────────────────
+    class Jellyfish extends BaseCreature {
+        constructor(x, y, theme) {
+            super(x, y, theme);
+            this.vel        = createVector(random(-0.3, 0.3), random(-0.6, -0.2));
+            this.pulsePhase = random(TWO_PI);
+            this.pulseSpeed = random(0.025, 0.045);
+            this.shrinkTimer = 0;
+
+            this.numTentacles = floor(random(6, 10));
+            this.tentacles = [];
+            for (let i = 0; i < this.numTentacles; i++) {
+                this.tentacles.push({
+                    xOffset:   (i / (this.numTentacles - 1) - 0.5) * this.size * 0.8,
+                    waveSpeed: random(0.02, 0.05),
+                    waveAmp:   random(0.3, 0.8),
+                    length:    this.size * random(1.2, 2.4),
+                });
+            }
+        }
+
+        update() {
+            this.vel.x += sin(frameCount * 0.008 + this.pulsePhase) * 0.008;
+            this.pos.add(this.vel);
+            if (this.fleeTimer > 0) { this.fleeTimer--; this.vel.mult(0.97); }
+            else { this.vel.x *= 0.98; this.vel.y = lerp(this.vel.y, -0.35, 0.005); this.vel.limit(1.2); }
+            if (this.shrinkTimer > 0) this.shrinkTimer--;
+
+            // wrap vertically
+            if (this.pos.y < -this.size * 3) { this.pos.y = height + this.size; this.pos.x = random(width); }
+            if (this.pos.y > height + this.size * 3) this.pos.y = -this.size;
+            if (this.pos.x < -this.size) this.pos.x = width + this.size;
+            if (this.pos.x > width + this.size) this.pos.x = -this.size;
+
+            this.thoughtTimer++;
+            if (this.thoughtTimer > this.thoughtDuration) this.newThought();
+            this.currentColor = lerpColor(this.currentColor, this.targetColor, this.colorLerpSpeed);
+            if (abs(hue(this.currentColor) - hue(this.targetColor)) < 1) this.targetColor = this.baseColor;
+            this.pulsePhase += this.pulseSpeed;
+        }
+
+        display() {
+            push(); translate(this.pos.x, this.pos.y);
+            const h = hue(this.currentColor), s = saturation(this.currentColor), b = brightness(this.currentColor);
+            let pf = this.shrinkTimer > 0
+                ? map(this.shrinkTimer, 30, 0, 0.6, 1.0)
+                : map(sin(this.pulsePhase), -1, 1, 0.88, 1.0);
+            let bW = this.size * pf, bH = this.size * 0.65 * pf;
+
+            // tentacles
+            strokeWeight(max(1, this.size * 0.025)); noFill();
+            for (let t of this.tentacles) {
+                let tx = t.xOffset * pf, ty = bH * 0.5;
+                stroke(h, s * 0.7, b * 0.9, 55);
+                beginShape();
+                curveVertex(tx, ty); curveVertex(tx, ty);
+                for (let seg = 1; seg <= 8; seg++) {
+                    let frac = seg / 8;
+                    let wx = tx + sin(frameCount * t.waveSpeed + frac * TWO_PI + t.xOffset) * t.waveAmp * this.size * 0.25 * frac;
+                    curveVertex(wx, ty + frac * t.length);
+                }
+                curveVertex(tx, ty + t.length); endShape();
+            }
+
+            // glow
+            noStroke();
+            for (let g = 4; g >= 1; g--) { fill(h, s*0.6, b, map(g,1,4,18,5)); ellipse(0, 0, bW+g*this.size*0.12, bH+g*this.size*0.09); }
+
+            // bell
+            fill(h, s*0.5, b*0.55, 30); ellipse(0, bH*0.1, bW*0.75, bH*0.6);
+            fill(h, s*0.6, b*0.9, 42);  arc(0, 0, bW, bH*2, PI, TWO_PI);
+            fill(h, s*0.7, b, 55);       ellipse(0, 0, bW, bH*0.28);
+            fill(h, s*0.3, 100, 22);     ellipse(-bW*0.15, -bH*0.25, bW*0.38, bH*0.28);
+
+            // face
+            let ex = bW*0.13, ey = -bH*0.18, er = max(3, this.size*0.045);
+            fill(h, 20, 100, 40); ellipse(-ex, ey, er*2.5, er*2.5); ellipse(ex, ey, er*2.5, er*2.5);
+            fill(0, 0, 100, 90);  ellipse(-ex, ey, er, er);         ellipse(ex, ey, er, er);
+            fill(h, 60, 20, 95);  ellipse(-ex, ey, er*0.5, er*0.5); ellipse(ex, ey, er*0.5, er*0.5);
+            noFill(); stroke(0,0,100,55); strokeWeight(max(1,this.size*0.022));
+            arc(0, ey+er*2.2, ex*1.1, er*1.2, 0, PI);
+            pop();
+
+            this.displayThought(this.pos.y - this.size*0.65*0.5);
+        }
+
+        flee(mx, my) {
+            super.flee(mx, my);
+            this.shrinkTimer = 30;
+        }
+
+        handleClick(mx, my) {
+            let bW = this.size, bH = this.size * 0.65;
+            let dx = (mx - this.pos.x) / (bW * 0.5);
+            let dy = (my - this.pos.y) / (bH * 0.5);
+            if (dx*dx + dy*dy < 1.2 && my <= this.pos.y + bH*0.15) { this.flee(mx, my); return true; }
+            return false;
+        }
+    }
+
+    // ───────────────────────────────────────────────────────
+    //  OCTOPUS
+    // ───────────────────────────────────────────────────────
+    class Octopus extends BaseCreature {
+        constructor(x, y, theme) {
+            super(x, y, theme);
+            this.numTentacles = 8;
+            this.tentacles = [];
+            for (let i = 0; i < this.numTentacles; i++) {
+                this.tentacles.push({
+                    angleOffset: (TWO_PI / this.numTentacles) * i,
+                    waveSpeed:   random(0.03, 0.07),
+                    waveAmp:     this.size * random(0.05, 0.15)
+                });
+            }
+        }
+
+        update() { this.updateBase(); }
+
+        display() {
+            push(); translate(this.pos.x, this.pos.y);
+            const h = hue(this.currentColor), s = saturation(this.currentColor), b = brightness(this.currentColor);
+
+            // tentacles
+            strokeWeight(this.size * 0.12); noFill();
+            for (let i = 0; i < this.numTentacles; i++) {
+                let t = this.tentacles[i];
+                let angle = t.angleOffset + this.vel.heading() + PI / 2;
+                let len   = this.size * 0.9;
+                let wave  = sin(frameCount * t.waveSpeed + i * PI / 3) * t.waveAmp;
+                stroke(h, s * 0.8, b * 0.8, 90);
+                push(); rotate(angle);
+                beginShape();
+                curveVertex(0, 0); curveVertex(0, 0);
+                curveVertex(wave*0.5, len*0.3); curveVertex(wave, len*0.6);
+                curveVertex(wave*0.3, len); curveVertex(wave*0.3, len);
+                endShape();
+                pop();
+            }
+
+            // head
+            noStroke(); fill(this.currentColor); ellipse(0, 0, this.size, this.size * 0.85);
+
+            // eyes
+            let eo = this.size*0.22, ey = -this.size*0.15, esz = this.size*0.18, ps = esz*0.5;
+            let px = map(this.vel.x,-1,1,-ps*0.2,ps*0.2), py = map(this.vel.y,-1,1,-ps*0.2,ps*0.2);
+            fill(0,0,100,95); ellipse(-eo,ey,esz,esz*1.1); ellipse(eo,ey,esz,esz*1.1);
+            fill(240,70,20,95); ellipse(-eo+px,ey+py,ps,ps); ellipse(eo+px,ey+py,ps,ps);
+            fill(0,0,100,80); ellipse(-eo+ps*0.15+px,ey-ps*0.15+py,ps*0.3,ps*0.3); ellipse(eo+ps*0.15+px,ey-ps*0.15+py,ps*0.3,ps*0.3);
+            pop();
+
+            this.displayThought(this.pos.y - this.size * 0.45);
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════
+    //  SETTINGS UI
+    // ═══════════════════════════════════════════════════════
+    (function initUI() {
+        // Fullscreen
+        const fsBtn = document.getElementById('fsBtn');
+        function isFS() { return Boolean(document.fullscreenElement || document.webkitFullscreenElement); }
+        function syncFS() { fsBtn.textContent = isFS() ? '해제' : '전체화면'; }
+        fsBtn.addEventListener('click', e => {
+            e.stopPropagation();
+            if (!isFS()) { const r = document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen; if(r) r.call(document.documentElement); }
+            else { const x = document.exitFullscreen || document.webkitExitFullscreen; if(x) x.call(document); }
+        });
+        document.addEventListener('fullscreenchange', syncFS);
+        document.addEventListener('webkitfullscreenchange', syncFS);
+
+        // Gear
+        const overlay = document.getElementById('settingsOverlay');
+        document.getElementById('gearBtn').addEventListener('click',  e => { e.stopPropagation(); overlay.classList.add('open'); });
+        document.getElementById('closePanel').addEventListener('click', () => overlay.classList.remove('open'));
+        overlay.addEventListener('click', e => { if (e.target === overlay) overlay.classList.remove('open'); });
+
+        // Creature chips
+        const chipsEl = document.getElementById('creatureChips');
+        Object.entries(CREATURES).forEach(([key, def]) => {
+            const chip = document.createElement('button');
+            chip.className = 'chip' + (key === CONFIG.creature ? ' active' : '');
+            chip.textContent = def.label;
+            chip.dataset.key = key;
+            chip.addEventListener('click', () => {
+                chipsEl.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+                chip.classList.add('active');
+            });
+            chipsEl.appendChild(chip);
+        });
+
+        // Count slider
+        const slider = document.getElementById('countSlider');
+        const valEl  = document.getElementById('countVal');
+        slider.value = CONFIG.count;
+        valEl.textContent = CONFIG.count;
+        slider.addEventListener('input', () => { valEl.textContent = slider.value; });
+
+        // Theme swatches
+        const swatchesEl = document.getElementById('themeSwatches');
+        Object.entries(THEMES).forEach(([key, def]) => {
+            const sw = document.createElement('div');
+            sw.className = 'swatch' + (key === CONFIG.theme ? ' active' : '');
+            sw.title = def.name;
+            sw.style.background = def.swatchCss;
+            sw.dataset.key = key;
+            sw.addEventListener('click', () => {
+                swatchesEl.querySelectorAll('.swatch').forEach(s => s.classList.remove('active'));
+                sw.classList.add('active');
+            });
+            swatchesEl.appendChild(sw);
+        });
+
+        // Apply
+        document.getElementById('applyBtn').addEventListener('click', () => {
+            const selCreature = chipsEl.querySelector('.chip.active')?.dataset.key || CONFIG.creature;
+            const selCount    = parseInt(slider.value);
+            const selTheme    = swatchesEl.querySelector('.swatch.active')?.dataset.key || CONFIG.theme;
+
+            CONFIG.creature = selCreature;
+            CONFIG.count    = selCount;
+            CONFIG.theme    = selTheme;
+
+            // p5 context
+            const p5inst = window._p5inst;
+            if (p5inst) {
+                p5inst.colorMode(p5inst.HSB, 360, 100, 100, 100);
+                spawnCreatures();
+            }
+            overlay.classList.remove('open');
+        });
+    })();
+
+    // expose p5 instance for settings apply
+    window._p5inst = null;
+    const _origSetup = setup;
+    </script>
+
+    <script>
+        // patch: capture p5 instance
+        const origNew = window.p5;
+    </script>
+</body>
+</html>
