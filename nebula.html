@@ -272,15 +272,14 @@
 
     function windowResized() { resizeCanvas(windowWidth, windowHeight); }
 
-    function mousePressed() {
-        if (document.getElementById('settingsOverlay').classList.contains('open')) return;
-        for (let c of creatures) c.handleClick(mouseX, mouseY);
-    }
-    function touchStarted() {
-        if (document.getElementById('settingsOverlay').classList.contains('open')) return false;
-        for (let c of creatures) c.handleClick(mouseX, mouseY);
-        return false;
-    }
+    function mousePressed(event) {
+            if (event && event.target && event.target.closest('button, #settingsOverlay, #settingsPanel')) return;
+            for (let c of creatures) c.handleClick(mouseX, mouseY);
+        }
+        function touchStarted(event) {
+            if (event && event.target && event.target.closest('button, #settingsOverlay, #settingsPanel')) return;
+            for (let c of creatures) c.handleClick(mouseX, mouseY);
+        }
 
     function spawnCreatures() {
         creatures = [];
