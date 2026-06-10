@@ -618,12 +618,7 @@
             CONFIG.count    = selCount;
             CONFIG.theme    = selTheme;
 
-            // p5 context
-            const p5inst = window._p5inst;
-            if (p5inst) {
-                p5inst.colorMode(p5inst.HSB, 360, 100, 100, 100);
-                spawnCreatures();
-            }
+            if (window.spawnCreatures) window.spawnCreatures();
             overlay.classList.remove('open');
         });
     })();
