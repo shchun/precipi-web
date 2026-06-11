@@ -148,33 +148,33 @@
     </style>
 </head>
 <body>
-    <button class="fab" id="fsBtn">전체화면</button>
+    <button class="fab" id="fsBtn" data-i18n="fullscreen">전체화면</button>
     <button class="fab" id="gearBtn" title="설정">⚙️</button>
 
     <!-- Settings Overlay -->
     <div id="settingsOverlay">
         <div id="settingsPanel">
             <div class="panel-header">
-                <span class="panel-title">✦ 설정</span>
+                <span class="panel-title" id="lbl-settings">✦ 설정</span>
                 <button class="panel-close" id="closePanel">✕</button>
             </div>
 
             <div class="section">
-                <div class="section-label">캐릭터</div>
+                <div class="section-label"id="lbl-creature">캐릭터</div>
                 <div class="chips" id="creatureChips"></div>
             </div>
 
             <div class="divider"></div>
 
             <div class="section">
-                <div class="section-label">텍스트 소스</div>
+                <div class="section-label"id="lbl-source">텍스트 소스</div>
                 <div class="chips" id="sourceChips"></div>
             </div>
 
             <div class="divider"></div>
 
             <div class="section">
-                <div class="section-label">개수</div>
+                <div class="section-label"id="lbl-count">개수</div>
                 <div class="slider-row">
                     <input type="range" id="countSlider" min="5" max="40" value="18">
                     <span class="slider-val" id="countVal">18</span>
@@ -184,11 +184,11 @@
             <div class="divider"></div>
 
             <div class="section">
-                <div class="section-label">색상 테마</div>
+                <div class="section-label"id="lbl-theme">색상 테마</div>
                 <div class="swatches" id="themeSwatches"></div>
             </div>
 
-            <button id="applyBtn">적용하기</button>
+            <button id="applyBtn"id="applyBtn-label">적용하기</button>
         </div>
     </div>
 
@@ -788,6 +788,75 @@
     <script>
         // patch: capture p5 instance
         const origNew = window.p5;
+    </script>
+
+    <script>
+    // ── nebula i18n (전역 lang 공유) ──────────────────────
+    (function() {
+        const T = {
+            ko: {
+                fullscreen: '전체화면', fullscreenExit: '해제',
+                settings: '✦ 설정', apply: '적용하기',
+                creature: '캐릭터', count: '개수',
+                theme: '색상 테마', source: '텍스트 소스',
+            },
+            en: {
+                fullscreen: 'Fullscreen', fullscreenExit: 'Exit',
+                settings: '✦ Settings', apply: 'Apply',
+                creature: 'Character', count: 'Count',
+                theme: 'Color Theme', source: 'Text Source',
+            }
+        };
+
+        function applyNebulaLang(lang) {
+            const t = T[lang] || T.ko;
+            const fs = document.getElementById('fsBtn');
+            if (fs) {
+                const isFS = Boolean(document.fullscreenElement || document.webkitFullscreenElement);
+                fs.textContent = isFS ? t.fullscreenExit : t.fullscreen;
+            }
+            const ids = {
+                'lbl-settings': t.settings,
+                'applyBtn-label': t.apply,
+                'lbl-creature': t.creature,
+                'lbl-count': t.count,
+                'lbl-theme': t.theme,
+                'lbl-source': t.source,
+            };
+            Object.entries(ids).forEach(([id, val]) => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = val;
+            });
+
+            // 언어 토글 버튼
+            const btn = document.getElementById('lang-toggle-nebula');
+            if (btn) btn.textContent = lang === 'ko' ? 'EN' : 'KO';
+        }
+
+        // 전역 lang 읽기
+        const browserLang = (navigator.language||'ko').startsWith('ko') ? 'ko' : 'en';
+        let lang = localStorage.getItem('lang') || browserLang;
+
+        function toggleLang() {
+            lang = lang === 'ko' ? 'en' : 'ko';
+            localStorage.setItem('lang', lang);
+            applyNebulaLang(lang);
+            if (window.gtag) gtag('event', 'language_change', { to_lang: lang });
+        }
+
+        // 언어 토글 버튼 생성
+        const btn = document.createElement('button');
+        btn.id = 'lang-toggle-nebula';
+        btn.onclick = toggleLang;
+        btn.style.cssText = 'position:fixed;top:16px;right:112px;z-index:999;padding:0 14px;height:40px;border-radius:999px;border:1px solid rgba(140,200,255,0.25);background:rgba(5,8,24,0.60);backdrop-filter:blur(10px);color:rgba(180,230,255,0.88);font-size:12px;font-family:-apple-system,sans-serif;font-weight:600;letter-spacing:.04em;cursor:pointer;';
+        document.body.appendChild(btn);
+
+        document.addEventListener('DOMContentLoaded', () => applyNebulaLang(lang));
+
+        // 전체화면 변경 시 버튼 텍스트도 갱신
+        document.addEventListener('fullscreenchange',       () => applyNebulaLang(lang));
+        document.addEventListener('webkitfullscreenchange', () => applyNebulaLang(lang));
+    })();
     </script>
 </body>
 </html>
