@@ -301,13 +301,11 @@
         async function fetchGitHubTrending() {
             // GitHub Search API: 최근 7일 내 생성된 레포 중 stars 많은 순
             const since = new Date(Date.now() - 7*24*60*60*1000).toISOString().slice(0,10);
-            const res = await fetch(
-                `https://api.github.com/search/repositories?q=created:>${since}&sort=stars&order=desc&per_page=25`,
-                { headers: { 'Accept': 'application/vnd.github.v3+json' } }
-            );
+            const url = 'https://api.github.com/search/repositories?q=created%3A%3E' + since + '&sort=stars&order=desc&per_page=25';
+            const res = await fetch(url, { headers: { 'Accept': 'application/vnd.github.v3+json' } });
             const data = await res.json();
             return (data.items || []).map(r =>
-                `⭐ ${r.full_name}${r.description ? ' — ' + r.description.slice(0,40) : ''}`
+                '⭐ ' + r.full_name + (r.description ? ' — ' + r.description.slice(0,40) : '')
             );
         }
 
