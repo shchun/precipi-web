@@ -231,9 +231,10 @@
 
         // ── 데이터 소스 정의 ──
         const SOURCES = {
-            local: { label: '직장인 속마음' },
-            hn:    { label: 'Hacker News' },
-            mixed: { label: '혼합' },
+            local:  { label: '직장인 속마음' },
+            hn:     { label: 'Hacker News' },
+            github: { label: 'GitHub Trending' },
+            mixed:  { label: '혼합' },
         };
 
         async function fetchHNTitles() {
@@ -248,6 +249,14 @@
             return items.filter(i => i && i.title).map(i => i.title);
         }
 
+        async function fetchGitHubTrending() {
+            const res = await fetch('https://api.gitterapp.com/repositories?since=daily');
+            const data = await res.json();
+            return data
+                .filter(r => r.name)
+                .map(r => `⭐ ${r.author}/${r.name}${r.description ? ' — ' + r.description.slice(0,40) : ''}`);
+        }
+
         async function applySource(source) {
             CONFIG.source = source;
             try {
@@ -256,10 +265,14 @@
                 } else if (source === 'hn') {
                     const titles = await fetchHNTitles();
                     THOUGHTS_LIST = titles.length > 5 ? titles : [...THOUGHTS_FALLBACK];
+                } else if (source === 'github') {
+                    const titles = await fetchGitHubTrending();
+                    THOUGHTS_LIST = titles.length > 5 ? titles : [...THOUGHTS_FALLBACK];
                 } else if (source === 'mixed') {
-                    const titles = await fetchHNTitles();
-                    THOUGHTS_LIST = titles.length > 5
-                        ? [...titles, ...THOUGHTS_FALLBACK]
+                    const [hn, gh] = await Promise.all([fetchHNTitles(), fetchGitHubTrending()]);
+                    const combined = [...hn, ...gh];
+                    THOUGHTS_LIST = combined.length > 5
+                        ? [...combined, ...THOUGHTS_FALLBACK]
                         : [...THOUGHTS_FALLBACK];
                 }
             } catch(e) {
