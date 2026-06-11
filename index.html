@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" id="html-root">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,7 +12,7 @@
 
     gtag('config', 'G-K7BBKNKZYM');
   </script>
-  <title>Precipi - 인터랙티브 데모</title>
+  <title>Precipi - Interactive Lab</title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="stylesheet" href="style.css">
@@ -26,7 +26,18 @@
           <span class="orbit"><span class="orbit-dot"></span></span>
         </div>
       </div>
-      <p class="tagline">물리 · 우주 · 인터랙션 실험실</p>
+      <p class="tagline" id="tagline">물리 · 우주 · 인터랙션 실험실</p>
+      <button id="lang-toggle" onclick="toggleLang()" style="
+        position:fixed; top:16px; right:16px; z-index:999;
+        padding:6px 14px; border-radius:999px;
+        border:1px solid rgba(255,255,255,0.25);
+        background:rgba(255,255,255,0.12);
+        backdrop-filter:blur(10px);
+        color:rgba(255,255,255,0.88); font-size:13px;
+        font-family:-apple-system,sans-serif; font-weight:600;
+        letter-spacing:.05em; cursor:pointer;
+        transition: background .2s;
+      ">EN</button>
     </div>
 
     <div class="demo-filters" id="demo-filters"></div>
@@ -39,5 +50,40 @@
     </div>
   </div>
   <script src="demos.js"></script>
+  <script>
+    const I18N = {
+      ko: { tagline: '물리 · 우주 · 인터랙션 실험실', filterAll: '전체', filterInstall: '⬇ 설치 가능' },
+      en: { tagline: 'Physics · Space · Interaction Lab',  filterAll: 'All',  filterInstall: '⬇ Installable' },
+    };
+    let currentLang = localStorage.getItem('lang') || 'ko';
+
+    function applyLang(lang) {
+      currentLang = lang;
+      localStorage.setItem('lang', lang);
+      document.getElementById('html-root').lang = lang;
+      document.getElementById('lang-toggle').textContent = lang === 'ko' ? 'EN' : 'KO';
+      document.getElementById('tagline').textContent = I18N[lang].tagline;
+
+      // 카드 제목/설명 업데이트
+      document.querySelectorAll('[data-demo-idx]').forEach(card => {
+        const d = demos[+card.dataset.demoIdx];
+        card.querySelector('.card-title').textContent = d.icon + ' ' + (lang === 'en' && d.titleEn ? d.titleEn : d.title);
+        card.querySelector('.card-desc').textContent  = lang === 'en' && d.descEn  ? d.descEn  : d.desc;
+      });
+
+      // 필터 버튼 업데이트
+      document.querySelectorAll('[data-filter]').forEach(btn => {
+        const id = btn.dataset.filter;
+        if (id === 'all')         btn.textContent = I18N[lang].filterAll;
+        if (id === 'installable') btn.textContent = I18N[lang].filterInstall;
+      });
+    }
+
+    function toggleLang() {
+      applyLang(currentLang === 'ko' ? 'en' : 'ko');
+    }
+
+    document.addEventListener('DOMContentLoaded', () => applyLang(currentLang));
+  </script>
 </body>
 </html>
