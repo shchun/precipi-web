@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" id="html-root">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -161,8 +161,8 @@
 <body>
   <div class="container">
     <div class="header">
-      <h1>📱 APK 다운로드</h1>
-      <p>안드로이드 사이드 로딩용 앱 설치 파일</p>
+      <h1 id="page-h1">📱 APK 다운로드</h1>
+      <p id="page-sub">안드로이드 사이드 로딩용 앱 설치 파일</p>
     </div>
 
     <div class="apks-grid">
@@ -171,7 +171,7 @@
           <h2>☕ Coffigo (Release)</h2>
           <p class="meta">coffigo_1.0.6.apk · 3.6 MB · v1.0.6 · sha256: 2164a03d</p>
         </div>
-        <a class="download-btn" href="https://github.com/shchun/precipi-web/releases/download/apks-v1/coffigo_1.0.6.apk" onclick="gtag('event', 'apk_download', { app_name: 'coffigo', file_name: 'coffigo_1.0.6.apk' });">다운로드</a>
+        <a class="download-btn" href="https://github.com/shchun/precipi-web/releases/download/apks-v1/coffigo_1.0.6.apk" onclick="gtag('event', 'apk_download', { app_name: 'coffigo', file_name: 'coffigo_1.0.6.apk' });" id="dl-btn-1">다운로드</a>
       </div>
 
       <div class="apk-card">
@@ -179,7 +179,7 @@
           <h2>☕ Coffigo (Debug)</h2>
           <p class="meta">coffigo-v1.0.6-debug.apk · 4.6 MB · v1.0.6 · sha256: 93c587b1</p>
         </div>
-        <a class="download-btn" href="https://github.com/shchun/precipi-web/releases/download/apks-v1/coffigo-v1.0.6-debug.apk" onclick="gtag('event', 'apk_download', { app_name: 'coffigo', file_name: 'coffigo-v1.0.6-debug.apk' });">다운로드</a>
+        <a class="download-btn" href="https://github.com/shchun/precipi-web/releases/download/apks-v1/coffigo-v1.0.6-debug.apk" onclick="gtag('event', 'apk_download', { app_name: 'coffigo', file_name: 'coffigo-v1.0.6-debug.apk' });" id="dl-btn-2">다운로드</a>
       </div>
 
       <div class="apk-card">
@@ -187,21 +187,86 @@
           <h2>🎙️ Zipformer (Debug)</h2>
           <p class="meta">zipformer-debug.apk · 180 MB · debug build · sha256: 0344f7fc</p>
         </div>
-        <a class="download-btn" href="https://github.com/shchun/precipi-web/releases/download/apks-v1/zipformer-debug.apk" onclick="gtag('event', 'apk_download', { app_name: 'zipformer', file_name: 'zipformer-debug.apk' });">다운로드</a>
+        <a class="download-btn" href="https://github.com/shchun/precipi-web/releases/download/apks-v1/zipformer-debug.apk" onclick="gtag('event', 'apk_download', { app_name: 'zipformer', file_name: 'zipformer-debug.apk' });" id="dl-btn-3">다운로드</a>
       </div>
     </div>
 
     <div class="note">
-      <h2>사이드 로딩 방법</h2>
+      <h2 id="note-title">사이드 로딩 방법</h2>
       <ol>
-        <li>위 버튼으로 APK 파일을 안드로이드 기기에 다운로드합니다.</li>
-        <li>설정 → 보안에서 <strong>출처를 알 수 없는 앱 설치</strong>(또는 사용 중인 브라우저/파일 관리자에 대한 설치 권한)를 허용합니다.</li>
-        <li>다운로드한 APK 파일을 탭하여 설치합니다.</li>
-        <li>설치 후 보안을 위해 출처 불명 앱 설치 권한을 다시 꺼두는 것을 권장합니다.</li>
+        <span id="note-steps"><li>위 버튼으로 APK 파일을 안드로이드 기기에 다운로드합니다.</li><li>설정 → 보안에서 <strong>출처를 알 수 없는 앱 설치</strong> 권한을 허용합니다.</li><li>다운로드한 APK 파일을 탭하여 설치합니다.</li><li>설치 후 보안을 위해 출처 불명 앱 설치 권한을 다시 꺼두는 것을 권장합니다.</li></span>
       </ol>
     </div>
 
-    <a class="back-link" href="../index.html">← 데모 홈으로</a>
+    <a class="back-link" href="../index.html" id="back-link">← 데모 홈으로</a>
   </div>
+
+  <script>
+    (function() {
+      const T = {
+      "page-h1": {
+            "ko": "📱 APK 다운로드",
+            "en": "📱 APK Downloads"
+      },
+      "page-sub": {
+            "ko": "안드로이드 사이드 로딩용 앱 설치 파일",
+            "en": "Android sideload installation files"
+      },
+      "note-title": {
+            "ko": "사이드 로딩 방법",
+            "en": "How to Sideload"
+      },
+      "note-steps": {
+            "ko": "<li>위 버튼으로 APK 파일을 안드로이드 기기에 다운로드합니다.</li><li>설정 → 보안에서 <strong>출처를 알 수 없는 앱 설치</strong> 권한을 허용합니다.</li><li>다운로드한 APK 파일을 탭하여 설치합니다.</li><li>설치 후 보안을 위해 출처 불명 앱 설치 권한을 다시 꺼두는 것을 권장합니다.</li>",
+            "en": "<li>Download the APK file to your Android device using the button above.</li><li>Go to Settings → Security and enable <strong>Install unknown apps</strong> for your browser or file manager.</li><li>Tap the downloaded APK file to install.</li><li>For security, disable the unknown sources permission after installation.</li>"
+      },
+      "dl-btn-1": {
+            "ko": "다운로드",
+            "en": "Download"
+      },
+      "dl-btn-2": {
+            "ko": "다운로드",
+            "en": "Download"
+      },
+      "dl-btn-3": {
+            "ko": "다운로드",
+            "en": "Download"
+      },
+      "back-link": {
+            "ko": "← 데모 홈으로",
+            "en": "← Back to demos"
+      }
+};
+      const browserLang = (navigator.language||'ko').startsWith('ko') ? 'ko' : 'en';
+      let lang = localStorage.getItem('lang') || browserLang;
+
+      function applyLang(l) {
+        lang = l;
+        localStorage.setItem('lang', l);
+        document.documentElement.lang = l;
+        const btn = document.getElementById('lang-toggle');
+        if (btn) btn.textContent = l === 'ko' ? 'EN' : 'KO';
+        Object.entries(T).forEach(([id, t]) => {
+          const el = document.getElementById(id);
+          if (el) el.innerHTML = l === 'en' ? t.en : t.ko;
+        });
+        
+      }
+
+      function toggleLang() {
+        applyLang(lang === 'ko' ? 'en' : 'ko');
+        if (window.gtag) gtag('event', 'language_change', { to_lang: lang });
+      }
+
+      // 토글 버튼 생성
+      const btn = document.createElement('button');
+      btn.id = 'lang-toggle';
+      btn.onclick = toggleLang;
+      btn.style.cssText = 'position:fixed;top:16px;right:16px;z-index:9999;padding:6px 14px;border-radius:999px;border:1px solid rgba(255,255,255,0.25);background:rgba(255,255,255,0.12);backdrop-filter:blur(10px);color:rgba(255,255,255,0.88);font-size:13px;font-family:-apple-system,sans-serif;font-weight:600;letter-spacing:.05em;cursor:pointer;';
+      document.body.appendChild(btn);
+
+      document.addEventListener('DOMContentLoaded', () => applyLang(lang));
+    })();
+  </script>
 </body>
 </html>
