@@ -50,15 +50,6 @@ const demos = [
     tags: ["art"],
   },
   {
-    icon: "✨",
-    title: "Live2D 하나",
-    titleEn: "Live2D Hana",
-    desc: "캔버스로 구현한 일본 애니 스타일 인터랙티브 캐릭터. 마우스나 폰 자이로스코프로 시선을 따라오게 할 수 있어요. 클릭하면 볼이 빨개집니다.",
-    descEn: "An anime-style interactive character built on canvas. Eyes follow your mouse or phone gyroscope. Click to make her blush.",
-    href: "live2d-girl.html",
-    tags: ["art"],
-  },
-  {
     icon: "🚀",
     title: "Falcon 9 1단 회수 시뮬레이터",
     titleEn: "Falcon 9 Booster Recovery Sim",
