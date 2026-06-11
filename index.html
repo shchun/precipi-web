@@ -106,6 +106,12 @@
         pill.textContent = lang === 'en' ? '⬇ Install' : '⬇ 설치';
       });
 
+      // 다운로드(스크린세이버 등) 버튼 업데이트
+      document.querySelectorAll('[data-dl-pill]').forEach((pill, i) => {
+        const d = demos.filter(d => d.download)[i];
+        if (d) pill.textContent = (lang === 'en' && d.downloadLabelEn) ? d.downloadLabelEn : (d.downloadLabel || '⬇ 다운로드');
+      });
+
       // 푸터 링크 업데이트
       const apkLink = document.querySelector('a[href="apks/index.html"]');
       if (apkLink) apkLink.textContent = lang === 'en' ? 'APK Downloads' : 'APK 다운로드';
