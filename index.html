@@ -73,12 +73,23 @@
         card.querySelector('.card-desc').textContent  = lang === 'en' && d.descEn  ? d.descEn  : d.desc;
       });
 
-      // 필터 버튼 업데이트
+      // 필터 버튼 업데이트 (filters 배열의 labelEn 사용)
       document.querySelectorAll('[data-filter]').forEach(btn => {
         const id = btn.dataset.filter;
-        if (id === 'all')         btn.textContent = I18N[lang].filterAll;
-        if (id === 'installable') btn.textContent = I18N[lang].filterInstall;
+        const f = typeof filters !== 'undefined' && filters.find(f => f.id === id);
+        if (f) btn.textContent = (lang === 'en' && f.labelEn) ? f.labelEn : f.label;
       });
+
+      // 설치 버튼 업데이트
+      document.querySelectorAll('[data-install-pill]').forEach(pill => {
+        pill.textContent = lang === 'en' ? '⬇ Install' : '⬇ 설치';
+      });
+
+      // 푸터 링크 업데이트
+      const apkLink = document.querySelector('a[href="apks/index.html"]');
+      if (apkLink) apkLink.textContent = lang === 'en' ? 'APK Downloads' : 'APK 다운로드';
+      const archiveLink = document.querySelector('a[href="archive/index.html"]');
+      if (archiveLink) archiveLink.textContent = lang === 'en' ? 'Archive demos' : 'Archive demos';
     }
 
     function toggleLang() {
