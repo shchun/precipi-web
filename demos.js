@@ -5,35 +5,45 @@ const demos = [
   {
     icon: "🪐",
     title: "태양계 N-body 시뮬레이션",
+    titleEn: "Solar System N-body Sim",
     desc: "태양·수성·금성·지구·화성·목성을 실제 질량/거리로 2D(탑뷰)에서 시뮬레이션하고, 탐사선 슬링샷(목성) 경로도 찾아봅니다.",
+    descEn: "Simulate the Sun, Mercury, Venus, Earth, Mars, and Jupiter in 2D with real mass/distance ratios. Includes a Jupiter slingshot trajectory finder.",
     href: "solar-system-sim/index.html",
     tags: ["space", "sim"],
   },
   {
     icon: "🌌",
     title: "랜덤 3체 관찰기",
+    titleEn: "Random 3-Body Observer",
     desc: "랜덤·안정 궤도 프리셋으로 3체계를 관찰하고, 선택한 물체에서 본 하늘과 질량/속도/중심거리 변화를 함께 봅니다.",
+    descEn: "Observe 3-body systems with random or stable orbit presets. Watch the sky from any body and track mass, velocity, and distance changes.",
     href: "three-body-random/index.html",
     tags: ["space", "sim"],
   },
   {
     icon: "🏢",
     title: "엘리베이터 시뮬레이션",
+    titleEn: "Elevator Simulation",
     desc: "10층 타워의 여러 엘리베이터가 호출, 탑승, 하차 요청을 처리하는 운영 시뮬레이션입니다.",
+    descEn: "An operational simulation of multiple elevators in a 10-floor tower handling call, board, and exit requests.",
     href: "elevator-sim/index.html",
     tags: ["sim"],
   },
   {
     icon: "🌀",
     title: "프랙탈 탐색기",
+    titleEn: "Fractal Explorer",
     desc: "p5.js로 만든 카오스 프랙탈을 탐색하는 인터랙티브 페이지입니다.",
+    descEn: "An interactive p5.js fractal explorer for diving into chaotic fractal patterns.",
     href: "fractal_explorer/index.html",
     tags: ["art"],
   },
   {
     icon: "🪼",
     title: "네뷸라 생각들",
+    titleEn: "Nebula Thoughts",
     desc: "네뷸라 배경에서 떠다니는 생물들이 직장인 속마음을 말풍선으로 보여줍니다. 해파리·문어 중 선택하고 개수와 색상 테마도 바꿀 수 있어요. 터치하면 도망갑니다.",
+    descEn: "Creatures floating in a nebula background share thoughts in speech bubbles. Choose jellyfish or octopus, adjust count and color theme. Tap to make them flee.",
     href: "nebula.html",
     download: "https://github.com/shchun/precipi-web/releases/download/screensaver-v1/NebulaThoughts.scr",
     downloadLabel: "🖥️ 윈도우 스크린세이버",
@@ -42,35 +52,45 @@ const demos = [
   {
     icon: "✨",
     title: "Live2D 하나",
+    titleEn: "Live2D Hana",
     desc: "캔버스로 구현한 일본 애니 스타일 인터랙티브 캐릭터. 마우스나 폰 자이로스코프로 시선을 따라오게 할 수 있어요. 클릭하면 볼이 빨개집니다.",
+    descEn: "An anime-style interactive character built on canvas. Eyes follow your mouse or phone gyroscope. Click to make her blush.",
     href: "live2d-girl.html",
     tags: ["art"],
   },
   {
     icon: "🚀",
     title: "Falcon 9 1단 회수 시뮬레이터",
+    titleEn: "Falcon 9 Booster Recovery Sim",
     desc: "발사부터 단 분리, 부스트백·역추진·착륙 번까지 Falcon 9 1단의 회수 과정을 시뮬레이션합니다.",
+    descEn: "Simulate the Falcon 9 first stage recovery — from launch and separation through boostback, entry burn, and landing.",
     href: "falcon9_sim_10/index.html",
     tags: ["space", "sim"],
   },
   {
     icon: "📦",
     title: "Fold Hologram 3D",
+    titleEn: "Fold Hologram 3D",
     desc: "종이를 접듯 3D 도형을 펼치고 접으며 홀로그램처럼 관찰하는 인터랙티브 작품입니다.",
+    descEn: "Unfold and fold 3D shapes like paper and observe them like a hologram in this interactive art piece.",
     href: "3d-fold/fold3d-bundle.html",
     tags: ["art"],
   },
   {
     icon: "🎆",
     title: "한강 불꽃축제",
+    titleEn: "Han River Fireworks",
     desc: "밤하늘 화면을 클릭하면 불꽃이 터지는 인터랙티브 불꽃놀이 작품입니다.",
+    descEn: "Click the night sky to launch fireworks in this interactive fireworks display.",
     href: "hanang_fireworks/index.html",
     tags: ["art"],
   },
   {
     icon: "✏️",
     title: "스크리블",
+    titleEn: "Scribble",
     desc: "펜·형광펜·지우개로 그리고 PNG로 저장하는 간단한 브라우저 스케치 앱입니다.",
+    descEn: "A simple browser sketch app with pen, highlighter, and eraser tools. Save your drawing as PNG.",
     href: "scribble/index.html",
     install: "scribble/index.html?install",
     tags: ["tool"],
@@ -78,14 +98,18 @@ const demos = [
   {
     icon: "🧩",
     title: "Jsongo · JSON 린터",
+    titleEn: "Jsongo · JSON Linter",
     desc: "JSON을 실시간으로 검사·정렬하고 오류 위치와 원인을 짚어주는 린터입니다.",
+    descEn: "A real-time JSON inspector that validates, formats, and pinpoints errors with their exact location and cause.",
     href: "Jsongo.html",
     tags: ["tool"],
   },
   {
     icon: "💬",
     title: "자막",
+    titleEn: "Jamak · Live Captions",
     desc: "음성을 실시간으로 자막으로 변환해 주는 웹 앱입니다.",
+    descEn: "A web app that converts speech to live captions in real time.",
     href: "https://jamak.precipi.com/",
     path: "jamak.precipi.com",
     install: "https://jamak.precipi.com/?install",
@@ -111,17 +135,21 @@ function demoMatchesFilter(demo, filterId) {
 }
 
 function renderDemos(grid) {
-  for (const d of demos) {
+  for (let i = 0; i < demos.length; i++) {
+    const d = demos[i];
     const card = document.createElement("a");
     card.href = d.href;
     card.className = "demo-card";
     card._demo = d;
+    card.dataset.demoIdx = i;
 
     const h2 = document.createElement("h2");
+    h2.className = "card-title";
     h2.textContent = `${d.icon} ${d.title}`;
     card.appendChild(h2);
 
     const p = document.createElement("p");
+    p.className = "card-desc";
     p.textContent = d.desc;
     card.appendChild(p);
 
