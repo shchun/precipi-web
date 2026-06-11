@@ -45,9 +45,30 @@
     <div class="demos-grid" id="demos-grid"></div>
 
     <div class="footer-links">
-      <a href="apks/index.html" class="archive-link">APK 다운로드</a>
+      <a href="apks/index.html" class="archive-link" id="apk-link">APK 다운로드</a>
       <a href="archive/index.html" class="archive-link">Archive demos</a>
     </div>
+    <div id="deploy-info" style="
+      text-align:center; margin-top:16px; margin-bottom:8px;
+      color:rgba(255,255,255,0.22); font-size:11px;
+      font-family:-apple-system,monospace; letter-spacing:.06em;
+    ">…</div>
+    <script>
+      fetch('https://api.github.com/repos/shchun/precipi-web/commits/main')
+        .then(r => r.json())
+        .then(d => {
+          const sha   = d.sha.slice(0, 7);
+          const date  = new Date(d.commit.author.date);
+          const lang  = localStorage.getItem('lang') || 'ko';
+          const label = lang === 'en' ? 'deployed' : '배포';
+          const fmt   = date.toLocaleString(lang === 'en' ? 'en-US' : 'ko-KR', {
+            year:'numeric', month:'2-digit', day:'2-digit',
+            hour:'2-digit', minute:'2-digit', timeZoneName:'short'
+          });
+          document.getElementById('deploy-info').textContent = `v.${sha} · ${label} ${fmt}`;
+        })
+        .catch(() => {});
+    </script>
   </div>
   <script src="demos.js"></script>
   <script>
