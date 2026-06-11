@@ -47,6 +47,7 @@ const demos = [
     href: "nebula.html",
     download: "https://github.com/shchun/precipi-web/releases/download/screensaver-v1/NebulaThoughts.scr",
     downloadLabel: "🖥️ 윈도우 스크린세이버",
+    downloadLabelEn: "🖥️ Windows Screensaver",
     tags: ["art"],
   },
   {
@@ -172,7 +173,9 @@ function renderDemos(grid) {
         const dl = document.createElement("span");
         dl.className = "install-pill";
         dl.setAttribute("role", "button");
-        dl.textContent = d.downloadLabel || "⬇ 다운로드";
+        const _lang = localStorage.getItem('lang') || 'ko';
+        dl.textContent = (_lang === 'en' && d.downloadLabelEn) ? d.downloadLabelEn : (d.downloadLabel || "⬇ 다운로드");
+        dl.dataset.dlPill = "1";
         dl.addEventListener("click", (e) => {
           e.preventDefault();
           e.stopPropagation();
