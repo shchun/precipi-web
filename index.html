@@ -82,7 +82,12 @@
     }
 
     function toggleLang() {
-      applyLang(currentLang === 'ko' ? 'en' : 'ko');
+      const next = currentLang === 'ko' ? 'en' : 'ko';
+      applyLang(next);
+      if (window.gtag) gtag('event', 'language_change', {
+        from_lang: currentLang === next ? (next === 'en' ? 'ko' : 'en') : currentLang,
+        to_lang: next,
+      });
     }
 
     document.addEventListener('DOMContentLoaded', () => applyLang(currentLang));
