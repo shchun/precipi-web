@@ -249,8 +249,6 @@
             dadjoke:  { label: '아재개그' },
             news:     { label: '주요뉴스' },
             japanese: { label: '일본어 N5/N4' },
-            hn:       { label: 'Hacker News' },
-            github:   { label: 'GitHub Trending' },
             mixed:    { label: '혼합' },
         };
 
@@ -330,29 +328,6 @@
             "自然 · 자연","環境 · 환경","健康 · 건강","生活 · 생활","習慣 · 습관",
         ];
 
-        async function fetchHNTitles() {
-            const res  = await fetch('https://hacker-news.firebaseio.com/v0/topstories.json');
-            const ids  = (await res.json()).slice(0, 30);
-            const items = await Promise.all(
-                ids.map(id =>
-                    fetch(`https://hacker-news.firebaseio.com/v0/item/${id}.json`)
-                        .then(r => r.json()).catch(() => null)
-                )
-            );
-            return items.filter(i => i && i.title).map(i => i.title);
-        }
-
-        async function fetchGitHubTrending() {
-            // GitHub Search API: 최근 7일 내 생성된 레포 중 stars 많은 순
-            const since = new Date(Date.now() - 7*24*60*60*1000).toISOString().slice(0,10);
-            const url = 'https://api.github.com/search/repositories?q=created%3A%3E' + since + '&sort=stars&order=desc&per_page=25';
-            const res = await fetch(url, { headers: { 'Accept': 'application/vnd.github.v3+json' } });
-            const data = await res.json();
-            return (data.items || []).map(r =>
-                '⭐ ' + r.full_name + (r.description ? ' — ' + r.description.slice(0,40) : '')
-            );
-        }
-
         async function applySource(source) {
             CONFIG.source = source;
             try {
@@ -365,19 +340,10 @@
                     THOUGHTS_LIST = titles.length > 5 ? titles : [...THOUGHTS_FALLBACK];
                 } else if (source === 'japanese') {
                     THOUGHTS_LIST = [...JAPANESE_WORDS];
-                } else if (source === 'hn') {
-                    const titles = await fetchHNTitles();
-                    THOUGHTS_LIST = titles.length > 5 ? titles : [...THOUGHTS_FALLBACK];
-                } else if (source === 'github') {
-                    const titles = await fetchGitHubTrending();
-                    THOUGHTS_LIST = titles.length > 5 ? titles : [...THOUGHTS_FALLBACK];
                 } else if (source === 'mixed') {
-                    const [hn, gh, news] = await Promise.all([
-                        fetchHNTitles(), fetchGitHubTrending(), fetchKoreanNews().catch(() => [])
-                    ]);
-                    const combined = [...news, ...hn, ...gh];
-                    THOUGHTS_LIST = combined.length > 5
-                        ? [...combined, ...DAD_JOKES, ...THOUGHTS_FALLBACK, ...JAPANESE_WORDS]
+                    const news = await fetchKoreanNews().catch(() => []);
+                    THOUGHTS_LIST = news.length > 5
+                        ? [...news, ...DAD_JOKES, ...THOUGHTS_FALLBACK, ...JAPANESE_WORDS]
                         : [...DAD_JOKES, ...THOUGHTS_FALLBACK, ...JAPANESE_WORDS];
                 }
             } catch(e) {
