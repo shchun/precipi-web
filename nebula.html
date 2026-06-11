@@ -165,6 +165,13 @@
             <div class="divider"></div>
 
             <div class="section">
+                <div class="section-label">텍스트 소스</div>
+                <div class="chips" id="sourceChips"></div>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="section">
                 <div class="section-label">개수</div>
                 <div class="slider-row">
                     <input type="range" id="countSlider" min="5" max="40" value="18">
@@ -190,7 +197,8 @@
     const CONFIG = {
         creature: 'jellyfish',
         count: 18,
-        theme: 'neon'
+        theme: 'neon',
+        source: 'local'
     };
 
     // ═══════════════════════════════════════════════════════
@@ -221,30 +229,46 @@
         ];
         let THOUGHTS_LIST = [...THOUGHTS_FALLBACK];
 
-        // ── Hacker News 실시간 제목 fetch ──
-        async function fetchHNThoughts() {
+        // ── 데이터 소스 정의 ──
+        const SOURCES = {
+            local: { label: '직장인 속마음' },
+            hn:    { label: 'Hacker News' },
+            mixed: { label: '혼합' },
+        };
+
+        async function fetchHNTitles() {
+            const res  = await fetch('https://hacker-news.firebaseio.com/v0/topstories.json');
+            const ids  = (await res.json()).slice(0, 30);
+            const items = await Promise.all(
+                ids.map(id =>
+                    fetch(`https://hacker-news.firebaseio.com/v0/item/${id}.json`)
+                        .then(r => r.json()).catch(() => null)
+                )
+            );
+            return items.filter(i => i && i.title).map(i => i.title);
+        }
+
+        async function applySource(source) {
+            CONFIG.source = source;
             try {
-                const res  = await fetch('https://hacker-news.firebaseio.com/v0/topstories.json');
-                const ids  = (await res.json()).slice(0, 30);
-                const items = await Promise.all(
-                    ids.map(id =>
-                        fetch(`https://hacker-news.firebaseio.com/v0/item/${id}.json`)
-                            .then(r => r.json()).catch(() => null)
-                    )
-                );
-                const titles = items
-                    .filter(item => item && item.title)
-                    .map(item => item.title);
-                if (titles.length > 5) {
-                    THOUGHTS_LIST = [...titles, ...THOUGHTS_FALLBACK];
-                    console.log(`HN ${titles.length}개 로드됨`);
+                if (source === 'local') {
+                    THOUGHTS_LIST = [...THOUGHTS_FALLBACK];
+                } else if (source === 'hn') {
+                    const titles = await fetchHNTitles();
+                    THOUGHTS_LIST = titles.length > 5 ? titles : [...THOUGHTS_FALLBACK];
+                } else if (source === 'mixed') {
+                    const titles = await fetchHNTitles();
+                    THOUGHTS_LIST = titles.length > 5
+                        ? [...titles, ...THOUGHTS_FALLBACK]
+                        : [...THOUGHTS_FALLBACK];
                 }
             } catch(e) {
-                console.warn('HN fetch 실패, fallback 사용');
+                console.warn('fetch 실패, fallback 사용');
+                THOUGHTS_LIST = [...THOUGHTS_FALLBACK];
             }
         }
-        fetchHNThoughts();
-        setInterval(fetchHNThoughts, 10 * 60 * 1000);
+        applySource(CONFIG.source);
+        setInterval(() => applySource(CONFIG.source), 10 * 60 * 1000);
 
     // ═══════════════════════════════════════════════════════
     //  CREATURE REGISTRY
@@ -629,15 +653,32 @@
             swatchesEl.appendChild(sw);
         });
 
+        // Source chips
+        const sourceChipsEl = document.getElementById('sourceChips');
+        Object.entries(SOURCES).forEach(([key, def]) => {
+            const chip = document.createElement('button');
+            chip.className = 'chip' + (key === CONFIG.source ? ' active' : '');
+            chip.textContent = def.label;
+            chip.dataset.key = key;
+            chip.addEventListener('click', () => {
+                sourceChipsEl.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+                chip.classList.add('active');
+            });
+            sourceChipsEl.appendChild(chip);
+        });
+
         // Apply
         document.getElementById('applyBtn').addEventListener('click', () => {
             const selCreature = chipsEl.querySelector('.chip.active')?.dataset.key || CONFIG.creature;
             const selCount    = parseInt(slider.value);
             const selTheme    = swatchesEl.querySelector('.swatch.active')?.dataset.key || CONFIG.theme;
+            const selSource   = sourceChipsEl.querySelector('.chip.active')?.dataset.key || CONFIG.source;
 
             CONFIG.creature = selCreature;
             CONFIG.count    = selCount;
             CONFIG.theme    = selTheme;
+
+            applySource(selSource);
 
             if (window.spawnCreatures) window.spawnCreatures();
             overlay.classList.remove('open');
