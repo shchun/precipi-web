@@ -111,12 +111,12 @@ const demos = [
 // 필터 버튼 정의. id가 "all"이면 전체, "installable"이면 install 필드가 있는 카드,
 // 그 외에는 demo.tags에 해당 id가 포함된 카드만 보여줍니다.
 const filters = [
-  { id: "all", label: "전체" },
-  { id: "space", label: "🪐 우주" },
-  { id: "sim", label: "⚙️ 시뮬레이션" },
-  { id: "art", label: "🎨 아트" },
-  { id: "tool", label: "🛠 도구" },
-  { id: "installable", label: "⬇ 설치 가능" },
+  { id: "all",         label: "전체",        labelEn: "All" },
+  { id: "space",       label: "🪐 우주",     labelEn: "🪐 Space" },
+  { id: "sim",         label: "⚙️ 시뮬레이션", labelEn: "⚙️ Simulation" },
+  { id: "art",         label: "🎨 아트",     labelEn: "🎨 Art" },
+  { id: "tool",        label: "🛠 도구",     labelEn: "🛠 Tool" },
+  { id: "installable", label: "⬇ 설치 가능", labelEn: "⬇ Installable" },
 ];
 
 function demoMatchesFilter(demo, filterId) {
