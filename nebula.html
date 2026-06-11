@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nebula Thoughts</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.4/p5.js"></script>
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -244,11 +246,53 @@
         // ── 데이터 소스 정의 ──
         const SOURCES = {
             local:    { label: '직장인 속마음' },
+            dadjoke:  { label: '아재개그' },
+            news:     { label: '주요뉴스' },
             japanese: { label: '일본어 N5/N4' },
             hn:       { label: 'Hacker News' },
             github:   { label: 'GitHub Trending' },
             mixed:    { label: '혼합' },
         };
+
+        // ── 아재개그 (로컬, 네트워크 불필요) ──
+        const DAD_JOKES = [
+            "말이 못 사는 동네는? 말도 안 되는 동네.",
+            "세상에서 가장 뜨거운 과일은? 천도복숭아.",
+            "왕이 넘어지면? 킹콩.",
+            "추장이 가장 좋아하는 음식은? 추어탕.",
+            "병아리가 제일 좋아하는 약은? 삐약.",
+            "바나나가 웃으면? 바나나킥.",
+            "토끼들이 제일 잘하는 것은? 토킹(talking).",
+            "세종대왕이 만든 우유는? 아야어여오요우유.",
+            "도둑이 가장 싫어하는 아이스크림은? 누가바.",
+            "개가 한 마리만 사는 나라는? 독일(dog일).",
+            "전화기의 무게 단위는? 폰드(pound).",
+            "세상에서 가장 억울한 도형은? 원통.",
+            "가장 빠른 닭은? 후다닥.",
+            "비가 한 시간 동안 내리면? 추적 60분.",
+            "딸기가 회사에서 잘리면? 딸기시럽.",
+            "용이 불을 뿜으면? 용용 죽겠지.",
+            "소금이 죽으면? 죽염.",
+            "햄버거의 색깔은? 버건디.",
+            "고기 먹을 때 늘 따라오는 개는? 이쑤시개.",
+            "지하철에서 못 내린 사람의 별명은? 칸트.",
+            "다리미가 좋아하는 노래는? 줄이야~.",
+            "사과를 한 입 베어 물면? 파인애플(파인 애플).",
+            "젓가락이 화나면? 부젓가락.",
+            "세상에서 제일 추운 바다는? 썰렁해.",
+            "오리를 생으로 먹으면? 회오리.",
+        ];
+
+        // ── 주요뉴스 (Google 뉴스 RSS → rss2json, CORS 지원) ──
+        async function fetchKoreanNews() {
+            const rss = 'https://news.google.com/rss?hl=ko&gl=KR&ceid=KR:ko';
+            const url = 'https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent(rss);
+            const res = await fetch(url);
+            const data = await res.json();
+            return (data.items || [])
+                .map(it => '📰 ' + it.title.replace(/\s+-\s+[^-]+$/, '').trim())
+                .filter(t => t.length > 6);
+        }
 
         const JAPANESE_WORDS = [
             // N5 동사
@@ -314,6 +358,11 @@
             try {
                 if (source === 'local') {
                     THOUGHTS_LIST = [...THOUGHTS_FALLBACK];
+                } else if (source === 'dadjoke') {
+                    THOUGHTS_LIST = [...DAD_JOKES];
+                } else if (source === 'news') {
+                    const titles = await fetchKoreanNews();
+                    THOUGHTS_LIST = titles.length > 5 ? titles : [...THOUGHTS_FALLBACK];
                 } else if (source === 'japanese') {
                     THOUGHTS_LIST = [...JAPANESE_WORDS];
                 } else if (source === 'hn') {
@@ -323,11 +372,13 @@
                     const titles = await fetchGitHubTrending();
                     THOUGHTS_LIST = titles.length > 5 ? titles : [...THOUGHTS_FALLBACK];
                 } else if (source === 'mixed') {
-                    const [hn, gh] = await Promise.all([fetchHNTitles(), fetchGitHubTrending()]);
-                    const combined = [...hn, ...gh];
+                    const [hn, gh, news] = await Promise.all([
+                        fetchHNTitles(), fetchGitHubTrending(), fetchKoreanNews().catch(() => [])
+                    ]);
+                    const combined = [...news, ...hn, ...gh];
                     THOUGHTS_LIST = combined.length > 5
-                        ? [...combined, ...THOUGHTS_FALLBACK, ...JAPANESE_WORDS]
-                        : [...THOUGHTS_FALLBACK, ...JAPANESE_WORDS];
+                        ? [...combined, ...DAD_JOKES, ...THOUGHTS_FALLBACK, ...JAPANESE_WORDS]
+                        : [...DAD_JOKES, ...THOUGHTS_FALLBACK, ...JAPANESE_WORDS];
                 }
             } catch(e) {
                 console.warn('fetch 실패, fallback 사용');
