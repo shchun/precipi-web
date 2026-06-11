@@ -35,6 +35,8 @@ const demos = [
     title: "네뷸라 생각들",
     desc: "네뷸라 배경에서 떠다니는 생물들이 직장인 속마음을 말풍선으로 보여줍니다. 해파리·문어 중 선택하고 개수와 색상 테마도 바꿀 수 있어요. 터치하면 도망갑니다.",
     href: "nebula.html",
+    download: "https://github.com/shchun/precipi-web/releases/download/screensaver-v1/NebulaThoughts.scr",
+    downloadLabel: "🖥️ 윈도우 스크린세이버",
     tags: ["art"],
   },
   {
@@ -128,21 +130,37 @@ function renderDemos(grid) {
     path.className = "path";
     path.textContent = pathLabel;
 
-    if (d.install) {
+    if (d.install || d.download) {
       const actions = document.createElement("div");
       actions.className = "card-actions";
       actions.appendChild(path);
 
-      const pill = document.createElement("span");
-      pill.className = "install-pill";
-      pill.setAttribute("role", "button");
-      pill.textContent = "⬇ 설치";
-      pill.addEventListener("click", (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        location.href = d.install;
-      });
-      actions.appendChild(pill);
+      if (d.install) {
+        const pill = document.createElement("span");
+        pill.className = "install-pill";
+        pill.setAttribute("role", "button");
+        pill.textContent = "⬇ 설치";
+        pill.addEventListener("click", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          location.href = d.install;
+        });
+        actions.appendChild(pill);
+      }
+
+      if (d.download) {
+        const dl = document.createElement("span");
+        dl.className = "install-pill";
+        dl.setAttribute("role", "button");
+        dl.textContent = d.downloadLabel || "⬇ 다운로드";
+        dl.addEventListener("click", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          if (window.gtag) gtag("event", "screensaver_download", { demo: d.title });
+          location.href = d.download;
+        });
+        actions.appendChild(dl);
+      }
 
       card.appendChild(actions);
     } else {

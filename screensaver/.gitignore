@@ -1,0 +1,5 @@
+# Downloaded SDK / extracted package
+_deps/
+
+# Build output (reproducible via build.ps1)
+dist/
