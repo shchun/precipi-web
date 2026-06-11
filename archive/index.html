@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" id="html-root">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,156 +15,149 @@
     gtag('config', 'G-K7BBKNKZYM');
   </script>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
+    * { margin:0; padding:0; box-sizing:border-box; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans KR', sans-serif;
       background: linear-gradient(135deg, #4b5563 0%, #111827 100%);
-      min-height: 100vh;
-      padding: 40px 20px;
-      color: #333;
+      min-height: 100vh; padding: 40px 20px; color: #333;
     }
-
-    .container {
-      max-width: 960px;
-      margin: 0 auto;
-    }
-
-    .header {
-      text-align: center;
-      margin-bottom: 40px;
-      color: white;
-    }
-
-    .header h1 {
-      font-size: 2.4rem;
-      margin-bottom: 10px;
-      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-    }
-
-    .header p {
-      font-size: 1.05rem;
-      opacity: 0.86;
-    }
-
-    .back-link {
-      display: inline-block;
-      margin-bottom: 24px;
-      color: white;
-      text-decoration: none;
-      opacity: 0.9;
-      border: 1px solid rgba(255, 255, 255, 0.35);
-      border-radius: 999px;
-      padding: 10px 16px;
-      background: rgba(255, 255, 255, 0.12);
-    }
-
-    .back-link:hover {
-      opacity: 1;
-      background: rgba(255, 255, 255, 0.18);
-    }
-
-    .demos-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 22px;
-    }
-
+    .container { max-width: 960px; margin: 0 auto; }
+    .header { text-align: center; margin-bottom: 40px; color: white; }
+    .header h1 { font-size: 2.2rem; margin-bottom: 8px; }
+    .header p { opacity: .8; }
+    .demos-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
     .demo-card {
-      display: block;
-      padding: 26px;
-      border-radius: 15px;
-      background: white;
-      color: inherit;
-      text-decoration: none;
-      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.18);
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      background: rgba(255,255,255,0.92); border-radius: 14px;
+      padding: 22px 24px; text-decoration: none; color: #333;
+      box-shadow: 0 4px 18px rgba(0,0,0,0.12);
+      transition: transform .2s, box-shadow .2s; display: block;
     }
-
-    .demo-card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.26);
+    .demo-card:hover { transform: translateY(-4px); box-shadow: 0 8px 28px rgba(0,0,0,0.20); }
+    .demo-card h2 { font-size: 1.1rem; color: #667eea; margin-bottom: 8px; }
+    .demo-card p { font-size: .88rem; color: #555; line-height: 1.55; }
+    .path { display:inline-block; margin-top:10px; font-size:.78rem; color:#999; font-family:monospace; }
+    .back-link {
+      display: block; width: fit-content; margin: 32px auto 0;
+      color: white; text-decoration: none; opacity: .88;
+      border: 1px solid rgba(255,255,255,0.30); border-radius: 999px;
+      padding: 10px 18px; background: rgba(255,255,255,0.10);
     }
-
-    .demo-card h2 {
-      margin-bottom: 10px;
-      color: #4b5563;
-      font-size: 1.4rem;
-    }
-
-    .demo-card p {
-      margin-bottom: 15px;
-      color: #666;
-      line-height: 1.6;
-    }
-
-    .path {
-      display: inline-block;
-      padding: 5px 10px;
-      border-radius: 5px;
-      background: #f5f5f5;
-      color: #999;
-      font-family: 'Courier New', monospace;
-      font-size: 0.9rem;
-    }
+    .back-link:hover { opacity:1; background: rgba(255,255,255,0.18); }
   </style>
 </head>
 <body>
   <div class="container">
-    <a href="../index.html" class="back-link">Back to demos</a>
-
     <div class="header">
-      <h1>Archive demos</h1>
-      <p>현재 메인 목록에서는 제외했지만 보존하는 이전 데모입니다.</p>
+      <h1 id="page-heading">🗄 Archive</h1>
+      <p id="page-sub">이전 버전 데모 목록</p>
     </div>
-
     <div class="demos-grid">
-      <a href="https://p5-agent-732idlgl8-shchuns-projects.vercel.app/" class="demo-card" target="_blank" rel="noopener noreferrer">
-        <h2>🤖 AI P5.js Agent</h2>
-        <p>AI 에이전트가 생각하고 p5.js로 시각화하는 인터랙티브 프로젝트입니다.</p>
-        <span class="path">AiAgents/</span>
-      </a>
-
-      <a href="refcard/index.html" class="demo-card">
-        <h2>⚽ 심판 카드</h2>
-        <p>축구 심판 카드(초록/노랑/빨강)를 전환할 수 있는 시뮬레이터입니다.</p>
-        <span class="path">refcard/index.html</span>
-      </a>
-
-      <a href="CameraTest.html" class="demo-card">
-        <h2>📷 카메라 테스트</h2>
-        <p>웹캠 접근 권한을 테스트하는 페이지입니다.</p>
-        <span class="path">CameraTest.html</span>
-      </a>
-
       <a href="../live2d-girl.html" class="demo-card">
-        <h2>✨ Live2D 하나</h2>
-        <p>캔버스로 구현한 일본 애니 스타일 인터랙티브 캐릭터. 마우스나 폰 자이로스코프로 시선을 따라오게 할 수 있어요. 클릭하면 볼이 빨개집니다.</p>
+        <h2 id="live2d-title">✨ Live2D 하나</h2>
+        <p id="live2d-desc">캔버스로 구현한 일본 애니 스타일 인터랙티브 캐릭터. 마우스나 폰 자이로스코프로 시선을 따라오게 할 수 있어요. 클릭하면 볼이 빨개집니다.</p>
         <span class="path">live2d-girl.html</span>
       </a>
-
       <a href="robo-dog.html" class="demo-card">
-        <h2>🤖 로봇 강아지</h2>
-        <p>클릭하면 짖는 로봇 강아지 애니메이션입니다.</p>
+        <h2 id="robodog-title">🐶 로보독</h2>
+        <p id="robodog-desc">p5.js로 만든 간단한 로봇 강아지 애니메이션입니다.</p>
         <span class="path">robo-dog.html</span>
       </a>
-
       <a href="lotp/index.html" class="demo-card">
-        <h2>🎲 시각적 추첨 프로그램</h2>
-        <p>p5.js로 만든 인터랙티브 추첨 게임입니다. 원형 캐릭터를 클릭하여 당첨자를 선택할 수 있습니다.</p>
+        <h2 id="lotp-title">🎲 시각적 추첨 프로그램</h2>
+        <p id="lotp-desc">p5.js로 만든 인터랙티브 추첨 게임입니다. 원형 캐릭터를 클릭하여 당첨자를 선택할 수 있습니다.</p>
         <span class="path">lotp/index.html</span>
       </a>
-
       <a href="lot/lot.html" class="demo-card">
-        <h2>🎯 랜덤 당첨 이벤트</h2>
-        <p>랜덤 당첨 이벤트를 위한 추첨 프로그램입니다.</p>
+        <h2 id="lot-title">🎯 랜덤 당첨 이벤트</h2>
+        <p id="lot-desc">랜덤 당첨 이벤트를 위한 추첨 프로그램입니다.</p>
         <span class="path">lot/lot.html</span>
       </a>
     </div>
+    <a href="../index.html" class="back-link" id="back-link">← 데모 홈으로</a>
   </div>
+
+  <script>
+    (function() {
+      const T = {
+      "page-title": {
+            "ko": "Precipi · Archive",
+            "en": "Precipi · Archive"
+      },
+      "page-heading": {
+            "ko": "🗄 Archive",
+            "en": "🗄 Archive"
+      },
+      "page-sub": {
+            "ko": "이전 버전 데모 목록",
+            "en": "Previous demo versions"
+      },
+      "live2d-title": {
+            "ko": "✨ Live2D 하나",
+            "en": "✨ Live2D Hana"
+      },
+      "live2d-desc": {
+            "ko": "캔버스로 구현한 일본 애니 스타일 인터랙티브 캐릭터. 마우스나 폰 자이로스코프로 시선을 따라오게 할 수 있어요. 클릭하면 볼이 빨개집니다.",
+            "en": "Anime-style interactive character built on canvas. Eyes follow your mouse or phone gyroscope. Click to make her blush."
+      },
+      "robodog-title": {
+            "ko": "🐶 로보독",
+            "en": "🐶 Robo Dog"
+      },
+      "robodog-desc": {
+            "ko": "p5.js로 만든 간단한 로봇 강아지 애니메이션입니다.",
+            "en": "A simple robot dog animation built with p5.js."
+      },
+      "lotp-title": {
+            "ko": "🎲 시각적 추첨 프로그램",
+            "en": "🎲 Visual Lottery"
+      },
+      "lotp-desc": {
+            "ko": "p5.js로 만든 인터랙티브 추첨 게임입니다. 원형 캐릭터를 클릭하여 당첨자를 선택할 수 있습니다.",
+            "en": "An interactive lottery game built with p5.js. Click on circular characters to select winners."
+      },
+      "lot-title": {
+            "ko": "🎯 랜덤 당첨 이벤트",
+            "en": "🎯 Random Draw Event"
+      },
+      "lot-desc": {
+            "ko": "랜덤 당첨 이벤트를 위한 추첨 프로그램입니다.",
+            "en": "A draw program for random winner events."
+      },
+      "back-link": {
+            "ko": "← 데모 홈으로",
+            "en": "← Back to demos"
+      }
+};
+      const browserLang = (navigator.language||'ko').startsWith('ko') ? 'ko' : 'en';
+      let lang = localStorage.getItem('lang') || browserLang;
+
+      function applyLang(l) {
+        lang = l;
+        localStorage.setItem('lang', l);
+        document.documentElement.lang = l;
+        const btn = document.getElementById('lang-toggle');
+        if (btn) btn.textContent = l === 'ko' ? 'EN' : 'KO';
+        Object.entries(T).forEach(([id, t]) => {
+          const el = document.getElementById(id);
+          if (el) el.innerHTML = l === 'en' ? t.en : t.ko;
+        });
+        
+      }
+
+      function toggleLang() {
+        applyLang(lang === 'ko' ? 'en' : 'ko');
+        if (window.gtag) gtag('event', 'language_change', { to_lang: lang });
+      }
+
+      // 토글 버튼 생성
+      const btn = document.createElement('button');
+      btn.id = 'lang-toggle';
+      btn.onclick = toggleLang;
+      btn.style.cssText = 'position:fixed;top:16px;right:16px;z-index:9999;padding:6px 14px;border-radius:999px;border:1px solid rgba(255,255,255,0.25);background:rgba(255,255,255,0.12);backdrop-filter:blur(10px);color:rgba(255,255,255,0.88);font-size:13px;font-family:-apple-system,sans-serif;font-weight:600;letter-spacing:.05em;cursor:pointer;';
+      document.body.appendChild(btn);
+
+      document.addEventListener('DOMContentLoaded', () => applyLang(lang));
+    })();
+  </script>
 </body>
 </html>
