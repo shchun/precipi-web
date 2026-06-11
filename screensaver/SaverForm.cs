@@ -72,9 +72,8 @@ sealed class SaverForm : Form
             _web.Source = _source;
             _ready = true;
         }
-        catch (Exception ex)
+        catch
         {
-            try { File.WriteAllText(Path.Combine(Path.GetTempPath(), "nebula_saver.log"), ex.ToString()); } catch { }
             try { Application.Exit(); } catch { }
         }
     }
