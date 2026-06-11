@@ -159,6 +159,7 @@ function renderDemos(grid) {
         pill.className = "install-pill";
         pill.setAttribute("role", "button");
         pill.textContent = "⬇ 설치";
+        pill.dataset.installPill = "1";
         pill.addEventListener("click", (e) => {
           e.preventDefault();
           e.stopPropagation();
@@ -223,4 +224,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const bar = document.getElementById("demo-filters");
   if (bar && grid) renderFilters(bar, grid);
+
+  // 렌더 완료 후 언어 적용 (index.html의 applyLang 호출)
+  if (window.applyLang) window.applyLang(window.currentLang || localStorage.getItem('lang') || 'ko');
 });
