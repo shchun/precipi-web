@@ -55,7 +55,9 @@
       ko: { tagline: '물리 · 우주 · 인터랙션 실험실', filterAll: '전체', filterInstall: '⬇ 설치 가능' },
       en: { tagline: 'Physics · Space · Interaction Lab',  filterAll: 'All',  filterInstall: '⬇ Installable' },
     };
-    let currentLang = localStorage.getItem('lang') || 'ko';
+    // 저장된 언어 → 없으면 브라우저 언어 → 기본 ko
+    const browserLang = (navigator.language || navigator.userLanguage || 'ko').startsWith('ko') ? 'ko' : 'en';
+    let currentLang = localStorage.getItem('lang') || browserLang;
 
     function applyLang(lang) {
       currentLang = lang;
