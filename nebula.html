@@ -351,7 +351,13 @@
                 THOUGHTS_LIST = [...THOUGHTS_FALLBACK];
             }
         }
-        applySource(CONFIG.source);
+        // 전역 언어 설정 반영 (index.html과 localStorage 공유)
+        const _savedLang = localStorage.getItem('lang');
+        if (_savedLang === 'en' && CONFIG.source === 'local') {
+            applySource('hn'); // 영어 환경에서 기본 HN으로
+        } else {
+            applySource(CONFIG.source);
+        }
         setInterval(() => applySource(CONFIG.source), 10 * 60 * 1000);
 
     // ═══════════════════════════════════════════════════════
