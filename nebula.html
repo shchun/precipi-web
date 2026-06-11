@@ -201,6 +201,18 @@
         source: 'local'
     };
 
+    // 화면 넓이 기준 적정 개수 계산
+    function calcOptimalCount() {
+        const area = window.innerWidth * window.innerHeight;
+        // 1개당 약 40000px² 기준, 최소 4 최대 30
+        return Math.min(30, Math.max(4, Math.floor(area / 40000)));
+    }
+    CONFIG.count = calcOptimalCount();
+    window.addEventListener('resize', () => {
+        CONFIG.count = calcOptimalCount();
+        if (window.spawnCreatures) window.spawnCreatures();
+    });
+
     // ═══════════════════════════════════════════════════════
     //  COLOR THEMES
     // ═══════════════════════════════════════════════════════
@@ -688,6 +700,11 @@
         const valEl  = document.getElementById('countVal');
         slider.value = CONFIG.count;
         valEl.textContent = CONFIG.count;
+        // 화면 리사이즈 시 슬라이더도 동기화
+        window.addEventListener('resize', () => {
+            slider.value = CONFIG.count;
+            valEl.textContent = CONFIG.count;
+        });
         slider.addEventListener('input', () => { valEl.textContent = slider.value; });
 
         // Theme swatches
