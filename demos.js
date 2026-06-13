@@ -8,11 +8,8 @@ const demos = [
     titleEn: "Tango · JP Vocab",
     desc: "Slack 슬래시 커맨드로 단어를 추가하고 Google Sheets에 저장하는 일본어 단어장. 중요 마킹, 필터, 히스토리 지원. PWA로 설치 가능.",
     descEn: "Japanese vocab app with Slack slash command input and Google Sheets storage. Star words, filter by importance, view history. Installable as PWA.",
-    href: "vocab/",
+    href: "https://tango.precipi.com/",
     tags: ["tool"],
-    install: "vocab/",
-    downloadLabel: "📲 앱으로 설치",
-    downloadLabelEn: "📲 Install App",
   },
   {
     icon: "🪐",
