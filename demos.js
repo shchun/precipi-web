@@ -88,6 +88,16 @@ const demos = [
     tags: ["tool"],
   },
   {
+    icon: "🕐",
+    title: "데스크 클락",
+    titleEn: "Desk Clock",
+    desc: "여러 시계 페이스를 넘기며 보는 미니멀 탁상시계입니다. 전체화면·다크 테마로 책상 위 디스플레이에 잘 어울립니다.",
+    descEn: "A minimal desk clock with multiple swappable clock faces. Fullscreen, dark-themed — perfect as an always-on desk display.",
+    href: "deskclock/index.html",
+    install: "deskclock/index.html",
+    tags: ["tool"],
+  },
+  {
     icon: "🧩",
     title: "Jsongo · JSON 린터",
     titleEn: "Jsongo · JSON Linter",

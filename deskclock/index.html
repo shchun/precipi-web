@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#000000">
+<title>Desk Clock</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@200;300;400;500&family=Archivo:wght@500;600;700&family=Anton&family=Orbitron:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+  *{ margin:0; padding:0; box-sizing:border-box; }
+  html,body{ height:100%; }
+  body{
+    background:#000;
+    overflow:hidden;
+    font-family:'Jost',system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    cursor:default;
+  }
+
+  .stage{
+    position:fixed; inset:0;
+    display:flex; align-items:center; justify-content:center;
+  }
+
+  /* ---- faces ---- */
+  .face{
+    position:absolute; inset:0;
+    display:none; align-items:center; justify-content:center;
+    overflow:hidden;
+  }
+  .face.active{
+    display:flex; z-index:1;
+    animation:faceIn .55s cubic-bezier(.2,.7,.2,1);
+  }
+  @keyframes faceIn{
+    from{ transform:scale(1.03); }
+    to{ transform:scale(1); }
+  }
+  @media (prefers-reduced-motion:reduce){
+    .face.active{ animation:none; }
+  }
+
+  /* ======================================================= */
+  /* FACE 1 — MINIMAL / MODERN                               */
+  /* ======================================================= */
+  #face1{ background:#ECE9E1; color:#1b1a16; }
+  .f1-wrap{ display:flex; flex-direction:column; align-items:center; gap:5.5vmin; }
+  .f1-date{
+    font-weight:400; font-size:2.1vmin; letter-spacing:.55em; white-space:nowrap;
+    text-transform:uppercase; color:#8c887c; padding-left:.55em;
+  }
+  .f1-clock{ display:flex; align-items:flex-start; gap:1.6vmin; line-height:.8; }
+  .f1-time{ font-weight:200; font-size:24vmin; letter-spacing:-.01em; font-variant-numeric:tabular-nums; }
+  .f1-side{ display:flex; flex-direction:column; align-items:flex-start; gap:1.4vmin; padding-top:3vmin; }
+  .f1-sec{ font-weight:300; font-size:5.2vmin; color:#b3afa2; font-variant-numeric:tabular-nums; }
+  .f1-ampm{ font-weight:400; font-size:2.6vmin; letter-spacing:.4em; color:#1b1a16; padding-left:.4em; }
+  .f1-rule{ width:30vmin; height:1px; background:#cdc9bd; }
+
+  /* ======================================================= */
+  /* FACE 2 — RETRO FLIP                                     */
+  /* ======================================================= */
+  #face2{
+    background:
+      radial-gradient(120% 90% at 50% 0%, #202024 0%, #141416 55%, #0e0e10 100%);
+    color:#f3f1ea;
+  }
+  .f2-wrap{ display:flex; flex-direction:column; align-items:center; gap:4.2vmin; }
+  .f2-row{ display:flex; align-items:center; gap:1.6vmin; }
+  .flip-group{ display:flex; gap:1.1vmin; }
+  .flip-group.sec{ transform:scale(.5); transform-origin:center bottom; margin-left:.4vmin; }
+  .f2-colon{ display:flex; flex-direction:column; gap:4vmin; padding:0 .3vmin; }
+  .f2-colon i{ width:1.5vmin; height:1.5vmin; border-radius:50%; background:#56565c; display:block; }
+  .f2-colon.blink{ animation:f2blink 1s steps(1,end) infinite; }
+  @keyframes f2blink{ 50%{ opacity:.25; } }
+
+  .flip-card{
+    position:relative;
+    width:13vmin; height:18vmin;
+    font-family:'Archivo',sans-serif; font-weight:700;
+    font-size:14vmin; line-height:18vmin;
+    perspective:340px;
+    border-radius:1.4vmin;
+    filter:drop-shadow(0 1.4vmin 2.6vmin rgba(0,0,0,.45));
+  }
+  .flip-card .half{
+    position:absolute; left:0; width:100%; height:50%;
+    overflow:hidden; background:#26262b; color:#f3f1ea;
+  }
+  .flip-card .num{
+    position:absolute; left:0; width:100%; height:18vmin; line-height:18vmin;
+    text-align:center; font-variant-numeric:tabular-nums;
+  }
+  .flip-card .top .num, .flip-card .top-flip .num{ top:0; }
+  .flip-card .bottom .num, .flip-card .bottom-flip .num{ bottom:0; }
+  .flip-card .top{ top:0; border-radius:1.4vmin 1.4vmin 0 0;
+    border-bottom:1px solid rgba(0,0,0,.45); background:#2b2b30; }
+  .flip-card .bottom{ bottom:0; border-radius:0 0 1.4vmin 1.4vmin; background:#202024; }
+  .flip-card .top-flip{ top:0; transform-origin:bottom; z-index:3;
+    border-radius:1.4vmin 1.4vmin 0 0; background:#2b2b30;
+    border-bottom:1px solid rgba(0,0,0,.5); backface-visibility:hidden; }
+  .flip-card .bottom-flip{ bottom:0; transform-origin:top; z-index:3;
+    border-radius:0 0 1.4vmin 1.4vmin; background:#202024;
+    transform:rotateX(90deg); backface-visibility:hidden; }
+  .flip-card.flipping .top-flip{ animation:foldTop .3s ease-in forwards; }
+  .flip-card.flipping .bottom-flip{ animation:unfoldBottom .3s ease-out .3s forwards; }
+  @keyframes foldTop{ from{ transform:rotateX(0); } to{ transform:rotateX(-90deg); } }
+  @keyframes unfoldBottom{ from{ transform:rotateX(90deg); } to{ transform:rotateX(0deg); } }
+
+  .f2-meta{ display:flex; align-items:center; gap:2.4vmin; }
+  .f2-ampm{
+    font-family:'Archivo',sans-serif; font-weight:600; font-size:2.4vmin;
+    letter-spacing:.25em; padding:.9vmin 1.8vmin; border-radius:.8vmin;
+    background:#26262b; color:#f3b14e; box-shadow:0 .6vmin 1.4vmin rgba(0,0,0,.4);
+  }
+  .f2-date{ font-weight:400; font-size:2.2vmin; letter-spacing:.4em; white-space:nowrap; color:#9a968c; text-transform:uppercase; }
+
+  /* ======================================================= */
+  /* FACE 3 — TYPOGRAPHY                                     */
+  /* ======================================================= */
+  #face3{ background:#E7E2D6; color:#15130d; }
+  .f3-wrap{ position:relative; width:100%; height:100%;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; }
+  .f3-time{
+    font-family:'Anton',sans-serif; font-weight:400;
+    font-size:40vmin; line-height:.82; letter-spacing:-.02em;
+    font-variant-numeric:tabular-nums; text-transform:uppercase;
+  }
+  .f3-ampm{
+    position:absolute; top:18%; right:9%;
+    font-family:'Anton',sans-serif; font-size:9vmin; line-height:.8;
+    color:#cf3f23;
+  }
+  .f3-date{
+    position:absolute; left:9%; bottom:11%;
+    writing-mode:vertical-rl; transform:rotate(180deg);
+    font-family:'Anton',sans-serif; font-size:4.4vmin; letter-spacing:.06em;
+    color:#15130d; text-transform:uppercase;
+  }
+  .f3-sec{
+    position:absolute; right:9%; bottom:11%;
+    font-family:'Anton',sans-serif; font-size:7vmin; color:#cf3f23;
+    font-variant-numeric:tabular-nums;
+  }
+
+  /* ======================================================= */
+  /* FACE 4 — NEON / GLOW                                    */
+  /* ======================================================= */
+  #face4{
+    background:radial-gradient(120% 120% at 50% 42%, #0d1320 0%, #060810 60%, #030308 100%);
+    color:#fff;
+  }
+  .f4-wrap{ display:flex; flex-direction:column; align-items:center; gap:4vmin; }
+  .f4-clock{ display:flex; align-items:baseline; gap:1vmin;
+    font-family:'Orbitron',sans-serif; font-weight:700; }
+  .f4-time{
+    font-size:24vmin; letter-spacing:.01em; font-variant-numeric:tabular-nums;
+    color:#d6fbff;
+    text-shadow:
+      0 0 .6vmin #aef6ff, 0 0 1.6vmin #4fe9ff,
+      0 0 4vmin #16b6ff, 0 0 8vmin #0a86e0;
+  }
+  .f4-colon{ animation:f4blink 1.1s steps(1,end) infinite; }
+  @keyframes f4blink{ 50%{ opacity:.28; } }
+  .f4-ampm{
+    font-family:'Orbitron',sans-serif; font-weight:500; font-size:5vmin;
+    align-self:flex-start; margin-top:2vmin; color:#ffd2f4;
+    text-shadow:0 0 .6vmin #ff9be8, 0 0 2vmin #ff4fd0, 0 0 5vmin #e018b0;
+  }
+  .f4-meta{ display:flex; align-items:center; gap:2.6vmin;
+    font-family:'Orbitron',sans-serif; font-weight:400; }
+  .f4-sec{ font-size:3vmin; color:#bff0ff;
+    text-shadow:0 0 .5vmin #7fe8ff, 0 0 2vmin #29c6ff; }
+  .f4-dot{ width:1vmin; height:1vmin; border-radius:50%; background:#5fe0ff;
+    box-shadow:0 0 1.4vmin #29c6ff; }
+  .f4-date{ font-size:2.3vmin; letter-spacing:.34em; white-space:nowrap; color:#8fb6cf; text-transform:uppercase; }
+
+  /* ======================================================= */
+  /* NAV                                                     */
+  /* ======================================================= */
+  .stage[data-theme="light"]{ --ui:#1b1a16; --ui-soft:rgba(27,26,22,.42); --ui-bg:rgba(27,26,22,.06); }
+  .stage[data-theme="dark"]{ --ui:#f3f1ea; --ui-soft:rgba(243,241,234,.5); --ui-bg:rgba(243,241,234,.1); }
+
+  .nav{
+    position:fixed; left:50%; bottom:4.5vmin; transform:translateX(-50%);
+    z-index:50;
+    display:flex; align-items:center; gap:1.4vmin;
+    padding:1vmin 1.4vmin;
+    border-radius:100px;
+    background:var(--ui-bg);
+    backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
+    transition:opacity .5s ease, color .7s ease, background .7s ease;
+    color:var(--ui);
+    user-select:none;
+  }
+  .nav button{
+    appearance:none; border:none; background:transparent; color:inherit;
+    width:3.4vmin; height:3.4vmin; min-width:30px; min-height:30px;
+    border-radius:50%; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    font-size:2.4vmin; line-height:1; font-family:'Jost',sans-serif;
+    transition:background .2s ease;
+  }
+  .nav button:hover{ background:var(--ui-bg); }
+  .nav .dots{ display:flex; align-items:center; gap:1.1vmin; padding:0 .6vmin; }
+  .nav .dots i{
+    width:1vmin; height:1vmin; min-width:8px; min-height:8px; border-radius:50%;
+    background:var(--ui-soft); cursor:pointer; transition:transform .25s ease, background .25s ease;
+  }
+  .nav .dots i.on{ background:var(--ui); transform:scale(1.3); }
+  .nav .label{
+    font-size:1.5vmin; letter-spacing:.32em; text-transform:uppercase;
+    padding-left:1vmin; padding-right:.4vmin; color:var(--ui);
+    min-width:13ch; text-align:left;
+    font-family:'Jost',sans-serif; font-weight:400;
+  }
+
+  .stage.idle .nav{ opacity:0; pointer-events:none; }
+  .nav:hover{ opacity:1 !important; }
+</style>
+</head>
+<body>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('service-worker.js').catch(()=>{});
+      });
+    }
+  </script>
+  <div class="stage" id="stage" data-theme="light">
+
+    <!-- FACE 1 — MINIMAL -->
+    <section class="face" id="face1">
+      <div class="f1-wrap">
+        <div class="f1-date" id="f1-date">SUNDAY · JUNE 14</div>
+        <div class="f1-clock">
+          <div class="f1-time" id="f1-time">2:30</div>
+          <div class="f1-side">
+            <div class="f1-sec" id="f1-sec">00</div>
+            <div class="f1-ampm" id="f1-ampm">PM</div>
+          </div>
+        </div>
+        <div class="f1-rule"></div>
+      </div>
+    </section>
+
+    <!-- FACE 2 — FLIP -->
+    <section class="face" id="face2">
+      <div class="f2-wrap">
+        <div class="f2-row">
+          <div class="flip-group" id="f2-h"></div>
+          <div class="f2-colon blink"><i></i><i></i></div>
+          <div class="flip-group" id="f2-m"></div>
+          <div class="flip-group sec" id="f2-s"></div>
+        </div>
+        <div class="f2-meta">
+          <div class="f2-ampm" id="f2-ampm">PM</div>
+          <div class="f2-date" id="f2-date">SUN · JUN 14</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FACE 3 — TYPOGRAPHY -->
+    <section class="face" id="face3">
+      <div class="f3-wrap">
+        <div class="f3-ampm" id="f3-ampm">PM</div>
+        <div class="f3-time" id="f3-time">2:30</div>
+        <div class="f3-date" id="f3-date">SUNDAY JUNE 14</div>
+        <div class="f3-sec" id="f3-sec">00</div>
+      </div>
+    </section>
+
+    <!-- FACE 4 — NEON -->
+    <section class="face" id="face4">
+      <div class="f4-wrap">
+        <div class="f4-clock">
+          <div class="f4-time" id="f4-time">2<span class="f4-colon">:</span>30</div>
+          <div class="f4-ampm" id="f4-ampm">PM</div>
+        </div>
+        <div class="f4-meta">
+          <div class="f4-sec" id="f4-sec">00</div>
+          <div class="f4-dot"></div>
+          <div class="f4-date" id="f4-date">SUNDAY · JUNE 14</div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- NAV -->
+  <nav class="nav" id="nav">
+    <button id="prev" aria-label="Previous design">‹</button>
+    <div class="dots" id="dots"></div>
+    <button id="next" aria-label="Next design">›</button>
+  </nav>
+
+<script>
+(function(){
+  const FACES = [
+    { id:'face1', name:'Minimal',     theme:'light' },
+    { id:'face2', name:'Retro Flip',  theme:'dark'  },
+    { id:'face3', name:'Typography',  theme:'light' },
+    { id:'face4', name:'Neon',        theme:'dark'  },
+  ];
+
+  const stage = document.getElementById('stage');
+  const nav   = document.getElementById('nav');
+  const dotsC = document.getElementById('dots');
+
+  // build dots
+  FACES.forEach((f,i)=>{
+    const d=document.createElement('i');
+    d.addEventListener('click',()=>go(i));
+    dotsC.appendChild(d);
+  });
+  const dots=[...dotsC.children];
+
+  let active = parseInt(localStorage.getItem('deskclock.face')||'0',10);
+  if(isNaN(active)||active<0||active>=FACES.length) active=0;
+
+  function go(i){
+    active=(i+FACES.length)%FACES.length;
+    FACES.forEach((f,idx)=>{
+      document.getElementById(f.id).classList.toggle('active', idx===active);
+      dots[idx].classList.toggle('on', idx===active);
+    });
+    stage.dataset.theme = FACES[active].theme;
+    localStorage.setItem('deskclock.face', active);
+    if(FACES[active].id==='face2') renderFlip(false); // set instantly, no animation
+  }
+
+  document.getElementById('prev').addEventListener('click',()=>go(active-1));
+  document.getElementById('next').addEventListener('click',()=>go(active+1));
+  document.addEventListener('keydown',e=>{
+    if(e.key==='ArrowLeft')  go(active-1);
+    if(e.key==='ArrowRight') go(active+1);
+  });
+
+  /* ---------- idle hide of nav ---------- */
+  let idleT;
+  function wake(){
+    stage.classList.remove('idle');
+    clearTimeout(idleT);
+    idleT=setTimeout(()=>stage.classList.add('idle'), 4000);
+  }
+  ['mousemove','touchstart','keydown'].forEach(ev=>window.addEventListener(ev,wake,{passive:true}));
+  wake();
+
+  /* ---------- flip clock ---------- */
+  function buildFlip(container,count){
+    container.innerHTML='';
+    const cards=[];
+    for(let i=0;i<count;i++){
+      const c=document.createElement('div');
+      c.className='flip-card';
+      c.dataset.value='';
+      c.innerHTML=
+        '<div class="half top"><div class="num"></div></div>'+
+        '<div class="half bottom"><div class="num"></div></div>'+
+        '<div class="half top-flip"><div class="num"></div></div>'+
+        '<div class="half bottom-flip"><div class="num"></div></div>';
+      c.addEventListener('animationend',e=>{
+        if(e.animationName==='unfoldBottom'){
+          c.querySelector('.bottom .num').textContent=c.dataset.value;
+          c.querySelector('.top-flip .num').textContent=c.dataset.value;
+          c.classList.remove('flipping');
+        }
+      });
+      container.appendChild(c);
+      cards.push(c);
+    }
+    return cards;
+  }
+  function setCard(card,val,animate){
+    val=String(val);
+    if(card.dataset.value===val) return;
+    if(!animate){
+      card.dataset.value=val;
+      card.querySelectorAll('.num').forEach(n=>n.textContent=val);
+      card.classList.remove('flipping');
+      return;
+    }
+    const cur=card.dataset.value;
+    card.querySelector('.top .num').textContent=val;
+    card.querySelector('.bottom-flip .num').textContent=val;
+    card.querySelector('.top-flip .num').textContent=cur;
+    card.querySelector('.bottom .num').textContent=cur;
+    card.dataset.value=val;
+    card.classList.remove('flipping'); void card.offsetWidth; card.classList.add('flipping');
+  }
+  function setGroup(cards,str,animate){
+    str=String(str);
+    for(let i=0;i<cards.length;i++) setCard(cards[i], str[i], animate);
+  }
+  const hCards=buildFlip(document.getElementById('f2-h'),2);
+  const mCards=buildFlip(document.getElementById('f2-m'),2);
+  const sCards=buildFlip(document.getElementById('f2-s'),2);
+
+  /* ---------- ticking ---------- */
+  const DAYS=['SUNDAY','MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SATURDAY'];
+  const DAYS3=['SUN','MON','TUE','WED','THU','FRI','SAT'];
+  const MON=['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'];
+  const MON3=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+  const pad=n=>String(n).padStart(2,'0');
+
+  const el=id=>document.getElementById(id);
+  const f1t=el('f1-time'),f1s=el('f1-sec'),f1a=el('f1-ampm'),f1d=el('f1-date');
+  const f2a=el('f2-ampm'),f2d=el('f2-date');
+  const f3t=el('f3-time'),f3a=el('f3-ampm'),f3d=el('f3-date'),f3s=el('f3-sec');
+  const f4t=el('f4-time'),f4a=el('f4-ampm'),f4s=el('f4-sec'),f4d=el('f4-date');
+
+  let cur={h:'',m:'',s:''};
+
+  function renderFlip(animate){
+    setGroup(hCards,cur.h,animate);
+    setGroup(mCards,cur.m,animate);
+    setGroup(sCards,cur.s,animate);
+  }
+
+  function tick(){
+    const d=new Date();
+    let h=d.getHours(); const m=d.getMinutes(); const s=d.getSeconds();
+    const ampm=h>=12?'PM':'AM'; const h12=h%12||12;
+    const hh=pad(h12),mm=pad(m),ss=pad(s);
+    cur={h:hh,m:mm,s:ss};
+
+    const dayL=DAYS[d.getDay()], day3=DAYS3[d.getDay()];
+    const monL=MON[d.getMonth()], mon3=MON3[d.getMonth()];
+    const dn=d.getDate();
+
+    // face 1
+    f1t.textContent=h12+':'+mm; f1s.textContent=ss; f1a.textContent=ampm;
+    f1d.textContent=dayL+' · '+monL+' '+dn;
+    // face 2
+    f2a.textContent=ampm; f2d.textContent=day3+' · '+mon3+' '+dn;
+    renderFlip(active===1);
+    // face 3
+    f3t.textContent=h12+':'+mm; f3a.textContent=ampm; f3s.textContent=ss;
+    f3d.textContent=dayL+'  '+mon3+' '+dn;
+    // face 4
+    f4t.innerHTML=h12+'<span class="f4-colon">:</span>'+mm;
+    f4a.textContent=ampm; f4s.textContent=ss;
+    f4d.textContent=dayL+' · '+monL+' '+dn;
+  }
+
+  // init
+  go(active);
+  tick();
+  renderFlip(false);
+  // align to second boundary, then tick each second
+  function loop(){ tick(); setTimeout(loop, 1000 - (Date.now()%1000)); }
+  setTimeout(loop, 1000 - (Date.now()%1000));
+})();
+</script>
+</body>
+</html>
