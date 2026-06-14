@@ -1,8 +1,12 @@
-const CACHE_NAME = 'deskclock-v1';
+const CACHE_NAME = 'deskclock-v2';
 const CORE_ASSETS = [
   './',
   'index.html',
-  'manifest.json'
+  'manifest.json',
+  'fonts/jost-var.woff2',
+  'fonts/archivo-var.woff2',
+  'fonts/orbitron-var.woff2',
+  'fonts/anton-400.woff2'
 ];
 
 self.addEventListener('install', event => {

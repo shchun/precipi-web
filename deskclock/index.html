@@ -6,9 +6,17 @@
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#000000">
 <title>Desk Clock</title>
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Jost:wght@200;300;400;500&family=Archivo:wght@500;600;700&family=Anton&family=Orbitron:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+  /* 오프라인 사용을 위해 폰트를 앱에 내장 (Jost/Archivo/Orbitron은 가변폰트) */
+  @font-face{ font-family:'Jost'; font-style:normal; font-weight:200 500;
+    src:url('fonts/jost-var.woff2') format('woff2'); font-display:swap; }
+  @font-face{ font-family:'Archivo'; font-style:normal; font-weight:500 700;
+    src:url('fonts/archivo-var.woff2') format('woff2'); font-display:swap; }
+  @font-face{ font-family:'Orbitron'; font-style:normal; font-weight:400 700;
+    src:url('fonts/orbitron-var.woff2') format('woff2'); font-display:swap; }
+  @font-face{ font-family:'Anton'; font-style:normal; font-weight:400;
+    src:url('fonts/anton-400.woff2') format('woff2'); font-display:swap; }
+</style>
 <style>
   *{ margin:0; padding:0; box-sizing:border-box; }
   html,body{ height:100%; }
@@ -92,6 +100,9 @@
   .flip-card .num{
     position:absolute; left:0; width:100%; height:18vmin; line-height:18vmin;
     text-align:center; font-variant-numeric:tabular-nums;
+    /* 내장 가변 Archivo의 ascent가 커서 베이스라인이 낮게 잡혀 숫자 아래가 카드에
+       잘리는 것을 보정 — 모든 num에 동일 적용해 분할 이음새 정렬은 유지된다. */
+    transform:translateY(-2.5vmin);
   }
   .flip-card .top .num, .flip-card .top-flip .num{ top:0; }
   .flip-card .bottom .num, .flip-card .bottom-flip .num{ bottom:0; }
@@ -129,18 +140,18 @@
     font-variant-numeric:tabular-nums; text-transform:uppercase;
   }
   .f3-ampm{
-    position:absolute; top:18%; right:9%;
+    position:absolute; top:6%; right:6%;
     font-family:'Anton',sans-serif; font-size:9vmin; line-height:.8;
     color:#cf3f23;
   }
   .f3-date{
-    position:absolute; left:9%; bottom:11%;
+    position:absolute; left:5%; bottom:6%;
     writing-mode:vertical-rl; transform:rotate(180deg);
     font-family:'Anton',sans-serif; font-size:4.4vmin; letter-spacing:.06em;
     color:#15130d; text-transform:uppercase;
   }
   .f3-sec{
-    position:absolute; right:9%; bottom:11%;
+    position:absolute; right:6%; bottom:6%;
     font-family:'Anton',sans-serif; font-size:7vmin; color:#cf3f23;
     font-variant-numeric:tabular-nums;
   }
@@ -219,9 +230,13 @@
 
   .stage.idle .nav{ opacity:0; pointer-events:none; }
   .nav:hover{ opacity:1 !important; }
+
+  /* 화면 비율에 맞춘 확대는 JS(fitActive)가 담당한다 — 콘텐츠를 측정해 어떤
+     비율(세로 바/가로 바/일반 폰)에서도 화면의 ~92%에 맞춰 키운다(넘치지 않게). */
 </style>
 </head>
 <body>
+  <!-- 웹(PWA)에서는 오프라인 설치를 위해 서비스워커를 등록한다. -->
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', function() {
@@ -289,11 +304,9 @@
 
   </div>
 
-  <!-- NAV -->
+  <!-- NAV (위치 표시용 점만 — 화면을 터치하면 다음 시계로 전환) -->
   <nav class="nav" id="nav">
-    <button id="prev" aria-label="Previous design">‹</button>
     <div class="dots" id="dots"></div>
-    <button id="next" aria-label="Next design">›</button>
   </nav>
 
 <script>
@@ -329,10 +342,42 @@
     stage.dataset.theme = FACES[active].theme;
     localStorage.setItem('deskclock.face', active);
     if(FACES[active].id==='face2') renderFlip(false); // set instantly, no animation
+    fitActive();
+    setTimeout(fitActive, 600); // 진입 애니메이션이 끝난 뒤 정확히 다시 맞춤
   }
 
-  document.getElementById('prev').addEventListener('click',()=>go(active-1));
-  document.getElementById('next').addEventListener('click',()=>go(active+1));
+  /* ---------- 화면 비율에 맞춰 콘텐츠 자동 확대 ----------
+     vmin(짧은 변) 기준이라 세로/가로로 길쭉한 화면(폴드 커버 등)에서 작게 보이는
+     것을 보정. 콘텐츠 실측 크기로 배율을 계산하므로 어떤 비율에서도 넘치지 않는다. */
+  function fitEl(el, availW, availH, maxS){
+    const cur = +(el.dataset.fit || 1);
+    const r = el.getBoundingClientRect();
+    const natW = r.width/cur, natH = r.height/cur;
+    if(!natW || !natH) return;
+    let s = Math.min(availW/natW, availH/natH);
+    s = Math.max(0.4, Math.min(maxS, s));
+    el.dataset.fit = s;
+    el.style.transform = 'scale('+s+')';
+  }
+  function fitActive(){
+    const id = FACES[active].id;
+    const vw = window.innerWidth, vh = window.innerHeight;
+    if(id==='face3'){
+      // 타이포: 중앙 시간만 맞춤(모서리 라벨은 vmin 기준 그대로 둠)
+      // 시간의 세로 크기를 제한해 위/아래 모서리 라벨(AM·초·날짜)과 겹치지 않게 한다
+      const t = document.getElementById('f3-time');
+      if(t) fitEl(t, vw*0.9, vh*0.6, 5);
+    }else{
+      const w = document.querySelector('#'+id+' .'+id.replace('face','f')+'-wrap');
+      if(w) fitEl(w, vw*0.92, vh*0.92, 4);
+    }
+  }
+  let lastHlen = 0;
+  window.addEventListener('resize', fitActive);
+  if(document.fonts && document.fonts.ready) document.fonts.ready.then(fitActive);
+
+  // 시계 화면을 터치(클릭)하면 다음 시계로 전환
+  stage.addEventListener('click',()=>go(active+1));
   document.addEventListener('keydown',e=>{
     if(e.key==='ArrowLeft')  go(active-1);
     if(e.key==='ArrowRight') go(active+1);
@@ -443,12 +488,17 @@
     f4t.innerHTML=h12+'<span class="f4-colon">:</span>'+mm;
     f4a.textContent=ampm; f4s.textContent=ss;
     f4d.textContent=dayL+' · '+monL+' '+dn;
+
+    // 시 자릿수(예: 9→10, 12→1)가 바뀌면 시간 폭이 달라지므로 다시 맞춤
+    const hlen = String(h12).length;
+    if(hlen !== lastHlen){ lastHlen = hlen; fitActive(); }
   }
 
   // init
   go(active);
   tick();
   renderFlip(false);
+  fitActive();
   // align to second boundary, then tick each second
   function loop(){ tick(); setTimeout(loop, 1000 - (Date.now()%1000)); }
   setTimeout(loop, 1000 - (Date.now()%1000));
