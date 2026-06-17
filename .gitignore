@@ -1,4 +1,6 @@
 .claude/settings.local.json
+# 에이전트 로컬 메모리(시크릿 포함 가능) — 공유하지 않음
+.claude/agent-memory/
 
 # Binaries are hosted on GitHub Releases, not in the repo
 apks/*.apk
