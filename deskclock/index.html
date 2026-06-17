@@ -54,33 +54,35 @@
   /* ======================================================= */
   /* FACE 1 — MINIMAL / MODERN                               */
   /* ======================================================= */
-  #face1{ background:#ECE9E1; color:#1b1a16; }
-  .f1-wrap{ display:flex; flex-direction:column; align-items:center; gap:5.5vmin; }
+  /* Brutal Minimal — 비비드 옐로우 + 흰 박스 + 하드 그림자 */
+  #face1{ background:#FFED47; color:#0a0a0a; }
+  .f1-wrap{ display:flex; flex-direction:column; align-items:center; gap:4.5vmin; }
   .f1-date{
-    font-weight:400; font-size:2.1vmin; letter-spacing:.55em; white-space:nowrap;
-    text-transform:uppercase; color:#8c887c; padding-left:.55em;
+    font-family:'Archivo',sans-serif; font-weight:700; font-size:2.1vmin; letter-spacing:.32em; white-space:nowrap;
+    text-transform:uppercase; color:#FFED47; background:#0a0a0a; padding:.9vmin 1.8vmin;
+    border:3px solid #0a0a0a; box-shadow:4px 4px 0 #0a0a0a;
   }
-  .f1-clock{ display:flex; align-items:flex-start; gap:1.6vmin; line-height:.8; }
-  .f1-time{ font-weight:200; font-size:24vmin; letter-spacing:-.01em; font-variant-numeric:tabular-nums; }
-  .f1-side{ display:flex; flex-direction:column; align-items:flex-start; gap:1.4vmin; padding-top:3vmin; }
-  .f1-sec{ font-weight:300; font-size:5.2vmin; color:#b3afa2; font-variant-numeric:tabular-nums; }
-  .f1-ampm{ font-weight:400; font-size:2.6vmin; letter-spacing:.4em; color:#1b1a16; padding-left:.4em; }
-  .f1-rule{ width:30vmin; height:1px; background:#cdc9bd; }
+  .f1-clock{ display:flex; align-items:stretch; gap:2.4vmin; line-height:.8;
+    background:#fff; border:4px solid #0a0a0a; box-shadow:8px 8px 0 #0a0a0a; padding:3vmin 3.6vmin; }
+  .f1-time{ font-family:'Archivo',sans-serif; font-weight:700; font-size:21vmin; letter-spacing:-.02em; font-variant-numeric:tabular-nums; }
+  .f1-side{ display:flex; flex-direction:column; align-items:stretch; justify-content:center; gap:1.4vmin; }
+  .f1-sec{ font-family:'Archivo',sans-serif; font-weight:700; font-size:4.4vmin; color:#0a0a0a; font-variant-numeric:tabular-nums;
+    border:3px solid #0a0a0a; padding:.3vmin 1.2vmin; text-align:center; }
+  .f1-ampm{ font-family:'Archivo',sans-serif; font-weight:700; font-size:3vmin; letter-spacing:.18em; color:#FFED47; background:#0a0a0a;
+    padding:.5vmin 1.2vmin; text-align:center; }
+  .f1-rule{ width:34vmin; height:1.2vmin; background:#0a0a0a; }
 
   /* ======================================================= */
   /* FACE 2 — RETRO FLIP                                     */
   /* ======================================================= */
-  #face2{
-    background:
-      radial-gradient(120% 90% at 50% 0%, #202024 0%, #141416 55%, #0e0e10 100%);
-    color:#f3f1ea;
-  }
+  /* Brutal Flip — 비비드 레드 + 각진 흰 카드 */
+  #face2{ background:#FF3B3B; color:#0a0a0a; }
   .f2-wrap{ display:flex; flex-direction:column; align-items:center; gap:4.2vmin; }
   .f2-row{ display:flex; align-items:center; gap:1.6vmin; }
   .flip-group{ display:flex; gap:1.1vmin; }
   .flip-group.sec{ transform:scale(.5); transform-origin:center bottom; margin-left:.4vmin; }
   .f2-colon{ display:flex; flex-direction:column; gap:4vmin; padding:0 .3vmin; }
-  .f2-colon i{ width:1.5vmin; height:1.5vmin; border-radius:50%; background:#56565c; display:block; }
+  .f2-colon i{ width:1.8vmin; height:1.8vmin; background:#0a0a0a; display:block; }
   .f2-colon.blink{ animation:f2blink 1s steps(1,end) infinite; }
   @keyframes f2blink{ 50%{ opacity:.25; } }
 
@@ -90,12 +92,12 @@
     font-family:'Archivo',sans-serif; font-weight:700;
     font-size:14vmin; line-height:18vmin;
     perspective:340px;
-    border-radius:1.4vmin;
-    filter:drop-shadow(0 1.4vmin 2.6vmin rgba(0,0,0,.45));
+    border:4px solid #0a0a0a;
+    box-shadow:6px 6px 0 #0a0a0a;
   }
   .flip-card .half{
     position:absolute; left:0; width:100%; height:50%;
-    overflow:hidden; background:#26262b; color:#f3f1ea;
+    overflow:hidden; background:#fff; color:#0a0a0a;
   }
   .flip-card .num{
     position:absolute; left:0; width:100%; height:18vmin; line-height:18vmin;
@@ -106,14 +108,14 @@
   }
   .flip-card .top .num, .flip-card .top-flip .num{ top:0; }
   .flip-card .bottom .num, .flip-card .bottom-flip .num{ bottom:0; }
-  .flip-card .top{ top:0; border-radius:1.4vmin 1.4vmin 0 0;
-    border-bottom:1px solid rgba(0,0,0,.45); background:#2b2b30; }
-  .flip-card .bottom{ bottom:0; border-radius:0 0 1.4vmin 1.4vmin; background:#202024; }
+  .flip-card .top{ top:0;
+    border-bottom:2px solid #0a0a0a; background:#fff; }
+  .flip-card .bottom{ bottom:0; background:#ededed; }
   .flip-card .top-flip{ top:0; transform-origin:bottom; z-index:3;
-    border-radius:1.4vmin 1.4vmin 0 0; background:#2b2b30;
-    border-bottom:1px solid rgba(0,0,0,.5); backface-visibility:hidden; }
+    background:#fff;
+    border-bottom:2px solid #0a0a0a; backface-visibility:hidden; }
   .flip-card .bottom-flip{ bottom:0; transform-origin:top; z-index:3;
-    border-radius:0 0 1.4vmin 1.4vmin; background:#202024;
+    background:#ededed;
     transform:rotateX(90deg); backface-visibility:hidden; }
   .flip-card.flipping .top-flip{ animation:foldTop .3s ease-in forwards; }
   .flip-card.flipping .bottom-flip{ animation:unfoldBottom .3s ease-out .3s forwards; }
@@ -122,84 +124,251 @@
 
   .f2-meta{ display:flex; align-items:center; gap:2.4vmin; }
   .f2-ampm{
-    font-family:'Archivo',sans-serif; font-weight:600; font-size:2.4vmin;
-    letter-spacing:.25em; padding:.9vmin 1.8vmin; border-radius:.8vmin;
-    background:#26262b; color:#f3b14e; box-shadow:0 .6vmin 1.4vmin rgba(0,0,0,.4);
+    font-family:'Archivo',sans-serif; font-weight:700; font-size:2.4vmin;
+    letter-spacing:.2em; padding:.9vmin 1.8vmin;
+    background:#0a0a0a; color:#FFED47; border:3px solid #0a0a0a; box-shadow:3px 3px 0 #0a0a0a;
   }
-  .f2-date{ font-weight:400; font-size:2.2vmin; letter-spacing:.4em; white-space:nowrap; color:#9a968c; text-transform:uppercase; }
+  .f2-date{ font-family:'Archivo',sans-serif; font-weight:700; font-size:2.2vmin; letter-spacing:.2em; white-space:nowrap;
+    color:#0a0a0a; background:#fff; padding:.9vmin 1.8vmin; border:3px solid #0a0a0a; box-shadow:3px 3px 0 #0a0a0a; text-transform:uppercase; }
 
   /* ======================================================= */
   /* FACE 3 — TYPOGRAPHY                                     */
   /* ======================================================= */
-  #face3{ background:#E7E2D6; color:#15130d; }
+  /* Brutal Typography — 흰 배경 + 핫핑크 하드 오프셋 */
+  #face3{ background:#F5F5F5;
+    background-image:repeating-linear-gradient(0deg, rgba(10,10,10,.045) 0 2px, transparent 2px 11px);
+    color:#0a0a0a; }
   .f3-wrap{ position:relative; width:100%; height:100%;
     display:flex; flex-direction:column; align-items:center; justify-content:center; }
   .f3-time{
     font-family:'Anton',sans-serif; font-weight:400;
     font-size:40vmin; line-height:.82; letter-spacing:-.02em;
     font-variant-numeric:tabular-nums; text-transform:uppercase;
+    color:#0a0a0a; text-shadow:7px 7px 0 #FF1F7D;
   }
   .f3-ampm{
     position:absolute; top:6%; right:6%;
-    font-family:'Anton',sans-serif; font-size:9vmin; line-height:.8;
-    color:#cf3f23;
+    font-family:'Anton',sans-serif; font-size:7.5vmin; line-height:.9;
+    color:#0a0a0a; background:#FF1F7D; padding:.4vmin 2vmin;
+    border:4px solid #0a0a0a; box-shadow:6px 6px 0 #0a0a0a;
   }
   .f3-date{
     position:absolute; left:5%; bottom:6%;
     writing-mode:vertical-rl; transform:rotate(180deg);
     font-family:'Anton',sans-serif; font-size:4.4vmin; letter-spacing:.06em;
-    color:#15130d; text-transform:uppercase;
+    color:#F5F5F5; background:#0a0a0a; padding:1.6vmin .7vmin;
+    text-transform:uppercase;
   }
   .f3-sec{
     position:absolute; right:6%; bottom:6%;
-    font-family:'Anton',sans-serif; font-size:7vmin; color:#cf3f23;
+    font-family:'Anton',sans-serif; font-size:7vmin; color:#FF1F7D;
+    background:#0a0a0a; padding:.2vmin 1.4vmin;
+    box-shadow:-5px 5px 0 #FF1F7D;
     font-variant-numeric:tabular-nums;
   }
 
   /* ======================================================= */
   /* FACE 4 — NEON / GLOW                                    */
   /* ======================================================= */
+  /* Brutal Electric — 딥 네이비 + 그리드 + 라임/블루 하드 블록 */
   #face4{
-    background:radial-gradient(120% 120% at 50% 42%, #0d1320 0%, #060810 60%, #030308 100%);
+    background:#0A0E1A;
+    background-image:
+      linear-gradient(rgba(30,100,255,.12) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(30,100,255,.12) 1px, transparent 1px);
+    background-size:6vmin 6vmin;
     color:#fff;
   }
   .f4-wrap{ display:flex; flex-direction:column; align-items:center; gap:4vmin; }
-  .f4-clock{ display:flex; align-items:baseline; gap:1vmin;
-    font-family:'Orbitron',sans-serif; font-weight:700; }
+  .f4-clock{ display:flex; align-items:center; gap:2vmin;
+    font-family:'Orbitron',sans-serif; font-weight:700;
+    background:#1E64FF; border:5px solid #C8FF00; box-shadow:9px 9px 0 #C8FF00; padding:2.4vmin 3.6vmin; }
   .f4-time{
-    font-size:24vmin; letter-spacing:.01em; font-variant-numeric:tabular-nums;
-    color:#d6fbff;
-    text-shadow:
-      0 0 .6vmin #aef6ff, 0 0 1.6vmin #4fe9ff,
-      0 0 4vmin #16b6ff, 0 0 8vmin #0a86e0;
+    font-size:21vmin; letter-spacing:.01em; font-variant-numeric:tabular-nums;
+    color:#C8FF00; text-shadow:4px 4px 0 #0a0a0a;
   }
   .f4-colon{ animation:f4blink 1.1s steps(1,end) infinite; }
   @keyframes f4blink{ 50%{ opacity:.28; } }
   .f4-ampm{
-    font-family:'Orbitron',sans-serif; font-weight:500; font-size:5vmin;
-    align-self:flex-start; margin-top:2vmin; color:#ffd2f4;
-    text-shadow:0 0 .6vmin #ff9be8, 0 0 2vmin #ff4fd0, 0 0 5vmin #e018b0;
+    font-family:'Orbitron',sans-serif; font-weight:700; font-size:3.6vmin;
+    align-self:center; color:#0a0a0a; background:#C8FF00; padding:.6vmin 1.6vmin; border:3px solid #0a0a0a;
   }
   .f4-meta{ display:flex; align-items:center; gap:2.6vmin;
-    font-family:'Orbitron',sans-serif; font-weight:400; }
-  .f4-sec{ font-size:3vmin; color:#bff0ff;
-    text-shadow:0 0 .5vmin #7fe8ff, 0 0 2vmin #29c6ff; }
-  .f4-dot{ width:1vmin; height:1vmin; border-radius:50%; background:#5fe0ff;
-    box-shadow:0 0 1.4vmin #29c6ff; }
-  .f4-date{ font-size:2.3vmin; letter-spacing:.34em; white-space:nowrap; color:#8fb6cf; text-transform:uppercase; }
+    font-family:'Orbitron',sans-serif; font-weight:700; }
+  .f4-sec{ font-size:3vmin; color:#C8FF00;
+    border:3px solid #C8FF00; padding:.3vmin 1.2vmin; font-variant-numeric:tabular-nums; }
+  .f4-dot{ width:1.4vmin; height:1.4vmin; background:#C8FF00; }
+  .f4-date{ font-size:2.3vmin; letter-spacing:.2em; white-space:nowrap; color:#0A0E1A; background:#C8FF00; padding:.5vmin 1.4vmin; text-transform:uppercase; }
+
+  /* ======================================================= */
+  /* FACE 5 — MINIMAL / MODERN (classic)                     */
+  /* ======================================================= */
+  #face5{ background:#ECE9E1; color:#1b1a16; }
+  .f5-wrap{ display:flex; flex-direction:column; align-items:center; gap:5.5vmin; }
+  .f5-date{ font-weight:400; font-size:2.1vmin; letter-spacing:.55em; white-space:nowrap;
+    text-transform:uppercase; color:#8c887c; padding-left:.55em; }
+  .f5-clock{ display:flex; align-items:flex-start; gap:1.6vmin; line-height:.8; }
+  .f5-time{ font-weight:200; font-size:24vmin; letter-spacing:-.01em; font-variant-numeric:tabular-nums; }
+  .f5-side{ display:flex; flex-direction:column; align-items:flex-start; gap:1.4vmin; padding-top:3vmin; }
+  .f5-sec{ font-weight:300; font-size:5.2vmin; color:#b3afa2; font-variant-numeric:tabular-nums; }
+  .f5-ampm{ font-weight:400; font-size:2.6vmin; letter-spacing:.4em; color:#1b1a16; padding-left:.4em; }
+  .f5-rule{ width:30vmin; height:1px; background:#cdc9bd; }
+
+  /* ======================================================= */
+  /* FACE 6 — RETRO FLIP (classic)                           */
+  /* ======================================================= */
+  #face6{ background:radial-gradient(120% 90% at 50% 0%, #202024 0%, #141416 55%, #0e0e10 100%); color:#f3f1ea; }
+  .f6-wrap{ display:flex; flex-direction:column; align-items:center; gap:4.2vmin; }
+  .f6-row{ display:flex; align-items:center; gap:1.6vmin; }
+  .f6-colon{ display:flex; flex-direction:column; gap:4vmin; padding:0 .3vmin; }
+  .f6-colon i{ width:1.5vmin; height:1.5vmin; border-radius:50%; background:#56565c; display:block; }
+  .f6-colon.blink{ animation:f2blink 1s steps(1,end) infinite; }
+  /* face6 flip 오버라이드 — 전역(브루탈리즘) .flip-card 위에 둥근/그림자 클래식 룩을 복원 */
+  #face6 .flip-card{ border:none; box-shadow:none; border-radius:1.4vmin;
+    filter:drop-shadow(0 1.4vmin 2.6vmin rgba(0,0,0,.45)); }
+  #face6 .flip-card .half{ background:#26262b; color:#f3f1ea; }
+  #face6 .flip-card .top{ border-radius:1.4vmin 1.4vmin 0 0; border-bottom:1px solid rgba(0,0,0,.45); background:#2b2b30; }
+  #face6 .flip-card .bottom{ border-radius:0 0 1.4vmin 1.4vmin; background:#202024; }
+  #face6 .flip-card .top-flip{ border-radius:1.4vmin 1.4vmin 0 0; background:#2b2b30; border-bottom:1px solid rgba(0,0,0,.5); }
+  #face6 .flip-card .bottom-flip{ border-radius:0 0 1.4vmin 1.4vmin; background:#202024; }
+  .f6-meta{ display:flex; align-items:center; gap:2.4vmin; }
+  .f6-ampm{ font-family:'Archivo',sans-serif; font-weight:600; font-size:2.4vmin; letter-spacing:.25em;
+    padding:.9vmin 1.8vmin; border-radius:.8vmin; background:#26262b; color:#f3b14e; box-shadow:0 .6vmin 1.4vmin rgba(0,0,0,.4); }
+  .f6-date{ font-weight:400; font-size:2.2vmin; letter-spacing:.4em; white-space:nowrap; color:#9a968c; text-transform:uppercase; }
+
+  /* ======================================================= */
+  /* FACE 7 — TYPOGRAPHY (classic)                           */
+  /* ======================================================= */
+  #face7{ background:#E7E2D6; color:#15130d; }
+  .f7-wrap{ position:relative; width:100%; height:100%;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; }
+  .f7-time{ font-family:'Anton',sans-serif; font-weight:400; font-size:40vmin; line-height:.82; letter-spacing:-.02em;
+    font-variant-numeric:tabular-nums; text-transform:uppercase; }
+  .f7-ampm{ position:absolute; top:6%; right:6%; font-family:'Anton',sans-serif; font-size:9vmin; line-height:.8; color:#cf3f23; }
+  .f7-date{ position:absolute; left:5%; bottom:6%; writing-mode:vertical-rl; transform:rotate(180deg);
+    font-family:'Anton',sans-serif; font-size:4.4vmin; letter-spacing:.06em; color:#15130d; text-transform:uppercase; }
+  .f7-sec{ position:absolute; right:6%; bottom:6%; font-family:'Anton',sans-serif; font-size:7vmin; color:#cf3f23; font-variant-numeric:tabular-nums; }
+
+  /* ======================================================= */
+  /* FACE 8 — NEON / GLOW (classic)                          */
+  /* ======================================================= */
+  #face8{ background:radial-gradient(120% 120% at 50% 42%, #0d1320 0%, #060810 60%, #030308 100%); color:#fff; }
+  .f8-wrap{ display:flex; flex-direction:column; align-items:center; gap:4vmin; }
+  .f8-clock{ display:flex; align-items:baseline; gap:1vmin; font-family:'Orbitron',sans-serif; font-weight:700; }
+  .f8-time{ font-size:24vmin; letter-spacing:.01em; font-variant-numeric:tabular-nums; color:#d6fbff;
+    text-shadow:0 0 .6vmin #aef6ff, 0 0 1.6vmin #4fe9ff, 0 0 4vmin #16b6ff, 0 0 8vmin #0a86e0; }
+  .f8-colon{ animation:f4blink 1.1s steps(1,end) infinite; }
+  .f8-ampm{ font-family:'Orbitron',sans-serif; font-weight:500; font-size:5vmin; align-self:flex-start; margin-top:2vmin;
+    color:#ffd2f4; text-shadow:0 0 .6vmin #ff9be8, 0 0 2vmin #ff4fd0, 0 0 5vmin #e018b0; }
+  .f8-meta{ display:flex; align-items:center; gap:2.6vmin; font-family:'Orbitron',sans-serif; font-weight:400; }
+  .f8-sec{ font-size:3vmin; color:#bff0ff; text-shadow:0 0 .5vmin #7fe8ff, 0 0 2vmin #29c6ff; }
+  .f8-dot{ width:1vmin; height:1vmin; border-radius:50%; background:#5fe0ff; box-shadow:0 0 1.4vmin #29c6ff; }
+  .f8-date{ font-size:2.3vmin; letter-spacing:.34em; white-space:nowrap; color:#8fb6cf; text-transform:uppercase; }
+
+  /* ======================================================= */
+  /* FACE 9 — APPLE LIQUID GLASS                             */
+  /* ======================================================= */
+  /* 반투명 프로스티드 글래스 + 움직이는 컬러 굴절 + 스페큘러 광택 */
+  #face9{ background:#0b1020; color:#fff; overflow:hidden; }
+  /* 유리가 굴절할 움직이는 컬러 블롭 배경 */
+  #face9::before{
+    content:''; position:absolute; inset:-25%;
+    background:
+      radial-gradient(40vmin 40vmin at 25% 30%, #7b5cff 0%, transparent 60%),
+      radial-gradient(45vmin 45vmin at 75% 25%, #ff5ca8 0%, transparent 60%),
+      radial-gradient(50vmin 50vmin at 70% 80%, #2ad0ff 0%, transparent 60%),
+      radial-gradient(42vmin 42vmin at 20% 78%, #36e0a6 0%, transparent 60%);
+    filter:blur(2vmin) saturate(140%);
+    animation:lgFloat 18s ease-in-out infinite alternate;
+  }
+  @keyframes lgFloat{
+    from{ transform:translate(-3%,-2%) scale(1.05); }
+    to{   transform:translate(4%,3%)  scale(1.16); }
+  }
+  @media (prefers-reduced-motion:reduce){ #face9::before{ animation:none; } }
+
+  .f9-wrap{ position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; gap:3.4vmin; }
+  /* 메인 글래스 패널 */
+  .f9-glass{
+    position:relative; display:flex; flex-direction:column; align-items:center; gap:1.4vmin;
+    padding:5vmin 7vmin; border-radius:6vmin;
+    background:linear-gradient(135deg, rgba(255,255,255,.18), rgba(255,255,255,.05));
+    backdrop-filter:blur(4vmin) saturate(180%); -webkit-backdrop-filter:blur(4vmin) saturate(180%);
+    border:1px solid rgba(255,255,255,.35);
+    box-shadow:0 4vmin 8vmin rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.6), inset 0 -1px 0 rgba(255,255,255,.12);
+  }
+  /* 상단 스페큘러 하이라이트(유리 광택) */
+  .f9-glass::before{
+    content:''; position:absolute; left:6%; right:6%; top:0; height:42%; pointer-events:none;
+    border-radius:6vmin 6vmin 50% 50%/6vmin 6vmin 18vmin 18vmin;
+    background:linear-gradient(180deg, rgba(255,255,255,.4), rgba(255,255,255,0));
+  }
+  .f9-time{
+    font-family:'Jost',system-ui,sans-serif; font-weight:300;
+    font-size:22vmin; line-height:.9; letter-spacing:-.02em; font-variant-numeric:tabular-nums;
+    color:#fff; text-shadow:0 .4vmin 2vmin rgba(0,0,0,.25); white-space:nowrap;
+  }
+  .f9-colon{ animation:f9blink 1.2s steps(1,end) infinite; }
+  @keyframes f9blink{ 50%{ opacity:.25; } }
+  .f9-ampm{ font-size:5vmin; font-weight:400; opacity:.85; margin-left:1.6vmin; }
+  .f9-sec{ font-family:'Jost',system-ui,sans-serif; font-weight:400; font-size:4vmin; font-variant-numeric:tabular-nums; opacity:.65; letter-spacing:.1em; }
+  /* 날짜 — 작은 글래스 알약 */
+  .f9-date{
+    font-family:'Jost',system-ui,sans-serif; font-weight:400; font-size:2.4vmin;
+    letter-spacing:.28em; text-transform:uppercase; white-space:nowrap; color:#fff;
+    padding:1.3vmin 3vmin; border-radius:100px;
+    background:rgba(255,255,255,.12); backdrop-filter:blur(2vmin) saturate(160%); -webkit-backdrop-filter:blur(2vmin) saturate(160%);
+    border:1px solid rgba(255,255,255,.3);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.5), 0 1vmin 3vmin rgba(0,0,0,.25);
+  }
+
+  /* ======================================================= */
+  /* FACE 10 — TERMINAL                                      */
+  /* ======================================================= */
+  /* 검은 배경 + 초록 모노스페이스 + CRT 글로우 + 깜빡이는 블록 커서 */
+  #face10{ background:#020602; color:#33ff66; overflow:hidden; }
+  /* CRT 스캔라인 */
+  #face10::after{
+    content:''; position:absolute; inset:0; pointer-events:none; z-index:2;
+    background:repeating-linear-gradient(0deg, rgba(0,0,0,.28) 0 1px, transparent 1px 3px);
+  }
+  .f10-wrap{
+    position:relative; z-index:1; text-align:left;
+    font-family:ui-monospace,'Cascadia Mono','Consolas','Courier New',monospace;
+    line-height:1.5; text-shadow:0 0 1vmin rgba(51,255,102,.55);
+  }
+  .f10-line{ font-size:3vmin; letter-spacing:.02em; white-space:nowrap; }
+  .f10-prompt{ color:#7dffb0; }
+  .f10-path{ color:#5ad1ff; }
+  .f10-cmd{ color:#eafff0; }
+  .f10-dim{ color:#1f9c4a; }
+  .f10-time{
+    font-size:16vmin; font-weight:700; letter-spacing:.01em; line-height:1.05;
+    font-variant-numeric:tabular-nums; white-space:nowrap;
+    text-shadow:0 0 1.6vmin rgba(51,255,102,.7), 0 0 .4vmin rgba(51,255,102,.9);
+  }
+  .f10-date{ font-size:3vmin; color:#33ff66; letter-spacing:.18em; text-transform:uppercase; white-space:nowrap; }
+  .f10-cursor{
+    display:inline-block; width:1.1ch; height:1em; vertical-align:-.12em;
+    background:#33ff66; box-shadow:0 0 1.4vmin rgba(51,255,102,.8);
+    animation:f10blink 1.06s steps(1,end) infinite;
+  }
+  @keyframes f10blink{ 50%{ opacity:0; } }
+  @media (prefers-reduced-motion:reduce){ .f10-cursor{ animation:none; } }
 
   /* ======================================================= */
   /* NAV                                                     */
   /* ======================================================= */
-  .stage[data-theme="light"]{ --ui:#1b1a16; --ui-soft:rgba(27,26,22,.42); --ui-bg:rgba(27,26,22,.06); }
-  .stage[data-theme="dark"]{ --ui:#f3f1ea; --ui-soft:rgba(243,241,234,.5); --ui-bg:rgba(243,241,234,.1); }
+  .stage[data-theme="light"]{ --ui:#0a0a0a; --ui-soft:rgba(10,10,10,.4); --ui-bg:rgba(255,255,255,.55); }
+  .stage[data-theme="dark"]{ --ui:#FFED47; --ui-soft:rgba(255,237,71,.5); --ui-bg:rgba(10,10,10,.45); }
 
   .nav{
     position:fixed; left:50%; bottom:4.5vmin; transform:translateX(-50%);
     z-index:50;
     display:flex; align-items:center; gap:1.4vmin;
-    padding:1vmin 1.4vmin;
-    border-radius:100px;
+    padding:1.1vmin 1.6vmin;
+    border:2px solid var(--ui);
+    box-shadow:3px 3px 0 var(--ui);
     background:var(--ui-bg);
     backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
     transition:opacity .5s ease, color .7s ease, background .7s ease;
@@ -209,18 +378,18 @@
   .nav button{
     appearance:none; border:none; background:transparent; color:inherit;
     width:3.4vmin; height:3.4vmin; min-width:30px; min-height:30px;
-    border-radius:50%; cursor:pointer;
+    cursor:pointer;
     display:flex; align-items:center; justify-content:center;
-    font-size:2.4vmin; line-height:1; font-family:'Jost',sans-serif;
+    font-size:2.4vmin; line-height:1; font-family:'Archivo',sans-serif;
     transition:background .2s ease;
   }
   .nav button:hover{ background:var(--ui-bg); }
-  .nav .dots{ display:flex; align-items:center; gap:1.1vmin; padding:0 .6vmin; }
+  .nav .dots{ display:flex; align-items:center; gap:1.2vmin; padding:0 .6vmin; }
   .nav .dots i{
-    width:1vmin; height:1vmin; min-width:8px; min-height:8px; border-radius:50%;
+    width:1.4vmin; height:1.4vmin; min-width:10px; min-height:10px;
     background:var(--ui-soft); cursor:pointer; transition:transform .25s ease, background .25s ease;
   }
-  .nav .dots i.on{ background:var(--ui); transform:scale(1.3); }
+  .nav .dots i.on{ background:var(--ui); transform:scale(1.4); }
   .nav .label{
     font-size:1.5vmin; letter-spacing:.32em; text-transform:uppercase;
     padding-left:1vmin; padding-right:.4vmin; color:var(--ui);
@@ -302,6 +471,83 @@
       </div>
     </section>
 
+    <!-- FACE 5 — MINIMAL (classic) -->
+    <section class="face" id="face5">
+      <div class="f5-wrap">
+        <div class="f5-date" id="f5-date">SUNDAY · JUNE 14</div>
+        <div class="f5-clock">
+          <div class="f5-time" id="f5-time">2:30</div>
+          <div class="f5-side">
+            <div class="f5-sec" id="f5-sec">00</div>
+            <div class="f5-ampm" id="f5-ampm">PM</div>
+          </div>
+        </div>
+        <div class="f5-rule"></div>
+      </div>
+    </section>
+
+    <!-- FACE 6 — FLIP (classic) -->
+    <section class="face" id="face6">
+      <div class="f6-wrap">
+        <div class="f6-row">
+          <div class="flip-group" id="f6-h"></div>
+          <div class="f6-colon blink"><i></i><i></i></div>
+          <div class="flip-group" id="f6-m"></div>
+          <div class="flip-group sec" id="f6-s"></div>
+        </div>
+        <div class="f6-meta">
+          <div class="f6-ampm" id="f6-ampm">PM</div>
+          <div class="f6-date" id="f6-date">SUN · JUN 14</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FACE 7 — TYPOGRAPHY (classic) -->
+    <section class="face" id="face7">
+      <div class="f7-wrap">
+        <div class="f7-ampm" id="f7-ampm">PM</div>
+        <div class="f7-time" id="f7-time">2:30</div>
+        <div class="f7-date" id="f7-date">SUNDAY JUNE 14</div>
+        <div class="f7-sec" id="f7-sec">00</div>
+      </div>
+    </section>
+
+    <!-- FACE 8 — NEON (classic) -->
+    <section class="face" id="face8">
+      <div class="f8-wrap">
+        <div class="f8-clock">
+          <div class="f8-time" id="f8-time">2<span class="f8-colon">:</span>30</div>
+          <div class="f8-ampm" id="f8-ampm">PM</div>
+        </div>
+        <div class="f8-meta">
+          <div class="f8-sec" id="f8-sec">00</div>
+          <div class="f8-dot"></div>
+          <div class="f8-date" id="f8-date">SUNDAY · JUNE 14</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FACE 9 — APPLE LIQUID GLASS -->
+    <section class="face" id="face9">
+      <div class="f9-wrap">
+        <div class="f9-glass">
+          <div class="f9-time" id="f9-time">2<span class="f9-colon">:</span>30<span class="f9-ampm">PM</span></div>
+          <div class="f9-sec" id="f9-sec">00</div>
+        </div>
+        <div class="f9-date" id="f9-date">SUNDAY · JUNE 14</div>
+      </div>
+    </section>
+
+    <!-- FACE 10 — TERMINAL -->
+    <section class="face" id="face10">
+      <div class="f10-wrap">
+        <div class="f10-line"><span class="f10-prompt">visitor@deskclock</span>:<span class="f10-path">~</span>$ <span class="f10-cmd">clock --now</span></div>
+        <div class="f10-time" id="f10-time">14:30:08</div>
+        <div class="f10-line f10-dim" id="f10-date">SUNDAY · JUNE 14</div>
+        <div class="f10-line"><span class="f10-prompt">visitor@deskclock</span>:<span class="f10-path">~</span>$ <span class="f10-cursor"></span></div>
+      </div>
+    </section>
+
   </div>
 
   <!-- NAV (위치 표시용 점만 — 화면을 터치하면 다음 시계로 전환) -->
@@ -312,10 +558,16 @@
 <script>
 (function(){
   const FACES = [
-    { id:'face1', name:'Minimal',     theme:'light' },
-    { id:'face2', name:'Retro Flip',  theme:'dark'  },
-    { id:'face3', name:'Typography',  theme:'light' },
-    { id:'face4', name:'Neon',        theme:'dark'  },
+    { id:'face1', name:'Brutal Minimal',  theme:'light' },
+    { id:'face2', name:'Brutal Flip',     theme:'dark'  },
+    { id:'face3', name:'Brutal Type',     theme:'light' },
+    { id:'face4', name:'Brutal Electric', theme:'dark'  },
+    { id:'face5', name:'Minimal',         theme:'light' },
+    { id:'face6', name:'Retro Flip',      theme:'dark'  },
+    { id:'face7', name:'Typography',      theme:'light' },
+    { id:'face8', name:'Neon',            theme:'dark'  },
+    { id:'face9', name:'Liquid Glass',    theme:'dark'  },
+    { id:'face10',name:'Terminal',        theme:'dark'  },
   ];
 
   const stage = document.getElementById('stage');
@@ -341,7 +593,7 @@
     });
     stage.dataset.theme = FACES[active].theme;
     localStorage.setItem('deskclock.face', active);
-    if(FACES[active].id==='face2') renderFlip(false); // set instantly, no animation
+    if(FACES[active].id==='face2'||FACES[active].id==='face6') renderFlip(false); // set instantly, no animation
     fitActive();
     setTimeout(fitActive, 600); // 진입 애니메이션이 끝난 뒤 정확히 다시 맞춤
   }
@@ -362,10 +614,10 @@
   function fitActive(){
     const id = FACES[active].id;
     const vw = window.innerWidth, vh = window.innerHeight;
-    if(id==='face3'){
+    if(id==='face3'||id==='face7'){
       // 타이포: 중앙 시간만 맞춤(모서리 라벨은 vmin 기준 그대로 둠)
       // 시간의 세로 크기를 제한해 위/아래 모서리 라벨(AM·초·날짜)과 겹치지 않게 한다
-      const t = document.getElementById('f3-time');
+      const t = document.getElementById(id.replace('face','f')+'-time');
       if(t) fitEl(t, vw*0.9, vh*0.6, 5);
     }else{
       const w = document.querySelector('#'+id+' .'+id.replace('face','f')+'-wrap');
@@ -442,6 +694,9 @@
   const hCards=buildFlip(document.getElementById('f2-h'),2);
   const mCards=buildFlip(document.getElementById('f2-m'),2);
   const sCards=buildFlip(document.getElementById('f2-s'),2);
+  const hCards6=buildFlip(document.getElementById('f6-h'),2);
+  const mCards6=buildFlip(document.getElementById('f6-m'),2);
+  const sCards6=buildFlip(document.getElementById('f6-s'),2);
 
   /* ---------- ticking ---------- */
   const DAYS=['SUNDAY','MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SATURDAY'];
@@ -455,13 +710,22 @@
   const f2a=el('f2-ampm'),f2d=el('f2-date');
   const f3t=el('f3-time'),f3a=el('f3-ampm'),f3d=el('f3-date'),f3s=el('f3-sec');
   const f4t=el('f4-time'),f4a=el('f4-ampm'),f4s=el('f4-sec'),f4d=el('f4-date');
+  const f5t=el('f5-time'),f5s=el('f5-sec'),f5a=el('f5-ampm'),f5d=el('f5-date');
+  const f6a=el('f6-ampm'),f6d=el('f6-date');
+  const f7t=el('f7-time'),f7a=el('f7-ampm'),f7d=el('f7-date'),f7s=el('f7-sec');
+  const f8t=el('f8-time'),f8a=el('f8-ampm'),f8s=el('f8-sec'),f8d=el('f8-date');
+  const f9t=el('f9-time'),f9s=el('f9-sec'),f9d=el('f9-date');
+  const f10t=el('f10-time'),f10d=el('f10-date');
 
   let cur={h:'',m:'',s:''};
 
-  function renderFlip(animate){
-    setGroup(hCards,cur.h,animate);
-    setGroup(mCards,cur.m,animate);
-    setGroup(sCards,cur.s,animate);
+  // force===false 면 무조건 즉시(애니메이션 없이) 세팅. 그 외엔 활성 플립 페이스만 애니메이션.
+  function renderFlip(force){
+    const inst = force===false;
+    const a2 = !inst && active===1;
+    setGroup(hCards,cur.h,a2); setGroup(mCards,cur.m,a2); setGroup(sCards,cur.s,a2);
+    const a6 = !inst && active===5;
+    setGroup(hCards6,cur.h,a6); setGroup(mCards6,cur.m,a6); setGroup(sCards6,cur.s,a6);
   }
 
   function tick(){
@@ -480,7 +744,7 @@
     f1d.textContent=dayL+' · '+monL+' '+dn;
     // face 2
     f2a.textContent=ampm; f2d.textContent=day3+' · '+mon3+' '+dn;
-    renderFlip(active===1);
+    renderFlip();
     // face 3
     f3t.textContent=h12+':'+mm; f3a.textContent=ampm; f3s.textContent=ss;
     f3d.textContent=dayL+'  '+mon3+' '+dn;
@@ -488,6 +752,24 @@
     f4t.innerHTML=h12+'<span class="f4-colon">:</span>'+mm;
     f4a.textContent=ampm; f4s.textContent=ss;
     f4d.textContent=dayL+' · '+monL+' '+dn;
+    // face 5 (classic minimal)
+    f5t.textContent=h12+':'+mm; f5s.textContent=ss; f5a.textContent=ampm;
+    f5d.textContent=dayL+' · '+monL+' '+dn;
+    // face 6 (classic flip) — flip 카드는 renderFlip()에서 함께 갱신
+    f6a.textContent=ampm; f6d.textContent=day3+' · '+mon3+' '+dn;
+    // face 7 (classic typography)
+    f7t.textContent=h12+':'+mm; f7a.textContent=ampm; f7s.textContent=ss;
+    f7d.textContent=dayL+'  '+mon3+' '+dn;
+    // face 8 (classic neon)
+    f8t.innerHTML=h12+'<span class="f8-colon">:</span>'+mm;
+    f8a.textContent=ampm; f8s.textContent=ss;
+    f8d.textContent=dayL+' · '+monL+' '+dn;
+    // face 9 (apple liquid glass)
+    f9t.innerHTML=h12+'<span class="f9-colon">:</span>'+mm+'<span class="f9-ampm">'+ampm+'</span>';
+    f9s.textContent=ss; f9d.textContent=dayL+' · '+monL+' '+dn;
+    // face 10 (terminal) — 24h HH:MM:SS
+    f10t.textContent=pad(h)+':'+mm+':'+ss;
+    f10d.textContent=dayL+' · '+monL+' '+dn;
 
     // 시 자릿수(예: 9→10, 12→1)가 바뀌면 시간 폭이 달라지므로 다시 맞춤
     const hlen = String(h12).length;
