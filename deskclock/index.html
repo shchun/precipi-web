@@ -73,17 +73,10 @@
   .f1-rule{ width:34vmin; height:1.2vmin; background:#0a0a0a; }
 
   /* ======================================================= */
-  /* FACE 2 — RETRO FLIP                                     */
+  /* FLIP CARD (공유 인프라 — 클래식 Retro Flip / face6 에서 사용) */
   /* ======================================================= */
-  /* Brutal Flip — 비비드 레드 + 각진 흰 카드 */
-  #face2{ background:#FF3B3B; color:#0a0a0a; }
-  .f2-wrap{ display:flex; flex-direction:column; align-items:center; gap:4.2vmin; }
-  .f2-row{ display:flex; align-items:center; gap:1.6vmin; }
   .flip-group{ display:flex; gap:1.1vmin; }
   .flip-group.sec{ transform:scale(.5); transform-origin:center bottom; margin-left:.4vmin; }
-  .f2-colon{ display:flex; flex-direction:column; gap:4vmin; padding:0 .3vmin; }
-  .f2-colon i{ width:1.8vmin; height:1.8vmin; background:#0a0a0a; display:block; }
-  .f2-colon.blink{ animation:f2blink 1s steps(1,end) infinite; }
   @keyframes f2blink{ 50%{ opacity:.25; } }
 
   .flip-card{
@@ -121,15 +114,6 @@
   .flip-card.flipping .bottom-flip{ animation:unfoldBottom .3s ease-out .3s forwards; }
   @keyframes foldTop{ from{ transform:rotateX(0); } to{ transform:rotateX(-90deg); } }
   @keyframes unfoldBottom{ from{ transform:rotateX(90deg); } to{ transform:rotateX(0deg); } }
-
-  .f2-meta{ display:flex; align-items:center; gap:2.4vmin; }
-  .f2-ampm{
-    font-family:'Archivo',sans-serif; font-weight:700; font-size:2.4vmin;
-    letter-spacing:.2em; padding:.9vmin 1.8vmin;
-    background:#0a0a0a; color:#FFED47; border:3px solid #0a0a0a; box-shadow:3px 3px 0 #0a0a0a;
-  }
-  .f2-date{ font-family:'Archivo',sans-serif; font-weight:700; font-size:2.2vmin; letter-spacing:.2em; white-space:nowrap;
-    color:#0a0a0a; background:#fff; padding:.9vmin 1.8vmin; border:3px solid #0a0a0a; box-shadow:3px 3px 0 #0a0a0a; text-transform:uppercase; }
 
   /* ======================================================= */
   /* FACE 3 — TYPOGRAPHY                                     */
@@ -430,22 +414,6 @@
       </div>
     </section>
 
-    <!-- FACE 2 — FLIP -->
-    <section class="face" id="face2">
-      <div class="f2-wrap">
-        <div class="f2-row">
-          <div class="flip-group" id="f2-h"></div>
-          <div class="f2-colon blink"><i></i><i></i></div>
-          <div class="flip-group" id="f2-m"></div>
-          <div class="flip-group sec" id="f2-s"></div>
-        </div>
-        <div class="f2-meta">
-          <div class="f2-ampm" id="f2-ampm">PM</div>
-          <div class="f2-date" id="f2-date">SUN · JUN 14</div>
-        </div>
-      </div>
-    </section>
-
     <!-- FACE 3 — TYPOGRAPHY -->
     <section class="face" id="face3">
       <div class="f3-wrap">
@@ -559,7 +527,6 @@
 (function(){
   const FACES = [
     { id:'face1', name:'Brutal Minimal',  theme:'light' },
-    { id:'face2', name:'Brutal Flip',     theme:'dark'  },
     { id:'face3', name:'Brutal Type',     theme:'light' },
     { id:'face4', name:'Brutal Electric', theme:'dark'  },
     { id:'face5', name:'Minimal',         theme:'light' },
@@ -593,7 +560,7 @@
     });
     stage.dataset.theme = FACES[active].theme;
     localStorage.setItem('deskclock.face', active);
-    if(FACES[active].id==='face2'||FACES[active].id==='face6') renderFlip(false); // set instantly, no animation
+    if(FACES[active].id==='face6') renderFlip(false); // set instantly, no animation
     fitActive();
     setTimeout(fitActive, 600); // 진입 애니메이션이 끝난 뒤 정확히 다시 맞춤
   }
@@ -691,9 +658,6 @@
     str=String(str);
     for(let i=0;i<cards.length;i++) setCard(cards[i], str[i], animate);
   }
-  const hCards=buildFlip(document.getElementById('f2-h'),2);
-  const mCards=buildFlip(document.getElementById('f2-m'),2);
-  const sCards=buildFlip(document.getElementById('f2-s'),2);
   const hCards6=buildFlip(document.getElementById('f6-h'),2);
   const mCards6=buildFlip(document.getElementById('f6-m'),2);
   const sCards6=buildFlip(document.getElementById('f6-s'),2);
@@ -707,7 +671,6 @@
 
   const el=id=>document.getElementById(id);
   const f1t=el('f1-time'),f1s=el('f1-sec'),f1a=el('f1-ampm'),f1d=el('f1-date');
-  const f2a=el('f2-ampm'),f2d=el('f2-date');
   const f3t=el('f3-time'),f3a=el('f3-ampm'),f3d=el('f3-date'),f3s=el('f3-sec');
   const f4t=el('f4-time'),f4a=el('f4-ampm'),f4s=el('f4-sec'),f4d=el('f4-date');
   const f5t=el('f5-time'),f5s=el('f5-sec'),f5a=el('f5-ampm'),f5d=el('f5-date');
@@ -719,12 +682,10 @@
 
   let cur={h:'',m:'',s:''};
 
-  // force===false 면 무조건 즉시(애니메이션 없이) 세팅. 그 외엔 활성 플립 페이스만 애니메이션.
+  // force===false 면 무조건 즉시(애니메이션 없이) 세팅. 그 외엔 활성 플립 페이스(face6)만 애니메이션.
   function renderFlip(force){
     const inst = force===false;
-    const a2 = !inst && active===1;
-    setGroup(hCards,cur.h,a2); setGroup(mCards,cur.m,a2); setGroup(sCards,cur.s,a2);
-    const a6 = !inst && active===5;
+    const a6 = !inst && FACES[active] && FACES[active].id==='face6';
     setGroup(hCards6,cur.h,a6); setGroup(mCards6,cur.m,a6); setGroup(sCards6,cur.s,a6);
   }
 
@@ -742,9 +703,7 @@
     // face 1
     f1t.textContent=h12+':'+mm; f1s.textContent=ss; f1a.textContent=ampm;
     f1d.textContent=dayL+' · '+monL+' '+dn;
-    // face 2
-    f2a.textContent=ampm; f2d.textContent=day3+' · '+mon3+' '+dn;
-    renderFlip();
+    renderFlip(); // face6(클래식 플립) 카드 갱신
     // face 3
     f3t.textContent=h12+':'+mm; f3a.textContent=ampm; f3s.textContent=ss;
     f3d.textContent=dayL+'  '+mon3+' '+dn;
