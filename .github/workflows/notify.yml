@@ -1,0 +1,28 @@
+name: Slack deploy notify
+
+# GitHub Pages(legacy) 배포가 끝나면 github-pages 환경에 deployment_status 가 찍힌다.
+# 그 success 시점에만 Slack 으로 배포 완료를 알린다. Pages 배포 방식 자체는 건드리지 않는다.
+on:
+  deployment_status
+
+jobs:
+  notify:
+    # github-pages 환경의 성공 배포일 때만 실행 (다른 환경/상태는 무시)
+    if: github.event.deployment_status.state == 'success' && github.event.deployment_status.environment == 'github-pages'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify Slack
+        env:
+          WEBHOOK: ${{ secrets.WEBHOOK_REPORT_URL }}
+          SHA: ${{ github.event.deployment.sha }}
+          ENV_URL: ${{ github.event.deployment_status.environment_url }}
+        run: |
+          if [ -z "$WEBHOOK" ]; then
+            echo "WEBHOOK_REPORT_URL secret이 없어 알림을 건너뜀"
+            exit 0
+          fi
+          SHORT="${SHA:0:7}"
+          URL="${ENV_URL:-https://www.precipi.com/}"
+          MSG="🌐 precipi-web 배포 성공 — 커밋 ${SHORT}, ${URL}"
+          payload="$(jq -n --arg t "$MSG" '{text:$t}')"
+          curl -sS -X POST -H 'Content-type: application/json' --data "$payload" "$WEBHOOK"
