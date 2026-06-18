@@ -72,8 +72,9 @@
     .ticks {
       position: absolute; inset: -14px; border-radius: 50%;
       background: repeating-conic-gradient(from 0deg, rgba(154,91,48,.28) 0deg 0.7deg, transparent 0.7deg 6deg);
-      -webkit-mask: radial-gradient(circle, transparent 0 150px, #000 150px 158px, transparent 158px);
-      mask: radial-gradient(circle, transparent 0 150px, #000 150px 158px, transparent 158px);
+      /* % radii so the tick ring scales with the dial in any orientation */
+      -webkit-mask: radial-gradient(circle, transparent 0 91.5%, #000 91.5% 96.3%, transparent 96.3%);
+      mask: radial-gradient(circle, transparent 0 91.5%, #000 91.5% 96.3%, transparent 96.3%);
     }
     .pie {
       position: absolute; inset: 0; border-radius: 50%;
@@ -115,6 +116,15 @@
     .modelabel {
       font-size: 17px; letter-spacing: .03em; font-weight: 500;
       color: rgba(120,72,40,.55);
+    }
+
+    /* landscape on phones: lay header · dial · footer side by side and
+       size the dial to the available height so nothing gets clipped.
+       max-height keeps desktop (tall landscape windows) on the column layout. */
+    @media (orientation: landscape) and (max-height: 600px) {
+      .screen { flex-direction: row; gap: clamp(24px, 5vw, 60px); padding: 18px 30px; }
+      .dial { width: min(80vh, 300px); height: min(80vh, 300px); }
+      .header, .footer { gap: 16px; }
     }
   </style>
 </head>
