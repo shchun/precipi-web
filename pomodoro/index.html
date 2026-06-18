@@ -14,45 +14,15 @@
     html, body { height: 100%; }
     body {
       font-family: 'Space Grotesk', system-ui, -apple-system, sans-serif;
-      background: #ECE6DF;
-      display: flex; align-items: center; justify-content: center;
-      overflow: hidden;
       -webkit-font-smoothing: antialiased;
     }
 
-    /* iOS device frame ─ matches the original mockup */
-    .device {
-      position: relative;
-      width: 402px; height: 874px;
-      border-radius: 48px; overflow: hidden;
-      background: #F2F2F7;
-      box-shadow: 0 40px 80px rgba(0,0,0,0.18), 0 0 0 1px rgba(0,0,0,0.12);
-      transform-origin: center center;
-    }
-    .island {
-      position: absolute; top: 11px; left: 50%; transform: translateX(-50%);
-      width: 126px; height: 37px; border-radius: 24px; background: #000; z-index: 50;
-    }
-    .statusbar {
-      position: absolute; top: 0; left: 0; right: 0; z-index: 10;
-      display: flex; align-items: center; padding: 21px 30px 19px;
-    }
-    .statusbar .time {
-      flex: 1; font-weight: 600; font-size: 17px; line-height: 22px; color: #000;
-    }
-    .statusbar .icons { display: flex; align-items: center; gap: 7px; }
-    .home {
-      position: absolute; bottom: 0; left: 0; right: 0; z-index: 60;
-      height: 34px; display: flex; justify-content: center; align-items: flex-end;
-      padding-bottom: 8px; pointer-events: none;
-    }
-    .home .bar { width: 139px; height: 5px; border-radius: 100px; background: rgba(0,0,0,0.25); }
-
-    /* screen content */
+    /* full-bleed screen */
     .screen {
-      height: 100%; display: flex; flex-direction: column;
+      min-height: 100vh; width: 100%;
+      display: flex; flex-direction: column;
       align-items: center; justify-content: center; gap: 48px;
-      padding: 74px 26px 54px;
+      padding: 48px 26px;
       background: linear-gradient(180deg, #FFF1E6 0%, #FCE3D2 50%, #F6D3BC 100%);
       overflow: hidden;
     }
@@ -146,55 +116,41 @@
   </style>
 </head>
 <body>
-  <div class="device" id="device">
-    <div class="island"></div>
-    <div class="statusbar">
-      <span class="time">9:41</span>
-      <span class="icons">
-        <svg width="19" height="12" viewBox="0 0 19 12"><rect x="0" y="7.5" width="3.2" height="4.5" rx="0.7" fill="#000"/><rect x="4.8" y="5" width="3.2" height="7" rx="0.7" fill="#000"/><rect x="9.6" y="2.5" width="3.2" height="9.5" rx="0.7" fill="#000"/><rect x="14.4" y="0" width="3.2" height="12" rx="0.7" fill="#000"/></svg>
-        <svg width="17" height="12" viewBox="0 0 17 12"><path d="M8.5 3.2C10.8 3.2 12.9 4.1 14.4 5.6L15.5 4.5C13.7 2.7 11.2 1.5 8.5 1.5C5.8 1.5 3.3 2.7 1.5 4.5L2.6 5.6C4.1 4.1 6.2 3.2 8.5 3.2Z" fill="#000"/><path d="M8.5 6.8C9.9 6.8 11.1 7.3 12 8.2L13.1 7.1C11.8 5.9 10.2 5.1 8.5 5.1C6.8 5.1 5.2 5.9 3.9 7.1L5 8.2C5.9 7.3 7.1 6.8 8.5 6.8Z" fill="#000"/><circle cx="8.5" cy="10.5" r="1.5" fill="#000"/></svg>
-        <svg width="27" height="13" viewBox="0 0 27 13"><rect x="0.5" y="0.5" width="23" height="12" rx="3.5" stroke="#000" stroke-opacity="0.35" fill="none"/><rect x="2" y="2" width="20" height="9" rx="2" fill="#000"/><path d="M25 4.5V8.5C25.8 8.2 26.5 7.2 26.5 6.5C26.5 5.8 25.8 4.8 25 4.5Z" fill="#000" fill-opacity="0.4"/></svg>
-      </span>
-    </div>
-
-    <div class="screen">
-      <!-- header: mode chooser (small disc = short, large disc = long) -->
-      <div class="header">
-        <div class="modes">
-          <button class="pill" id="pillShort" title="Short (25 / 5)"><span class="disc s"></span></button>
-          <button class="pill" id="pillLong" title="Long (50 / 10)"><span class="disc l"></span></button>
-        </div>
-        <div class="dndslot">
-          <div class="dnd" id="dnd" style="display:none;">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z" fill="#FFC79E"/></svg>
-          </div>
-        </div>
+  <div class="screen">
+    <!-- header: mode chooser (small disc = short, large disc = long) -->
+    <div class="header">
+      <div class="modes">
+        <button class="pill" id="pillShort" title="Short (25 / 5)"><span class="disc s"></span></button>
+        <button class="pill" id="pillLong" title="Long (50 / 10)"><span class="disc l"></span></button>
       </div>
-
-      <!-- dial -->
-      <div class="dial">
-        <div class="glow"></div>
-        <div class="ticks"></div>
-        <div class="pie" id="pie"></div>
-        <div class="hub" id="hub"></div>
-      </div>
-
-      <!-- footer -->
-      <div class="footer">
-        <div class="controls">
-          <button class="reset" id="resetBtn" title="Reset">
-            <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"></path><path d="M3 4v4.5h4.5"></path></svg>
-          </button>
-          <button class="play" id="playBtn" title="Start / Pause"></button>
-          <div class="spacer"></div>
-        </div>
-        <div class="dots" id="dots">
-          <div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
+      <div class="dndslot">
+        <div class="dnd" id="dnd" style="display:none;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z" fill="#FFC79E"/></svg>
         </div>
       </div>
     </div>
 
-    <div class="home"><div class="bar"></div></div>
+    <!-- dial -->
+    <div class="dial">
+      <div class="glow"></div>
+      <div class="ticks"></div>
+      <div class="pie" id="pie"></div>
+      <div class="hub" id="hub"></div>
+    </div>
+
+    <!-- footer -->
+    <div class="footer">
+      <div class="controls">
+        <button class="reset" id="resetBtn" title="Reset">
+          <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"></path><path d="M3 4v4.5h4.5"></path></svg>
+        </button>
+        <button class="play" id="playBtn" title="Start / Pause"></button>
+        <div class="spacer"></div>
+      </div>
+      <div class="dots" id="dots">
+        <div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -314,16 +270,6 @@
     el.pillLong.addEventListener('click', () => setMode('deep50'));
     setInterval(tick, 200);
     render();
-
-    // ── fit the fixed 402×874 frame to the viewport ───────────
-    const device = document.getElementById('device');
-    function fit() {
-      const m = 24;
-      const s = Math.min(1, (window.innerWidth - m) / 402, (window.innerHeight - m) / 874);
-      device.style.transform = 'scale(' + s + ')';
-    }
-    window.addEventListener('resize', fit);
-    fit();
 
     // service worker (PWA / offline)
     if ('serviceWorker' in navigator) {
