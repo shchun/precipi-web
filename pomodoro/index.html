@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#FCE3D2">
-  <meta name="description" content="A minimal pomodoro timer with a warm pie-dial that steps down once a minute. Short (25/5) and long (50/10) focus sessions.">
+  <meta name="description" content="A minimal pomodoro timer with a warm pie-dial that steps down every ten seconds. Short (25/5) and long (50/10) focus sessions.">
   <title>Pomodoro Timer</title>
   <link rel="manifest" href="manifest.json">
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='42' fill='%23FCE3D2'/><circle cx='96' cy='96' r='44' fill='%23FF5A1F'/><path d='M96 96 V48 A48 48 0 0 1 144 96 Z' fill='%23FF7A3D'/><circle cx='96' cy='96' r='14' fill='%23FFFDFB'/></svg>">
@@ -108,11 +108,15 @@
     .play:active { transform: scale(.95); }
     .spacer { width: 56px; height: 56px; }
 
-    .dots { display: flex; align-items: center; gap: 13px; }
-    .dot {
-      width: 9px; height: 9px; border-radius: 50%; background: rgba(178,120,70,.22);
+    /* toned-down labels */
+    .modelabel {
+      font-size: 12.5px; letter-spacing: .03em; font-weight: 500;
+      color: rgba(120,72,40,.5);
     }
-    .dot.filled { background: #FF5A1F; box-shadow: 0 0 0 3px rgba(255,90,31,.16); }
+    .phaselabel {
+      font-size: 12px; letter-spacing: .22em; font-weight: 500;
+      color: rgba(120,72,40,.42);
+    }
   </style>
 </head>
 <body>
@@ -123,6 +127,7 @@
         <button class="pill" id="pillShort" title="Short (25 / 5)"><span class="disc s"></span></button>
         <button class="pill" id="pillLong" title="Long (50 / 10)"><span class="disc l"></span></button>
       </div>
+      <div class="modelabel" id="modeLabel"></div>
       <div class="dndslot">
         <div class="dnd" id="dnd" style="display:none;">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z" fill="#FFC79E"/></svg>
@@ -147,9 +152,7 @@
         <button class="play" id="playBtn" title="Start / Pause"></button>
         <div class="spacer"></div>
       </div>
-      <div class="dots" id="dots">
-        <div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
-      </div>
+      <div class="phaselabel" id="phaseLabel"></div>
     </div>
   </div>
 
@@ -236,16 +239,17 @@
       pillShort: document.getElementById('pillShort'),
       pillLong: document.getElementById('pillLong'),
       play: document.getElementById('playBtn'),
-      dots: document.getElementById('dots'),
+      modeLabel: document.getElementById('modeLabel'),
+      phaseLabel: document.getElementById('phaseLabel'),
     };
 
     function render() {
       const isWork = state.phase === 'work';
       const total = dur();
-      // snap the wedge to whole minutes so it steps down once a minute — calmer
-      const minsLeft = Math.ceil(state.remaining / 60);
-      const totalMins = total / 60;
-      const frac = Math.max(0, Math.min(1, minsLeft / totalMins));
+      // snap the wedge to 10-second steps so it updates more responsively
+      const stepsLeft = Math.ceil(state.remaining / 10);
+      const totalSteps = total / 10;
+      const frac = Math.max(0, Math.min(1, stepsLeft / totalSteps));
       const deg = frac * 360;
       const accent = isWork ? '#FF5A1F' : '#F2A33C';
       const accent2 = isWork ? '#FF7A3D' : '#FFC061';
@@ -260,8 +264,10 @@
       el.dnd.style.display = (isWork && state.running) ? 'flex' : 'none';
       el.play.innerHTML = state.running ? PAUSE : PLAY;
 
-      const filled = state.completed === 0 ? 0 : (state.completed % 4 === 0 ? 4 : state.completed % 4);
-      [...el.dots.children].forEach((d, i) => d.classList.toggle('filled', i < filled));
+      el.modeLabel.textContent = state.mode === 'focus25'
+        ? '집중 25분 · 휴식 5분'
+        : '집중 50분 · 휴식 10분';
+      el.phaseLabel.textContent = isWork ? '집중 시간' : '휴식 시간';
     }
 
     el.play.addEventListener('click', toggle);
