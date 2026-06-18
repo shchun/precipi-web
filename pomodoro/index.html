@@ -224,10 +224,19 @@
       if (rem <= 0) { complete(); return; }
       state.remaining = rem; render();
     }
+    // mode-change vibration — distinct patterns for focus vs break.
+    // navigator.vibrate works on Android browsers (and the future Capacitor APK
+    // falls back to native Vibrator for the background case — see doc/apk-plan.md).
+    function buzz(nextPhase) {
+      if (!navigator.vibrate) return;
+      navigator.vibrate(nextPhase === 'work' ? [400] : [120, 100, 120]);
+    }
+
     function complete() {
       chime();
       const wasWork = state.phase === 'work';
       const next = wasWork ? 'break' : 'work';
+      buzz(next);
       const newRem = dur(state.mode, next);
       state.phase = next;
       if (wasWork) state.completed += 1;
@@ -279,6 +288,13 @@
     el.pillShort.addEventListener('click', () => setMode('focus25'));
     el.pillLong.addEventListener('click', () => setMode('deep50'));
     setInterval(tick, 200);
+
+    // Keep the timer correct in the background: timekeeping is wall-clock based
+    // (targetEnd), so even when the tab is hidden and its interval is throttled,
+    // no time is lost. On returning to the tab we tick once immediately to
+    // refresh the dial and fire any boundary that elapsed while hidden.
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) tick(); });
+
     render();
 
     // service worker (PWA / offline)
