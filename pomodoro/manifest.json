@@ -1,0 +1,62 @@
+{
+  "name": "Pomodoro Timer",
+  "short_name": "Pomodoro",
+  "description": "A beautiful pomodoro timer app to boost your productivity",
+  "start_url": ".",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#faf9f5",
+  "theme_color": "#FF7A42",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='42' fill='%23FCE3D2'/><circle cx='96' cy='96' r='44' fill='%23FF5A1F'/><path d='M96 96 V48 A48 48 0 0 1 144 96 Z' fill='%23FF7A3D'/><circle cx='96' cy='96' r='14' fill='%23FFFDFB'/></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='112' fill='%23FCE3D2'/><circle cx='256' cy='256' r='117' fill='%23FF5A1F'/><path d='M256 256 V128 A128 128 0 0 1 384 256 Z' fill='%23FF7A3D'/><circle cx='256' cy='256' r='37' fill='%23FFFDFB'/></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 540 720'><rect width='540' height='720' fill='%23faf9f5'/><rect width='540' height='60' fill='%23000'/><circle cx='270' cy='360' r='80' fill='%23FF7A42'/><text x='270' y='380' font-size='48' fill='%23333' text-anchor='middle' font-family='system-ui'>25:00</text></svg>",
+      "sizes": "540x720",
+      "type": "image/svg+xml",
+      "form_factor": "narrow"
+    }
+  ],
+  "categories": ["productivity"],
+  "shortcuts": [
+    {
+      "name": "Start Work",
+      "short_name": "Work",
+      "description": "Start a 25-minute work session",
+      "url": "./?mode=work",
+      "icons": [
+        {
+          "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='42' fill='%23FCE3D2'/><text x='96' y='110' font-size='80' text-anchor='middle' fill='%23333'>☀️</text></svg>",
+          "sizes": "192x192",
+          "type": "image/svg+xml"
+        }
+      ]
+    },
+    {
+      "name": "Start Break",
+      "short_name": "Break",
+      "description": "Start a 5-minute break session",
+      "url": "./?mode=break",
+      "icons": [
+        {
+          "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='42' fill='%23FCE3D2'/><text x='96' y='110' font-size='80' text-anchor='middle' fill='%23333'>🌙</text></svg>",
+          "sizes": "192x192",
+          "type": "image/svg+xml"
+        }
+      ]
+    }
+  ]
+}

@@ -101,6 +101,16 @@ const demos = [
     tags: ["tool"],
   },
   {
+    icon: "🍅",
+    title: "뽀모도로 타이머",
+    titleEn: "Pomodoro Timer",
+    desc: "25분 집중·휴식을 반복하며 생산성을 높이는 미니멀 뽀모도로 타이머입니다.",
+    descEn: "A minimal pomodoro timer that cycles focus and break sessions to boost productivity.",
+    href: "pomodoro/index.html",
+    install: "pomodoro/index.html",
+    tags: ["tool"],
+  },
+  {
     icon: "🧩",
     title: "Jsongo · JSON 린터",
     titleEn: "Jsongo · JSON Linter",
