@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -13,7 +13,7 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { height: 100%; }
     body {
-      font-family: 'Space Grotesk', system-ui, -apple-system, sans-serif;
+      font-family: Helvetica, 'Helvetica Neue', Arial, sans-serif;
       -webkit-font-smoothing: antialiased;
     }
 
@@ -108,14 +108,13 @@
     .play:active { transform: scale(.95); }
     .spacer { width: 56px; height: 56px; }
 
-    /* toned-down labels */
+    /* hub phase word (replaces sun/moon icon) */
+    .hubtext { font-size: 19px; font-weight: 700; letter-spacing: .06em; }
+
+    /* toned-down mode label */
     .modelabel {
-      font-size: 12.5px; letter-spacing: .03em; font-weight: 500;
-      color: rgba(120,72,40,.5);
-    }
-    .phaselabel {
-      font-size: 12px; letter-spacing: .22em; font-weight: 500;
-      color: rgba(120,72,40,.42);
+      font-size: 17px; letter-spacing: .03em; font-weight: 500;
+      color: rgba(120,72,40,.55);
     }
   </style>
 </head>
@@ -152,14 +151,11 @@
         <button class="play" id="playBtn" title="Start / Pause"></button>
         <div class="spacer"></div>
       </div>
-      <div class="phaselabel" id="phaseLabel"></div>
     </div>
   </div>
 
   <script>
     // ── glyphs ────────────────────────────────────────────────
-    const SUN = "<svg width='30' height='30' viewBox='0 0 24 24'><circle cx='12' cy='12' r='5.5' fill='#FF5A1F'/><g stroke='#FF5A1F' stroke-width='2' stroke-linecap='round'><line x1='12' y1='1.5' x2='12' y2='4'/><line x1='12' y1='20' x2='12' y2='22.5'/><line x1='1.5' y1='12' x2='4' y2='12'/><line x1='20' y1='12' x2='22.5' y2='12'/><line x1='4.4' y1='4.4' x2='6.1' y2='6.1'/><line x1='17.9' y1='17.9' x2='19.6' y2='19.6'/><line x1='19.6' y1='4.4' x2='17.9' y2='6.1'/><line x1='6.1' y1='17.9' x2='4.4' y2='19.6'/></g></svg>";
-    const MOON = "<svg width='28' height='28' viewBox='0 0 24 24' fill='none'><path d='M20 13.5A8 8 0 1 1 10.5 4a6.2 6.2 0 0 0 9.5 9.5Z' fill='#E0912F'/></svg>";
     const PLAY = "<svg width='24' height='24' viewBox='0 0 24 24' fill='white'><path d='M7 5v14l12-7z'/></svg>";
     const PAUSE = "<svg width='24' height='24' viewBox='0 0 24 24' fill='white'><rect x='6' y='5' width='4' height='14' rx='1'/><rect x='14' y='5' width='4' height='14' rx='1'/></svg>";
 
@@ -240,7 +236,6 @@
       pillLong: document.getElementById('pillLong'),
       play: document.getElementById('playBtn'),
       modeLabel: document.getElementById('modeLabel'),
-      phaseLabel: document.getElementById('phaseLabel'),
     };
 
     function render() {
@@ -256,7 +251,7 @@
       const track = 'rgba(178,120,70,.14)';
       el.pie.style.background = `conic-gradient(from 0deg, ${accent2} 0deg, ${accent} ${deg}deg, ${track} ${deg}deg 360deg)`;
 
-      el.hub.innerHTML = isWork ? SUN : MOON;
+      el.hub.innerHTML = `<span class="hubtext" style="color:${accent}">${isWork ? 'WORK' : 'BREAK'}</span>`;
 
       el.pillShort.classList.toggle('active', state.mode === 'focus25');
       el.pillLong.classList.toggle('active', state.mode === 'deep50');
@@ -265,9 +260,8 @@
       el.play.innerHTML = state.running ? PAUSE : PLAY;
 
       el.modeLabel.textContent = state.mode === 'focus25'
-        ? '집중 25분 · 휴식 5분'
-        : '집중 50분 · 휴식 10분';
-      el.phaseLabel.textContent = isWork ? '집중 시간' : '휴식 시간';
+        ? 'Work 25 · Break 5'
+        : 'Work 50 · Break 10';
     }
 
     el.play.addEventListener('click', toggle);
