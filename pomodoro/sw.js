@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pomodoro-timer-v9';
+const CACHE_NAME = 'pomodoro-timer-v10';
 const urlsToCache = [
   './',
   'index.html',

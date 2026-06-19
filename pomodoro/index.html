@@ -47,7 +47,14 @@
     }
 
     /* dial */
-    .dial { position: relative; width: 300px; height: 300px; display: flex; align-items: center; justify-content: center; }
+    .dial { position: relative; width: 300px; height: 300px; margin-top: 28px; display: flex; align-items: center; justify-content: center; }
+    /* tomato calyx sitting on top of the circle */
+    .stem {
+      position: absolute; top: -52px; left: 50%; transform: translateX(-50%);
+      width: 110px; z-index: 4; pointer-events: none;   /* floats just above the dial — does not touch it */
+      filter: drop-shadow(0 2px 2px rgba(60,90,30,.22));
+    }
+    .stem svg { display: block; width: 100%; height: auto; }
     .glow {
       position: absolute; inset: -46px; border-radius: 50%;
       background: radial-gradient(circle, rgba(255,138,74,.28) 0%, rgba(255,138,74,0) 68%);
@@ -62,6 +69,7 @@
     }
     .pie {
       position: absolute; inset: 0; border-radius: 50%;
+      transform: scaleX(-1);   /* mirror so the ring drains counter-clockwise from the top */
       box-shadow: 0 22px 54px -14px rgba(178,80,30,.45), inset 0 0 0 1px rgba(255,255,255,.45);
     }
     .hub {
@@ -84,7 +92,7 @@
     .reset:active { transform: scale(.94); }
     .play {
       width: 96px; height: 96px; border: none; cursor: pointer; border-radius: 50%;
-      background: linear-gradient(180deg, #FF7A3D 0%, #FF5A1F 100%);
+      background: linear-gradient(180deg, #FF9B6D 0%, #FF8357 100%);
       display: flex; align-items: center; justify-content: center;
       box-shadow: 0 16px 30px -8px rgba(255,90,31,.7), inset 0 1px 0 rgba(255,255,255,.4);
       transition: all .15s ease;
@@ -93,15 +101,25 @@
     .play:active { transform: scale(.95); }
     .spacer { width: 56px; height: 56px; }
 
+    /* continuous-mode (repeat) toggle */
+    .loop-toggle { display: flex; align-items: center; gap: 10px; cursor: pointer; user-select: none; }
+    .loop-toggle input { position: absolute; opacity: 0; pointer-events: none; }
+    .loop-track {
+      position: relative; width: 46px; height: 26px; border-radius: 999px;
+      background: rgba(178,120,70,.25); transition: background .2s ease;
+    }
+    .loop-knob {
+      position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%;
+      background: #fff; box-shadow: 0 2px 5px rgba(120,60,20,.3); transition: transform .2s ease;
+    }
+    .loop-toggle input:checked + .loop-track { background: #FF5A1F; }
+    .loop-toggle input:checked + .loop-track .loop-knob { transform: translateX(20px); }
+    .loop-label { font-size: 15px; font-weight: 600; color: rgba(120,72,40,.62); letter-spacing: .02em; }
+
     /* hub: small phase word + subtle remaining-minutes number */
     .hubphase { font-size: 11px; font-weight: 700; letter-spacing: .12em; }
     .hubmin { font-size: 26px; font-weight: 600; line-height: 1; color: rgba(92,70,52,.4); }
 
-    /* toned-down mode label */
-    .modelabel {
-      font-size: 17px; letter-spacing: .03em; font-weight: 500;
-      color: rgba(120,72,40,.55);
-    }
 
     /* DND permission banner (APK only; hidden until access is missing) */
     .permbanner {
@@ -140,6 +158,34 @@
     .confirm-btn.ok { background: linear-gradient(180deg, #FF7A3D 0%, #FF5A1F 100%); color: #fff; }
     .confirm-btn:active { filter: brightness(.96); }
 
+    /* custom-timer dialog sliders */
+    .slider-row { margin-top: 20px; text-align: left; }
+    .slider-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 9px; }
+    .slider-head span { font-size: 15px; font-weight: 600; color: #8A5A30; letter-spacing: .02em; }
+    .slider-head b { font-size: 23px; font-weight: 700; color: #FF5A1F; }
+    .slider-head b::after { content: ' min'; font-size: 12px; font-weight: 600; color: rgba(120,72,40,.5); }
+    input[type=range] {
+      -webkit-appearance: none; appearance: none; width: 100%; height: 8px; margin: 0;
+      border-radius: 999px; background: rgba(178,120,70,.2); outline: none;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none; appearance: none; width: 26px; height: 26px; border-radius: 50%;
+      background: linear-gradient(180deg, #FF7A3D 0%, #FF5A1F 100%); border: 3px solid #fff;
+      box-shadow: 0 3px 9px -2px rgba(255,90,31,.7); cursor: pointer;
+    }
+    input[type=range]::-moz-range-thumb {
+      width: 22px; height: 22px; border-radius: 50%; border: 3px solid #fff;
+      background: #FF5A1F; box-shadow: 0 3px 9px -2px rgba(255,90,31,.7); cursor: pointer;
+    }
+
+    /* help dialog list — large, essentials only */
+    .help-list { text-align: left; margin: 18px 0 4px; padding: 0; list-style: none; }
+    .help-list li {
+      position: relative; font-size: 16px; line-height: 1.55; color: #5A3A22; padding: 7px 0 7px 22px;
+    }
+    .help-list li::before { content: '•'; position: absolute; left: 4px; color: #FF7A3D; font-weight: 700; }
+    #helpDlg .confirm-msg { font-size: 21px; font-weight: 700; }
+
     /* landscape on phones: lay header · dial · footer side by side and
        size the dial to the available height so nothing gets clipped.
        max-height keeps desktop (tall landscape windows) on the column layout. */
@@ -157,12 +203,24 @@
       <div class="modes">
         <button class="pill" id="pillShort">25 / 5</button>
         <button class="pill" id="pillLong">50 / 10</button>
+        <button class="pill" id="pillCustom">CUSTOM</button>
       </div>
-      <div class="modelabel" id="modeLabel"></div>
     </div>
 
     <!-- dial -->
     <div class="dial">
+      <!-- tomato calyx: a little green leafy top + stem so the dial reads as a tomato -->
+      <div class="stem" aria-hidden="true">
+        <svg viewBox="0 0 64 32" xmlns="http://www.w3.org/2000/svg">
+          <!-- simple single-colour sprout: a stem and two wide-splayed leaves,
+               floating just above the dial. One flat green, no outline. -->
+          <g fill="#7CB342">
+            <path d="M32 26 C30 20 34 15 32 7 C34 15 36 20 32 26 Z"/>
+            <path d="M31 24 C18 27 7 22 9 16 C18 18 28 21 31 24 Z"/>
+            <path d="M33 24 C46 27 57 22 55 16 C46 18 36 21 33 24 Z"/>
+          </g>
+        </svg>
+      </div>
       <div class="glow"></div>
       <div class="ticks"></div>
       <div class="pie" id="pie"></div>
@@ -176,8 +234,15 @@
           <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"></path><path d="M3 4v4.5h4.5"></path></svg>
         </button>
         <button class="play" id="playBtn" title="Start / Pause"></button>
-        <div class="spacer"></div>
+        <button class="reset" id="helpBtn" title="How to use" aria-label="How to use">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.2 9a2.8 2.8 0 0 1 5.5.8c0 1.9-2.8 2.4-2.8 4"></path><circle cx="12" cy="17.4" r="0.1"></circle></svg>
+        </button>
       </div>
+      <label class="loop-toggle">
+        <input type="checkbox" id="loopChk">
+        <span class="loop-track"><span class="loop-knob"></span></span>
+        <span class="loop-label">Repeat</span>
+      </label>
     </div>
 
     <!-- DND access prompt (native APK only) -->
@@ -196,6 +261,41 @@
         </div>
       </div>
     </div>
+
+    <!-- custom timer dialog (sliders) -->
+    <div class="confirm" id="customDlg">
+      <div class="confirm-box">
+        <p class="confirm-msg">Custom timer</p>
+        <div class="slider-row">
+          <div class="slider-head"><span>Work</span><b id="custWorkVal">30</b></div>
+          <input id="custWork" type="range" min="1" max="120" step="1" value="30">
+        </div>
+        <div class="slider-row">
+          <div class="slider-head"><span>Break</span><b id="custBreakVal">10</b></div>
+          <input id="custBreak" type="range" min="1" max="60" step="1" value="10">
+        </div>
+        <div class="confirm-actions">
+          <button class="confirm-btn cancel" id="custCancel" type="button">Cancel</button>
+          <button class="confirm-btn ok" id="custSave" type="button">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- help / how-to dialog -->
+    <div class="confirm" id="helpDlg">
+      <div class="confirm-box">
+        <p class="confirm-msg">How to use</p>
+        <ul class="help-list">
+          <li>Pick <b>25/5</b>, <b>50/10</b>, or <b>CUSTOM</b>.</li>
+          <li>Play runs work, then the break starts on its own, then stops.</li>
+          <li>Orange is work, green is break — the ring drains from the top.</li>
+          <li>It buzzes on each switch and keeps the screen awake.</li>
+        </ul>
+        <div class="confirm-actions">
+          <button class="confirm-btn ok" id="helpClose" type="button">Got it</button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -204,12 +304,31 @@
     const PAUSE = "<svg width='30' height='30' viewBox='0 0 24 24' fill='white'><rect x='6' y='5' width='4' height='14' rx='1'/><rect x='14' y='5' width='4' height='14' rx='1'/></svg>";
 
     // ── pomodoro logic (ported faithfully from the design source) ──
-    const DUR = { focus25: { work: 1500, break: 300 }, deep50: { work: 3000, break: 600 } };
-    const SOUND_ENABLED = true;   // editor prop in the original; on by default
-    const AUTO_START_NEXT = false; // editor prop in the original; off by default
+    const DUR = {
+      focus25: { work: 1500, break: 300 },
+      deep50:  { work: 3000, break: 600 },
+      custom:  { work: 1800, break: 600 },   // default until the user sets one
+    };
+    // remember the last custom pair across sessions
+    let customSet = false;
+    try {
+      const c = JSON.parse(localStorage.getItem('pomodoro-custom'));
+      if (c && c.work > 0 && c.break > 0) { DUR.custom = c; customSet = true; }
+    } catch (e) {}
+    // continuous mode: cycle work → break → work … instead of stopping after one set
+    let loop = false;
+    try { loop = localStorage.getItem('pomodoro-loop') === '1'; } catch (e) {}
+
+    // ⚠ TEMP TESTING — MUST BE 1 IN PRODUCTION.
+    //    SPEED > 1 runs the clock that many times faster so a minute elapses like a
+    //    second (25 min work → 25 s) while the dial still shows minutes. Before
+    //    deploying, set SPEED = 1. (A red on-screen banner + console warning appear
+    //    whenever SPEED ≠ 1 — see the deploy safeguard near the bottom of this script.)
+    const SPEED = 1;
+    const msFor    = (secs)   => secs * 1000 / SPEED;              // display-seconds → real ms
+    const secsLeft = (target) => (target - Date.now()) / 1000 * SPEED; // real ms left → display-seconds
 
     const state = { mode: 'focus25', phase: 'work', running: false, remaining: 1500, targetEnd: null, completed: 0 };
-    let ac = null;
 
     const dur = (mode, phase) => DUR[mode || state.mode][phase || state.phase];
 
@@ -260,30 +379,9 @@
       wakeLock = null;
     }
 
-    function ensureAudio() {
-      if (ac) return;
-      try { ac = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {}
-    }
-    function chime() {
-      if (!SOUND_ENABLED || !ac) return;
-      const now = ac.currentTime;
-      [880, 1320, 1760].forEach((f, i) => {
-        const o = ac.createOscillator(), g = ac.createGain();
-        o.type = 'sine'; o.frequency.value = f;
-        o.connect(g); g.connect(ac.destination);
-        const t = now + i * 0.16;
-        g.gain.setValueAtTime(0.0001, t);
-        g.gain.exponentialRampToValueAtTime(0.22, t + 0.02);
-        g.gain.exponentialRampToValueAtTime(0.0001, t + 0.45);
-        o.start(t); o.stop(t + 0.5);
-      });
-    }
-
     function start() {
       if (state.remaining <= 0) return;
-      ensureAudio();
-      if (ac && ac.state === 'suspended') ac.resume();
-      state.running = true; state.targetEnd = Date.now() + state.remaining * 1000;
+      state.running = true; state.targetEnd = Date.now() + msFor(state.remaining);
       const isWork = state.phase === 'work';
       if (isWork) ensureDndAccess();
       applyDnd(isWork);                                         // focus → DND on
@@ -292,7 +390,7 @@
       render();
     }
     function pause() {
-      state.remaining = state.targetEnd ? Math.max(0, (state.targetEnd - Date.now()) / 1000) : state.remaining;
+      state.remaining = state.targetEnd ? Math.max(0, secsLeft(state.targetEnd)) : state.remaining;
       state.running = false; state.targetEnd = null;
       applyDnd(false); cancelBoundary();                       // stopping → release DND
       releaseWakeLock();                                        // stopped → allow screen to sleep
@@ -313,7 +411,7 @@
 
     function tick() {
       if (!state.running || !state.targetEnd) return;
-      const rem = (state.targetEnd - Date.now()) / 1000;
+      const rem = secsLeft(state.targetEnd);
       if (rem <= 0) { complete(); return; }
       state.remaining = rem; render();
     }
@@ -329,21 +427,23 @@
       const wasWork = state.phase === 'work';
       const next = wasWork ? 'break' : 'work';
       // When catching up a boundary that already elapsed in the background, the
-      // native side (or nobody, on the web) already alerted — stay silent.
-      if (!reconciling) { chime(); buzz(next); }
+      // native side (or nobody, on the web) already buzzed — stay silent.
+      if (!reconciling) buzz(next);
       const newRem = dur(state.mode, next);
       state.phase = next;
       if (wasWork) state.completed += 1;
       state.remaining = newRem;
-      state.running = AUTO_START_NEXT;
-      state.targetEnd = AUTO_START_NEXT ? Date.now() + newRem * 1000 : null;
-      applyDnd(state.running && state.phase === 'work');        // break → off; auto work → on
+      // Roll straight into the break after work. After the break, stop back to
+      // standby — unless continuous mode is on, then cycle into the next work.
+      state.running = wasWork || loop;
+      state.targetEnd = state.running ? Date.now() + msFor(newRem) : null;
+      applyDnd(state.running && state.phase === 'work');        // work → DND on; break/standby → off
       if (state.running) {
         scheduleBoundary(state.targetEnd, state.phase === 'work' ? 'break' : 'work');
-        requestWakeLock();                                      // auto-started next phase → keep screen on
+        requestWakeLock();                                      // still running → keep screen on
       } else {
-        cancelBoundary();                                       // alarm already consumed
-        releaseWakeLock();                                      // idle between phases → allow sleep
+        cancelBoundary();                                       // set finished
+        releaseWakeLock();                                      // standby → allow screen to sleep
       }
       render();
     }
@@ -354,36 +454,52 @@
       hub: document.getElementById('hub'),
       pillShort: document.getElementById('pillShort'),
       pillLong: document.getElementById('pillLong'),
+      pillCustom: document.getElementById('pillCustom'),
       play: document.getElementById('playBtn'),
-      modeLabel: document.getElementById('modeLabel'),
     };
 
     function render() {
       const isWork = state.phase === 'work';
-      const total = dur();
-      // snap the wedge to 10-second steps so it updates more responsively
-      const stepsLeft = Math.ceil(state.remaining / 10);
-      const totalSteps = total / 10;
-      const frac = Math.max(0, Math.min(1, stepsLeft / totalSteps));
-      const deg = frac * 360;
-      const accent = isWork ? '#FF5A1F' : '#F2A33C';
-      const accent2 = isWork ? '#FF7A3D' : '#FFC061';
-      const track = 'rgba(178,120,70,.14)';
-      el.pie.style.background = `conic-gradient(from 0deg, ${accent2} 0deg, ${accent} ${deg}deg, ${track} ${deg}deg 360deg)`;
+      // The whole circle is one set: a big work arc + a small break arc, shown
+      // together from the start. The elapsed part of the set drains to the track.
+      const workTotal = DUR[state.mode].work;
+      const breakTotal = DUR[state.mode].break;
+      const setTotal = workTotal + breakTotal;
+      const workDeg = workTotal / setTotal * 360;
 
+      // snap remaining to 10-second steps so the wedge updates in responsive jumps
+      const remSnap = Math.ceil(Math.max(0, state.remaining) / 10) * 10;
+      let consumed = isWork ? (workTotal - remSnap) : (workTotal + (breakTotal - remSnap));
+      consumed = Math.max(0, Math.min(setTotal, consumed));
+      const consumedDeg = consumed / setTotal * 360;
+
+      // The gradient is built clockwise from the top, then the .pie element is
+      // mirrored (scaleX(-1)) so it reads counter-clockwise: the green break
+      // slice lands at the top (≈12–2 o'clock) and work drains from the top
+      // down the left. Work and break sit flush — no divider gap.
+      const workCol  = '#FF5A1F';   // work region (the big orange slice)
+      const breakCol = '#7CB342';   // break region (the small green slice)
+      const track = 'rgba(178,120,70,.14)';
+
+      const stops = [];
+      if (consumedDeg > 0.01) stops.push(`${track} 0deg ${consumedDeg}deg`);            // elapsed
+      if (consumedDeg < workDeg) stops.push(`${workCol} ${Math.max(consumedDeg, 0)}deg ${workDeg}deg`); // remaining work
+      const bStart = Math.max(consumedDeg, workDeg);
+      if (bStart < 360) stops.push(`${breakCol} ${bStart}deg 360deg`);                   // remaining break
+      el.pie.style.background = `conic-gradient(from 0deg, ${stops.join(', ')})`;
+
+      const accent = isWork ? workCol : breakCol;
       const mins = Math.max(0, Math.ceil(state.remaining / 60));
-      el.hub.innerHTML =
-        `<span class="hubphase" style="color:${accent}">${isWork ? 'WORK' : 'BREAK'}</span>` +
-        `<span class="hubmin">${mins}</span>`;
+      el.hub.innerHTML = `<span class="hubmin" style="color:${accent}">${mins}</span>`;
 
       el.pillShort.classList.toggle('active', state.mode === 'focus25');
       el.pillLong.classList.toggle('active', state.mode === 'deep50');
+      el.pillCustom.classList.toggle('active', state.mode === 'custom');
+      el.pillCustom.textContent = customSet
+        ? `${Math.round(DUR.custom.work / 60)} / ${Math.round(DUR.custom.break / 60)}`
+        : 'CUSTOM';
 
       el.play.innerHTML = state.running ? PAUSE : PLAY;
-
-      el.modeLabel.textContent = state.mode === 'focus25'
-        ? 'Work 25 · Break 5'
-        : 'Work 50 · Break 10';
     }
 
     // ── confirm dialog — switching mode or resetting clears a live timer ──
@@ -414,10 +530,55 @@
       askConfirm('Reset the timer?', 'Reset', reset);
     }
 
+    // ── custom-timer dialog (sliders) ──
+    const customDlg = document.getElementById('customDlg');
+    const custWork = document.getElementById('custWork');
+    const custBreak = document.getElementById('custBreak');
+    const custWorkVal = document.getElementById('custWorkVal');
+    const custBreakVal = document.getElementById('custBreakVal');
+    custWork.addEventListener('input', () => { custWorkVal.textContent = custWork.value; });
+    custBreak.addEventListener('input', () => { custBreakVal.textContent = custBreak.value; });
+    function openCustom() {
+      custWork.value = Math.round(DUR.custom.work / 60);
+      custBreak.value = Math.round(DUR.custom.break / 60);
+      custWorkVal.textContent = custWork.value;
+      custBreakVal.textContent = custBreak.value;
+      customDlg.style.display = 'flex';
+    }
+    function hideCustom() { customDlg.style.display = 'none'; }
+    function saveCustom() {
+      const w = Math.min(120, Math.max(1, parseInt(custWork.value, 10) || 1));
+      const b = Math.min(60, Math.max(1, parseInt(custBreak.value, 10) || 1));
+      DUR.custom = { work: w * 60, break: b * 60 };
+      customSet = true;
+      try { localStorage.setItem('pomodoro-custom', JSON.stringify(DUR.custom)); } catch (e) {}
+      hideCustom();
+      setMode('custom');
+    }
+    document.getElementById('custCancel').addEventListener('click', hideCustom);
+    document.getElementById('custSave').addEventListener('click', saveCustom);
+    customDlg.addEventListener('click', (e) => { if (e.target === customDlg) hideCustom(); });
+
+    // ── continuous (repeat) mode: keep cycling work → break → work … ──
+    const loopChk = document.getElementById('loopChk');
+    loopChk.checked = loop;
+    loopChk.addEventListener('change', () => {
+      loop = loopChk.checked;
+      try { localStorage.setItem('pomodoro-loop', loop ? '1' : '0'); } catch (e) {}
+    });
+
+    // ── help dialog ──
+    const helpDlg = document.getElementById('helpDlg');
+    const hideHelp = () => { helpDlg.style.display = 'none'; };
+    document.getElementById('helpBtn').addEventListener('click', () => { helpDlg.style.display = 'flex'; });
+    document.getElementById('helpClose').addEventListener('click', hideHelp);
+    helpDlg.addEventListener('click', (e) => { if (e.target === helpDlg) hideHelp(); });
+
     el.play.addEventListener('click', toggle);
     document.getElementById('resetBtn').addEventListener('click', requestReset);
     el.pillShort.addEventListener('click', () => requestMode('focus25'));
     el.pillLong.addEventListener('click', () => requestMode('deep50'));
+    el.pillCustom.addEventListener('click', openCustom);
     document.getElementById('permBtn').addEventListener('click', () => {
       if (Native) Native.requestDndAccess().catch(() => {});
       document.getElementById('permBanner').style.display = 'none';
@@ -438,6 +599,19 @@
     });
 
     render();
+
+    // ⚠ DEPLOY SAFEGUARD: if the clock is still sped up (SPEED ≠ 1), make it
+    //    impossible to miss — a red banner + console warning. Setting SPEED = 1
+    //    (the production value) removes both automatically.
+    if (SPEED !== 1) {
+      console.warn(`⚠ Pomodoro TEST MODE: clock runs ${SPEED}× faster (min→sec). Set SPEED = 1 before deploying.`);
+      const warn = document.createElement('div');
+      warn.textContent = `⚡ TEST MODE ${SPEED}× (min→sec) — set SPEED = 1 before deploy`;
+      warn.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:200;text-align:center;'
+        + 'font:600 12px Helvetica,Arial,sans-serif;letter-spacing:.03em;color:#fff;'
+        + 'background:#C2410C;padding:6px 10px;box-shadow:0 2px 8px rgba(0,0,0,.25);';
+      document.body.appendChild(warn);
+    }
 
     // Service worker: register only on the web (PWA/offline). In the native APK
     // assets are local, so a SW only causes stale caches — skip and clear it.
