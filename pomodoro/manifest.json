@@ -36,7 +36,7 @@
       "name": "Start Work",
       "short_name": "Work",
       "description": "Start a 25-minute work session",
-      "url": "./?mode=work",
+      "url": "/?mode=work",
       "icons": [
         {
           "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='42' fill='%23FCE3D2'/><text x='96' y='110' font-size='80' text-anchor='middle' fill='%23333'>☀️</text></svg>",
@@ -49,7 +49,7 @@
       "name": "Start Break",
       "short_name": "Break",
       "description": "Start a 5-minute break session",
-      "url": "./?mode=break",
+      "url": "/?mode=break",
       "icons": [
         {
           "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='42' fill='%23FCE3D2'/><text x='96' y='110' font-size='80' text-anchor='middle' fill='%23333'>🌙</text></svg>",

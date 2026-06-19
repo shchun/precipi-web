@@ -242,6 +242,24 @@
       if (b) b.style.display = 'flex';
     }
 
+    // ── screen wake lock — keep the display on while the timer runs ──
+    // Screen Wake Lock API works on Android Chrome and inside the Capacitor
+    // WebView. The lock is auto-released when the page is hidden, so we
+    // re-acquire it on visibilitychange whenever the timer is still running.
+    let wakeLock = null;
+    async function requestWakeLock() {
+      if (!('wakeLock' in navigator) || wakeLock) return;
+      try {
+        wakeLock = await navigator.wakeLock.request('screen');
+        wakeLock.addEventListener('release', () => { wakeLock = null; });
+      } catch (e) { wakeLock = null; }
+    }
+    function releaseWakeLock() {
+      if (!wakeLock) return;
+      try { wakeLock.release(); } catch (e) {}
+      wakeLock = null;
+    }
+
     function ensureAudio() {
       if (ac) return;
       try { ac = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {}
@@ -269,6 +287,7 @@
       const isWork = state.phase === 'work';
       if (isWork) ensureDndAccess();
       applyDnd(isWork);                                         // focus → DND on
+      requestWakeLock();                                        // running → keep screen on
       scheduleBoundary(state.targetEnd, isWork ? 'break' : 'work');
       render();
     }
@@ -276,18 +295,19 @@
       state.remaining = state.targetEnd ? Math.max(0, (state.targetEnd - Date.now()) / 1000) : state.remaining;
       state.running = false; state.targetEnd = null;
       applyDnd(false); cancelBoundary();                       // stopping → release DND
+      releaseWakeLock();                                        // stopped → allow screen to sleep
       render();
     }
     function toggle() { state.running ? pause() : start(); }
     function reset() {
       state.running = false; state.targetEnd = null; state.remaining = dur();
-      applyDnd(false); cancelBoundary();
+      applyDnd(false); cancelBoundary(); releaseWakeLock();
       render();
     }
     function setMode(mode) {
       state.mode = mode; state.phase = 'work'; state.running = false;
       state.targetEnd = null; state.remaining = dur(mode, 'work');
-      applyDnd(false); cancelBoundary();
+      applyDnd(false); cancelBoundary(); releaseWakeLock();
       render();
     }
 
@@ -318,8 +338,13 @@
       state.running = AUTO_START_NEXT;
       state.targetEnd = AUTO_START_NEXT ? Date.now() + newRem * 1000 : null;
       applyDnd(state.running && state.phase === 'work');        // break → off; auto work → on
-      if (state.running) scheduleBoundary(state.targetEnd, state.phase === 'work' ? 'break' : 'work');
-      else cancelBoundary();                                    // alarm already consumed
+      if (state.running) {
+        scheduleBoundary(state.targetEnd, state.phase === 'work' ? 'break' : 'work');
+        requestWakeLock();                                      // auto-started next phase → keep screen on
+      } else {
+        cancelBoundary();                                       // alarm already consumed
+        releaseWakeLock();                                      // idle between phases → allow sleep
+      }
       render();
     }
 
@@ -409,6 +434,7 @@
       reconciling = true;
       tick();
       reconciling = false;
+      if (state.running) requestWakeLock();   // re-acquire: the lock drops when hidden
     });
 
     render();
