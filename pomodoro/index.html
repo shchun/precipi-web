@@ -36,7 +36,7 @@
     }
     .pill {
       border: none; cursor: pointer; padding: 0 22px; height: 48px; border-radius: 999px;
-      display: flex; align-items: center; justify-content: center;
+      display: flex; align-items: center; justify-content: center; white-space: nowrap;
       font-family: inherit; font-size: 15px; font-weight: 600; letter-spacing: .02em;
       color: rgba(120,72,40,.6);
       background: transparent; transition: all .2s ease;
@@ -46,8 +46,9 @@
       box-shadow: 0 5px 14px -5px rgba(178,80,30,.4), inset 0 0 0 1px rgba(178,120,70,.1);
     }
 
-    /* dial */
-    .dial { position: relative; width: 300px; height: 300px; margin-top: 28px; display: flex; align-items: center; justify-content: center; }
+    /* dial — aspect-ratio + no flex-shrink guarantee it stays a perfect circle
+       even when a flex parent (e.g. the landscape row layout) tries to squeeze it. */
+    .dial { position: relative; width: min(300px, 88vw); height: min(300px, 88vw); aspect-ratio: 1 / 1; flex-shrink: 0; margin-top: 28px; display: flex; align-items: center; justify-content: center; }
     /* tomato calyx sitting on top of the circle */
     .stem {
       position: absolute; top: -52px; left: 50%; transform: translateX(-50%);
@@ -189,10 +190,27 @@
     /* landscape on phones: lay header · dial · footer side by side and
        size the dial to the available height so nothing gets clipped.
        max-height keeps desktop (tall landscape windows) on the column layout. */
+    /* narrow screens (e.g. Galaxy Fold cover display) — shrink so nothing overflows or clips */
+    @media (max-width: 380px) {
+      .screen { padding: 26px 12px; gap: 28px; }
+      .modes { gap: 4px; padding: 4px; }
+      .pill { padding: 0 13px; height: 42px; font-size: 13px; }
+      .dial { width: min(300px, 90vw); height: min(300px, 90vw); margin-top: 20px; }
+      .stem { width: 84px; top: -40px; }
+      .controls { gap: 16px; }
+    }
+
     @media (orientation: landscape) and (max-height: 600px) {
-      .screen { flex-direction: row; gap: clamp(24px, 5vw, 60px); padding: 18px 30px; }
-      .dial { width: min(80vh, 300px); height: min(80vh, 300px); }
-      .header, .footer { gap: 16px; }
+      .screen { flex-direction: row; gap: clamp(12px, 2.6vw, 60px); padding: 14px 20px; }
+      /* size the dial off the available height (it never shrinks — flex-shrink:0),
+         and shrink the surrounding chrome so the header + dial + footer all fit on
+         one row without clipping on the short, wide Fold cover display. */
+      .dial { width: min(70vh, 280px); height: min(70vh, 280px); margin-top: 0; }
+      .header, .footer { gap: 14px; }
+      .pill { height: 42px; padding: 0 14px; font-size: 13px; }
+      .controls { gap: 16px; }
+      .play { width: 80px; height: 80px; }
+      .reset, .spacer { width: 50px; height: 50px; }
     }
   </style>
 </head>

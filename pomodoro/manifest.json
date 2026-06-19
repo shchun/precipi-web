@@ -16,7 +16,7 @@
       "purpose": "any"
     },
     {
-      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2020/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='112' fill='%23FCE3D2'/><circle cx='256' cy='256' r='117' fill='%23FF5A1F'/><path d='M256 256 V128 A128 128 0 0 1 384 256 Z' fill='%23FF7A3D'/><circle cx='256' cy='256' r='37' fill='%23FFFDFB'/></svg>",
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='112' fill='%23FCE3D2'/><circle cx='256' cy='256' r='117' fill='%23FF5A1F'/><path d='M256 256 V128 A128 128 0 0 1 384 256 Z' fill='%23FF7A3D'/><circle cx='256' cy='256' r='37' fill='%23FFFDFB'/></svg>",
       "sizes": "512x512",
       "type": "image/svg+xml",
       "purpose": "any maskable"
