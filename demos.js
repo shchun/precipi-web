@@ -96,8 +96,8 @@ const demos = [
     href: "deskclock/index.html",
     install: "deskclock/index.html",
     download: "https://github.com/shchun/precipi-web/releases/download/apks-v1/deskclock-debug.apk",
-    downloadLabel: "📱 안드로이드 APK",
-    downloadLabelEn: "📱 Android APK",
+    downloadLabel: "📱 APK",
+    downloadLabelEn: "📱 APK",
     tags: ["tool"],
   },
   {
@@ -109,8 +109,8 @@ const demos = [
     href: "pomodoro/index.html",
     install: "pomodoro/index.html",
     download: "https://github.com/shchun/precipi-web/releases/download/apks-v1/pomodoro-debug.apk",
-    downloadLabel: "📱 안드로이드 APK",
-    downloadLabelEn: "📱 Android APK",
+    downloadLabel: "📱 APK",
+    downloadLabelEn: "📱 APK",
     tags: ["tool"],
   },
   {
