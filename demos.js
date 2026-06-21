@@ -143,6 +143,17 @@ const demos = [
     install: "https://jamak.precipi.com/?install",
     tags: ["tool"],
   },
+  {
+    icon: "📖",
+    title: "웹 리더",
+    titleEn: "Web Reader",
+    desc: "웹 페이지 원문·한국어 번역·노트를 한 화면에서 보는 리더입니다. 구글 로그인으로 노트를 드라이브에 저장합니다.",
+    descEn: "Read a web page's original text, Korean translation, and your notes side by side. Sign in with Google to save notes to Drive.",
+    href: "https://web-reader-nine.vercel.app/",
+    path: "web-reader-nine.vercel.app",
+    external: true,
+    tags: ["tool"],
+  },
 ];
 
 // 필터 버튼 정의. id가 "all"이면 전체, "installable"이면 install 필드가 있는 카드,
