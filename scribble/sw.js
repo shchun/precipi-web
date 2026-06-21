@@ -1,4 +1,4 @@
-const CACHE = 'scribble-v1';
+const CACHE = 'scribble-v2';
 const ASSETS = [
   './',
   './index.html',

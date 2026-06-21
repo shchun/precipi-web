@@ -27,7 +27,6 @@ body {
         radial-gradient(at 0% 100%, rgba(244, 63, 94, 0.15) 0px, transparent 50%);
     background-attachment: fixed;
     height: 100vh;
-    height: 100dvh; /* track the visible viewport as the address bar shows/hides */
     overflow: hidden;
     color: var(--primary-color);
     display: flex;
@@ -61,7 +60,7 @@ body {
 /* Toolbar Styling */
 .toolbar-container {
     position: absolute;
-    bottom: calc(40px + env(safe-area-inset-bottom));
+    bottom: 40px;
     left: 50%;
     transform: translateX(-50%);
     z-index: 10;
@@ -145,6 +144,28 @@ body {
     color: #dc2626;
 }
 
+/* Undo/Redo are neutral (non-destructive) actions */
+#undo-tool,
+#redo-tool {
+    color: #475569; /* Slate-600 */
+}
+
+#undo-tool:hover,
+#redo-tool:hover {
+    background-color: rgba(71, 85, 105, 0.1);
+    color: #1e293b;
+}
+
+.tool-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+.tool-btn:disabled:hover {
+    background-color: transparent;
+    color: inherit;
+}
+
 .separator {
     width: 1px;
     height: 32px;
@@ -162,7 +183,7 @@ body {
     }
     
     .toolbar-container {
-        bottom: calc(20px + env(safe-area-inset-bottom));
+        bottom: 20px;
         width: 90%;
     }
     
