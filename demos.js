@@ -88,6 +88,16 @@ const demos = [
     tags: ["tool"],
   },
   {
+    icon: "🎨",
+    title: "Precipi 테마",
+    titleEn: "Precipi Themes",
+    desc: "VS Code용 색상 테마 모음입니다. 신스웨이브·솔라·에메랄드 3개 색 계열을 라이트/다크로 담은 6종 테마.",
+    descEn: "A collection of VS Code color themes — 6 themes across 3 families (Synthwave / Solar / Emerald), each in light & dark.",
+    href: "https://marketplace.visualstudio.com/items?itemName=precipi.precipi-themes",
+    external: true,
+    tags: ["art", "tool"],
+  },
+  {
     icon: "🕐",
     title: "데스크 클락",
     titleEn: "Desk Clock",
@@ -158,6 +168,10 @@ function renderDemos(grid) {
     const card = document.createElement("a");
     card.href = d.href;
     card.className = "demo-card";
+    if (d.external) {
+      card.target = "_blank";
+      card.rel = "noopener";
+    }
     card._demo = d;
     card.dataset.demoIdx = i;
 
