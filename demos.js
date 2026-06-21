@@ -171,15 +171,9 @@ function renderDemos(grid) {
     p.textContent = d.desc;
     card.appendChild(p);
 
-    const pathLabel = d.path || d.href;
-    const path = document.createElement("span");
-    path.className = "path";
-    path.textContent = pathLabel;
-
     if (d.install || d.download) {
       const actions = document.createElement("div");
       actions.className = "card-actions";
-      actions.appendChild(path);
 
       if (d.install) {
         const pill = document.createElement("span");
@@ -212,8 +206,6 @@ function renderDemos(grid) {
       }
 
       card.appendChild(actions);
-    } else {
-      card.appendChild(path);
     }
 
     grid.appendChild(card);
