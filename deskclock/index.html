@@ -555,12 +555,20 @@
   /* 임시(PoC): 소나 테스트 진입 링크 — 우측 하단 반투명 둥근 버튼(검증용), 검증 후 이 블록 삭제 */
   .sonar-link{
     position:fixed; bottom:18px; right:18px; z-index:100;
+    display:inline-flex; align-items:center; gap:9px;
     font-size:12px; letter-spacing:.16em; text-transform:uppercase;
     color:#fff; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.3);
-    border-radius:12px; padding:9px 15px; text-decoration:none;
+    border-radius:12px; padding:9px 22px; text-decoration:none;
     font-family:'Jost',sans-serif; font-weight:500;
     backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
   }
+  /* 재실 상태 LED — 사람 있음(초록)·없음(빨강)·대기(회색) */
+  .sonar-led{
+    width:9px; height:9px; border-radius:50%; flex:0 0 auto;
+    background:#555; transition:background .15s, box-shadow .15s;
+  }
+  .sonar-led.on { background:#2ecc40; box-shadow:0 0 8px #2ecc40; }
+  .sonar-led.off{ background:#ff4136; box-shadow:0 0 8px #ff4136; }
 
   /* 화면 비율에 맞춘 확대는 JS(fitActive)가 담당한다 — 콘텐츠를 측정해 어떤
      비율(세로 바/가로 바/일반 폰)에서도 화면의 ~92%에 맞춰 키운다(넘치지 않게). */
@@ -757,7 +765,7 @@
 
   <!-- NAV (위치 표시용 점만 — 화면을 터치하면 다음 시계로 전환) -->
   <!-- 임시(PoC): 초음파 소나 테스트 진입로 — 우측 하단 반투명 버튼(검증용), 검증 후 삭제 -->
-  <a href="sonar-test.html" class="sonar-link" onclick="event.stopPropagation()">SONAR</a>
+  <a href="sonar-test.html" class="sonar-link" onclick="event.stopPropagation()"><span class="sonar-led" id="sonarLed"></span>SONAR</a>
   <nav class="nav" id="nav">
     <div class="dots" id="dots"></div>
   </nav>
@@ -1019,14 +1027,18 @@
 
   const CARRIER_KEY = 'sonar.carrier';
   const THRESHOLD   = 0.45;        // 움직임 판정 임계값(테스트로 보정한 값)
+  const PRESENCE_HOLD = 3000;      // 최근 3초 내 움직임이면 '사람 있음'(LED 즉시 반영)
   const DIM_DELAY   = 600000;      // 무동작 10분 후 디밍
   const DIM_LEVEL   = 0.01;        // 디밍 시 밝기(최소)
   const SIDEBAND_HZ = 220, GUARD_HZ = 30, GAIN = 0.25;
 
   let analyser=null, freqData=null, binHz=0, carrierHz=19500;
-  let metricEMA=0, lastMotionAt=0, brightState=null, started=false;
+  let metricEMA=0, lastMotionAt=0, brightState=null, started=false, startRetries=0;
   const db2lin = db => Math.pow(10, db/20);
   const setBrightness = v => { try { window.DeskClock && window.DeskClock.setBrightness && window.DeskClock.setBrightness(String(v)); } catch(e){} };
+  const ledEl = document.getElementById('sonarLed');
+  // 'on'=초록(사람), 'off'=빨강(없음), null=회색(감지 전/캐리어 미포착)
+  const setLed = s => { if (!ledEl) return; ledEl.classList.toggle('on', s==='on'); ledEl.classList.toggle('off', s==='off'); };
 
   async function start(){
     if (started) return; started = true;
@@ -1043,7 +1055,11 @@
       osc.connect(gain).connect(ctx.destination); osc.start();
       lastMotionAt = performance.now();
       loop();
-    } catch(e) { started = false; }
+    } catch(e) {
+      // 권한 팝업 대기 등 첫 시도 실패 시 잠시 후 재시도(터치 없이 자동 복구)
+      started = false;
+      if (startRetries++ < 20) setTimeout(start, 1000);
+    }
   }
 
   function loop(){
@@ -1067,14 +1083,20 @@
     const metric = haveSignal ? metricEMA : 0;
     if (haveSignal && metric > THRESHOLD) lastMotionAt = performance.now();
     if (haveSignal) {  // 신호 없으면(캐리어 미포착) 현 밝기 유지
-      const active = (performance.now() - lastMotionAt) < DIM_DELAY;
+      const sinceMotion = performance.now() - lastMotionAt;
+      setLed(sinceMotion < PRESENCE_HOLD ? 'on' : 'off');  // 사람 있음/없음 LED 즉시 갱신
+      const active = sinceMotion < DIM_DELAY;
       const next = active ? 'on' : 'dim';
       if (next !== brightState) { brightState = next; setBrightness(active ? -1 : DIM_LEVEL); }
+    } else {
+      setLed(null);  // 캐리어 미포착 — 대기(회색)
     }
     setTimeout(loop, 120);   // ~8Hz: 감지 충분 + CPU 절감
   }
 
-  // 오디오 시작(첫 제스처) + 화면 이탈 시 밝기 복구
+  // 오디오 자동 시작(MainActivity가 제스처 요구를 해제) + 제스처는 보조 트리거로 유지
+  if (document.readyState === 'complete') start();
+  else window.addEventListener('load', start);
   window.addEventListener('pointerdown', start, { once:true });
   window.addEventListener('keydown', start, { once:true });
   window.addEventListener('pagehide', () => setBrightness(-1));
