@@ -341,6 +341,174 @@
   @media (prefers-reduced-motion:reduce){ .f10-cursor{ animation:none; } }
 
   /* ======================================================= */
+  /* FACE 11 — LIQUID GOO (메타볼 구이)                      */
+  /* ======================================================= */
+  /* 검은 배경 + 바이올렛/인디고 단일 hue 액체 블롭 + SVG goo 필터 */
+  /* blur+contrast 트릭으로 숫자 블롭들이 액체처럼 뭉치고 갈라진다  */
+  #face11{ background:#060610; color:#fff; overflow:visible; }
+
+  /* 배경 앰비언트: 멀리서 느껴지는 발광 */
+  #face11::before{
+    content:''; position:absolute; inset:0; pointer-events:none;
+    background:
+      radial-gradient(55vmin 55vmin at 40% 50%, rgba(110,60,255,.18) 0%, transparent 70%),
+      radial-gradient(45vmin 45vmin at 62% 48%, rgba(180,80,255,.12) 0%, transparent 70%);
+  }
+
+  /* goo 필터가 적용될 컨테이너 — overflow:visible 필수(헤일로 잘림 방지) */
+  .f11-goo-container{
+    filter:url(#goo11);
+    /* 필터 컨텍스트가 overflow 부모에 clipping되지 않도록 충분한 여백 확보 */
+    padding:6vmin;
+    position:relative;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+
+  /* 시간 숫자 행: HH:MM */
+  .f11-time-row{
+    display:flex;
+    align-items:center;
+    gap:0; /* gap 없이 배치 — 블롭끼리 blur로 자연스럽게 뭉침 */
+    position:relative;
+  }
+
+  /* 개별 숫자 블롭 */
+  .f11-digit{
+    /* 블롭 형태: 완전히 둥근 배경에 숫자를 올림 */
+    display:flex; align-items:center; justify-content:center;
+    width:18vmin; height:20vmin;
+    border-radius:50%;
+    background:linear-gradient(135deg, #a855f7 0%, #7c3aed 60%, #4f1d96 100%);
+    /* 스페큘러 하이라이트 — 습식 액체 질감 */
+    box-shadow:
+      inset 0 2.5vmin 3vmin rgba(255,255,255,.22),
+      inset 0 -1.5vmin 2vmin rgba(0,0,0,.3),
+      0 0 4vmin rgba(139,92,246,.6);
+    position:relative;
+    /* transform 애니메이션 — 필터 그래프는 정적, 위치만 움직임 */
+    will-change:transform;
+    flex-shrink:0;
+  }
+
+  /* 콜론 블롭 — 두 개의 작은 원형 블롭 */
+  .f11-colon-wrap{
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:2.2vmin;
+    width:5vmin; height:20vmin;
+    flex-shrink:0;
+  }
+  .f11-dot{
+    width:3.4vmin; height:3.4vmin;
+    border-radius:50%;
+    background:linear-gradient(135deg, #c084fc 0%, #7c3aed 100%);
+    box-shadow:
+      inset 0 .8vmin 1vmin rgba(255,255,255,.28),
+      0 0 2.5vmin rgba(167,139,250,.7);
+    flex-shrink:0;
+  }
+  /* 콜론 깜빡임 */
+  .f11-colon-wrap.blink{ animation:f11blink 1.2s steps(1,end) infinite; }
+  @keyframes f11blink{ 50%{ opacity:.2; } }
+  @media (prefers-reduced-motion:reduce){ .f11-colon-wrap.blink{ animation:none; } }
+
+  /* 숫자 텍스트 — goo 필터로 블러되지 않도록 crisp 레이어로 분리 */
+  /* feBlend 로 SourceGraphic(텍스트)을 goo 위에 합성하기 때문에 가독성 유지됨 */
+  .f11-digit-label{
+    font-family:'Jost',system-ui,sans-serif;
+    font-weight:500;
+    font-size:11vmin;
+    line-height:1;
+    letter-spacing:-.02em;
+    font-variant-numeric:tabular-nums;
+    color:#fff;
+    text-shadow:0 0 2vmin rgba(255,255,255,.5);
+    /* 텍스트는 goo filter 의 blur+contrast 를 통과하지 않도록
+       포인터-이벤트와 z-index 로만 구분 — 실제 크리스프함은 feBlend 덕분 */
+    position:relative; z-index:1;
+    user-select:none;
+  }
+
+  /* 초 표시 — 작은 보조 블롭, goo-container 바로 아래 플로우 배치 */
+  .f11-sec-wrap{
+    display:flex; align-items:center; gap:1.2vmin;
+    filter:url(#goo11-sm);
+    /* goo 필터 헤일로 클리핑 방지용 패딩 */
+    padding:1.5vmin 2vmin;
+  }
+  .f11-sec-blob{
+    width:6vmin; height:6.5vmin;
+    border-radius:50%;
+    background:linear-gradient(135deg, #c084fc 0%, #7c3aed 100%);
+    box-shadow:
+      inset 0 1vmin 1.4vmin rgba(255,255,255,.22),
+      0 0 2.5vmin rgba(139,92,246,.5);
+    display:flex; align-items:center; justify-content:center;
+    will-change:transform;
+    flex-shrink:0;
+  }
+  .f11-sec-label{
+    font-family:'Jost',system-ui,sans-serif;
+    font-weight:500; font-size:3.2vmin;
+    color:#fff; font-variant-numeric:tabular-nums;
+    position:relative; z-index:1; user-select:none;
+  }
+
+  /* 날짜 텍스트 — goo 효과 없이 단순 표시 */
+  .f11-date{
+    font-family:'Jost',system-ui,sans-serif;
+    font-weight:300; font-size:2.2vmin;
+    letter-spacing:.38em; text-transform:uppercase;
+    color:rgba(196,168,255,.65);
+    white-space:nowrap;
+    margin-top:1vmin;
+    user-select:none;
+  }
+
+  /* ---- 블롭 진동 애니메이션 (prefers-reduced-motion 미적용 시) ---- */
+  /* 이웃 블롭과 살짝 겹치게 translateX 진동 → goo 브리지 생성 */
+  .f11-digit:nth-child(1){ animation:f11bob1 6s ease-in-out infinite; }
+  .f11-digit:nth-child(3){ animation:f11bob2 7s ease-in-out infinite; }
+  .f11-digit:nth-child(5){ animation:f11bob3 5.5s ease-in-out infinite; }
+  .f11-digit:nth-child(7){ animation:f11bob4 6.5s ease-in-out infinite; }
+
+  /* 각 숫자마다 위상을 다르게 줘서 자연스러운 유동감 */
+  @keyframes f11bob1{
+    0%,100%{ transform:translate(0,0) scale(1); }
+    25%{ transform:translate(1.4vmin,.6vmin) scale(1.03); }
+    50%{ transform:translate(.5vmin,-.8vmin) scale(.98); }
+    75%{ transform:translate(-.6vmin,.4vmin) scale(1.01); }
+  }
+  @keyframes f11bob2{
+    0%,100%{ transform:translate(0,0) scale(1); }
+    20%{ transform:translate(-1.2vmin,.5vmin) scale(.97); }
+    55%{ transform:translate(1vmin,-.7vmin) scale(1.04); }
+    80%{ transform:translate(.3vmin,.9vmin) scale(.99); }
+  }
+  @keyframes f11bob3{
+    0%,100%{ transform:translate(0,0) scale(1); }
+    30%{ transform:translate(1.1vmin,-.5vmin) scale(1.02); }
+    60%{ transform:translate(-1.3vmin,.7vmin) scale(.96); }
+    85%{ transform:translate(.7vmin,.3vmin) scale(1.03); }
+  }
+  @keyframes f11bob4{
+    0%,100%{ transform:translate(0,0) scale(1); }
+    15%{ transform:translate(-.9vmin,.8vmin) scale(1.04); }
+    45%{ transform:translate(1.5vmin,-.4vmin) scale(.98); }
+    70%{ transform:translate(-.4vmin,-.6vmin) scale(1.01); }
+  }
+
+  @media (prefers-reduced-motion:reduce){
+    /* 모션 억제 시 블롭이 붙은 정적 합체 형태로 폴백 */
+    .f11-digit,
+    .f11-sec-blob{
+      animation:none !important;
+      transform:none !important;
+    }
+  }
+
+  /* ======================================================= */
   /* NAV                                                     */
   /* ======================================================= */
   .stage[data-theme="light"]{ --ui:#0a0a0a; --ui-soft:rgba(10,10,10,.4); --ui-bg:rgba(255,255,255,.55); }
@@ -384,6 +552,16 @@
   .stage.idle .nav{ opacity:0; pointer-events:none; }
   .nav:hover{ opacity:1 !important; }
 
+  /* 임시(PoC): 소나 테스트 진입 링크 — 우측 하단 반투명 둥근 버튼(검증용), 검증 후 이 블록 삭제 */
+  .sonar-link{
+    position:fixed; bottom:18px; right:18px; z-index:100;
+    font-size:12px; letter-spacing:.16em; text-transform:uppercase;
+    color:#fff; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.3);
+    border-radius:12px; padding:9px 15px; text-decoration:none;
+    font-family:'Jost',sans-serif; font-weight:500;
+    backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
+  }
+
   /* 화면 비율에 맞춘 확대는 JS(fitActive)가 담당한다 — 콘텐츠를 측정해 어떤
      비율(세로 바/가로 바/일반 폰)에서도 화면의 ~92%에 맞춰 키운다(넘치지 않게). */
 </style>
@@ -397,6 +575,39 @@
       });
     }
   </script>
+  <!-- SVG goo 필터 정의 — 화면에 그려지지 않는 0×0 컨테이너 -->
+  <!-- feGaussianBlur: 형태를 흐리게 → feColorMatrix: 알파에 고대비 적용 → 블롭 경계 생성 -->
+  <!-- feBlend: 원본 SourceGraphic(텍스트)를 goo 위에 합성해 숫자 가독성 유지 -->
+  <svg style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">
+    <defs>
+      <!-- 메인 시간 블롭 필터 -->
+      <!-- stdDeviation=8: 20vmin 블롭 기준, 이웃 블롭과 뭉칠 수 있는 반경 확보 -->
+      <!-- alpha 멀티플라이어 18: 엣지 선명화 / 오프셋 -7: 반투명 헤일로 제거 -->
+      <filter id="goo11" x="-30%" y="-30%" width="160%" height="160%">
+        <feGaussianBlur in="SourceGraphic" stdDeviation="8" result="blur"/>
+        <feColorMatrix in="blur" type="matrix"
+          values="1 0 0 0 0
+                  0 1 0 0 0
+                  0 0 1 0 0
+                  0 0 0 18 -7" result="goo"/>
+        <!-- SourceGraphic 합성: 텍스트 레이블이 blur 통과 없이 선명하게 출력됨 -->
+        <feBlend in="SourceGraphic" in2="goo" mode="normal"/>
+      </filter>
+      <!-- 초 소형 블롭 필터 — 블롭 크기가 작으므로 stdDeviation 절반 축소 -->
+      <!-- stdDeviation=4: 6vmin 블롭 기준 적정 뭉침 반경 -->
+      <!-- alpha 멀티플라이어 22: 작은 블롭일수록 더 높은 contrast 필요 -->
+      <filter id="goo11-sm" x="-60%" y="-60%" width="220%" height="220%">
+        <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blur"/>
+        <feColorMatrix in="blur" type="matrix"
+          values="1 0 0 0 0
+                  0 1 0 0 0
+                  0 0 1 0 0
+                  0 0 0 22 -8" result="goo"/>
+        <feBlend in="SourceGraphic" in2="goo" mode="normal"/>
+      </filter>
+    </defs>
+  </svg>
+
   <div class="stage" id="stage" data-theme="light">
 
     <!-- FACE 1 — MINIMAL -->
@@ -516,9 +727,37 @@
       </div>
     </section>
 
+    <!-- FACE 11 — LIQUID GOO (메타볼 구이) -->
+    <!-- 각 숫자를 독립 블롭(.f11-digit)으로 표현, goo 필터가 인접 블롭을 액체처럼 합쳐줌 -->
+    <!-- 구조: [goo-container: HH콜론MM 블롭 행] + [초 소형 블롭] + [날짜 텍스트] -->
+    <section class="face" id="face11">
+      <div style="position:relative; display:flex; flex-direction:column; align-items:center; gap:0.5vmin;">
+        <!-- 메인 goo 컨테이너 — feBlend 덕에 .f11-digit-label 텍스트는 선명하게 유지됨 -->
+        <div class="f11-goo-container">
+          <div class="f11-time-row" id="f11-time-row">
+            <!-- JS tick()에서 동적으로 숫자 업데이트 — 초기값 표시 -->
+            <div class="f11-digit" id="f11-d0"><span class="f11-digit-label">1</span></div>
+            <div class="f11-digit" id="f11-d1"><span class="f11-digit-label">2</span></div>
+            <div class="f11-colon-wrap blink"><div class="f11-dot"></div><div class="f11-dot"></div></div>
+            <div class="f11-digit" id="f11-d2"><span class="f11-digit-label">0</span></div>
+            <div class="f11-digit" id="f11-d3"><span class="f11-digit-label">0</span></div>
+          </div>
+        </div>
+        <!-- 초 표시 — 독립 소형 goo 필터 적용 -->
+        <div class="f11-sec-wrap" id="f11-sec-wrap">
+          <div class="f11-sec-blob" id="f11-sb0"><span class="f11-sec-label" id="f11-sl0">0</span></div>
+          <div class="f11-sec-blob" id="f11-sb1"><span class="f11-sec-label" id="f11-sl1">0</span></div>
+        </div>
+        <!-- 날짜 -->
+        <div class="f11-date" id="f11-date">SUNDAY · JUNE 14</div>
+      </div>
+    </section>
+
   </div>
 
   <!-- NAV (위치 표시용 점만 — 화면을 터치하면 다음 시계로 전환) -->
+  <!-- 임시(PoC): 초음파 소나 테스트 진입로 — 우측 하단 반투명 버튼(검증용), 검증 후 삭제 -->
+  <a href="sonar-test.html" class="sonar-link" onclick="event.stopPropagation()">SONAR</a>
   <nav class="nav" id="nav">
     <div class="dots" id="dots"></div>
   </nav>
@@ -535,6 +774,7 @@
     { id:'face8', name:'Neon',            theme:'dark'  },
     { id:'face9', name:'Liquid Glass',    theme:'dark'  },
     { id:'face10',name:'Terminal',        theme:'dark'  },
+    { id:'face11',name:'Liquid Goo',      theme:'dark'  },
   ];
 
   const stage = document.getElementById('stage');
@@ -586,6 +826,11 @@
       // 시간의 세로 크기를 제한해 위/아래 모서리 라벨(AM·초·날짜)과 겹치지 않게 한다
       const t = document.getElementById(id.replace('face','f')+'-time');
       if(t) fitEl(t, vw*0.9, vh*0.6, 5);
+    }else if(id==='face11'){
+      // face11 (liquid goo): goo-container 기준으로 스케일
+      // goo 필터 헤일로(padding 6vmin)를 포함한 실제 크기로 맞춤
+      const w = document.querySelector('#face11 .f11-goo-container');
+      if(w) fitEl(w, vw*0.88, vh*0.82, 4);
     }else{
       const w = document.querySelector('#'+id+' .'+id.replace('face','f')+'-wrap');
       if(w) fitEl(w, vw*0.92, vh*0.92, 4);
@@ -679,6 +924,13 @@
   const f8t=el('f8-time'),f8a=el('f8-ampm'),f8s=el('f8-sec'),f8d=el('f8-date');
   const f9t=el('f9-time'),f9s=el('f9-sec'),f9d=el('f9-date');
   const f10t=el('f10-time'),f10d=el('f10-date');
+  // face11 (liquid goo) — 블롭 숫자 레이블 4개 + 초 레이블 2개 + 날짜
+  const f11d0=el('f11-d0').querySelector('.f11-digit-label');
+  const f11d1=el('f11-d1').querySelector('.f11-digit-label');
+  const f11d2=el('f11-d2').querySelector('.f11-digit-label');
+  const f11d3=el('f11-d3').querySelector('.f11-digit-label');
+  const f11sl0=el('f11-sl0'), f11sl1=el('f11-sl1');
+  const f11date=el('f11-date');
 
   let cur={h:'',m:'',s:''};
 
@@ -729,6 +981,12 @@
     // face 10 (terminal) — 24h HH:MM:SS
     f10t.textContent=pad(h)+':'+mm+':'+ss;
     f10d.textContent=dayL+' · '+monL+' '+dn;
+    // face 11 (liquid goo) — 각 자리를 독립 블롭 레이블에 개별 업데이트
+    // hh는 항상 2자리(pad된 값)이므로 [0],[1]이 시, [2],[3]이 분
+    f11d0.textContent=hh[0]; f11d1.textContent=hh[1];
+    f11d2.textContent=mm[0]; f11d3.textContent=mm[1];
+    f11sl0.textContent=ss[0]; f11sl1.textContent=ss[1];
+    f11date.textContent=dayL+' · '+monL+' '+dn;
 
     // 시 자릿수(예: 9→10, 12→1)가 바뀌면 시간 폭이 달라지므로 다시 맞춤
     const hlen = String(h12).length;
@@ -743,6 +1001,84 @@
   // align to second boundary, then tick each second
   function loop(){ tick(); setTimeout(loop, 1000 - (Date.now()%1000)); }
   setTimeout(loop, 1000 - (Date.now()%1000));
+})();
+</script>
+
+<!-- ───────────────────────────────────────────────────────────────────────
+  소나 재실 감지 → 화면 자동 디밍 (백그라운드). 화면엔 UI 없음.
+  - 스피커로 초음파 톤 출력 + 마이크로 도플러 분석(움직임 세기 = 사이드밴드−노이즈).
+  - 움직임 후 10분(디밍 지연) 무동작이면 밝기 최소, 움직이면 즉시 원래대로.
+  - 캐리어 주파수는 SONAR 테스트 페이지의 '주파수 응답 측정'이 단말별로 보정해 저장한 값을 공유.
+  - 오디오는 브라우저 정책상 사용자 제스처가 있어야 시작 → 첫 터치/키에서 가동.
+  - 밝기 제어는 네이티브 브리지 window.DeskClock.setBrightness (MainActivity).
+─────────────────────────────────────────────────────────────────────── -->
+<script>
+(function(){
+  'use strict';
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
+
+  const CARRIER_KEY = 'sonar.carrier';
+  const THRESHOLD   = 0.45;        // 움직임 판정 임계값(테스트로 보정한 값)
+  const DIM_DELAY   = 600000;      // 무동작 10분 후 디밍
+  const DIM_LEVEL   = 0.01;        // 디밍 시 밝기(최소)
+  const SIDEBAND_HZ = 220, GUARD_HZ = 30, GAIN = 0.25;
+
+  let analyser=null, freqData=null, binHz=0, carrierHz=19500;
+  let metricEMA=0, lastMotionAt=0, brightState=null, started=false;
+  const db2lin = db => Math.pow(10, db/20);
+  const setBrightness = v => { try { window.DeskClock && window.DeskClock.setBrightness && window.DeskClock.setBrightness(String(v)); } catch(e){} };
+
+  async function start(){
+    if (started) return; started = true;
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      await ctx.resume();
+      const mic = await navigator.mediaDevices.getUserMedia({ audio:{ echoCancellation:false, noiseSuppression:false, autoGainControl:false, channelCount:1 } });
+      analyser = ctx.createAnalyser(); analyser.fftSize = 16384; analyser.smoothingTimeConstant = 0;
+      binHz = ctx.sampleRate / analyser.fftSize; freqData = new Float32Array(analyser.frequencyBinCount);
+      ctx.createMediaStreamSource(mic).connect(analyser);
+      carrierHz = +(localStorage.getItem(CARRIER_KEY) || 19500);
+      const osc = ctx.createOscillator(); osc.type = 'sine'; osc.frequency.value = carrierHz;
+      const gain = ctx.createGain(); gain.gain.value = GAIN;
+      osc.connect(gain).connect(ctx.destination); osc.start();
+      lastMotionAt = performance.now();
+      loop();
+    } catch(e) { started = false; }
+  }
+
+  function loop(){
+    if (!analyser) return;
+    analyser.getFloatFrequencyData(freqData);
+    const N = freqData.length;
+    const cb = Math.round(carrierHz / binHz);
+    const halfW = Math.max(2, Math.round(SIDEBAND_HZ / binHz));
+    const guard = Math.max(1, Math.round(GUARD_HZ / binHz));
+    let ns=0, nc=0;
+    for (let k=cb+halfW+4; k<=cb+3*halfW+4 && k<N; k++){ ns+=freqData[k]; nc++; }
+    for (let k=cb-halfW-4; k>=cb-3*halfW-4 && k>=0; k--){ ns+=freqData[k]; nc++; }
+    const noiseDb = nc ? ns/nc : -140, noiseLin = db2lin(noiseDb);
+    const carrierDb = freqData[cb];
+    const haveSignal = (carrierDb - noiseDb) > 6;
+    let ss=0, cnt=0;
+    for (let k=cb-halfW; k<=cb+halfW; k++){ if (k<0||k>=N) continue; if (Math.abs(k-cb)<=guard) continue; ss+=db2lin(freqData[k]); cnt++; }
+    const sideLin = cnt ? ss/cnt : 0;
+    const raw = (haveSignal && noiseLin>0) ? Math.max(0,(sideLin-noiseLin)/noiseLin) : 0;
+    metricEMA += (raw - metricEMA) * 0.3;
+    const metric = haveSignal ? metricEMA : 0;
+    if (haveSignal && metric > THRESHOLD) lastMotionAt = performance.now();
+    if (haveSignal) {  // 신호 없으면(캐리어 미포착) 현 밝기 유지
+      const active = (performance.now() - lastMotionAt) < DIM_DELAY;
+      const next = active ? 'on' : 'dim';
+      if (next !== brightState) { brightState = next; setBrightness(active ? -1 : DIM_LEVEL); }
+    }
+    setTimeout(loop, 120);   // ~8Hz: 감지 충분 + CPU 절감
+  }
+
+  // 오디오 시작(첫 제스처) + 화면 이탈 시 밝기 복구
+  window.addEventListener('pointerdown', start, { once:true });
+  window.addEventListener('keydown', start, { once:true });
+  window.addEventListener('pagehide', () => setBrightness(-1));
+  document.addEventListener('visibilitychange', () => { if (document.hidden) setBrightness(-1); });
 })();
 </script>
 </body>
