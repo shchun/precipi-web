@@ -38,13 +38,15 @@
       border: none; cursor: pointer; padding: 0 22px; height: 48px; border-radius: 999px;
       display: flex; align-items: center; justify-content: center; white-space: nowrap;
       font-family: inherit; font-size: 15px; font-weight: 600; letter-spacing: .02em;
-      color: rgba(120,72,40,.6);
+      color: rgba(120,72,40,.38);
       background: transparent; transition: all .2s ease;
     }
+    .pill:not(.active) { opacity: .9; }
     .pill.active {
-      background: #FFFDFB; color: #FF5A1F;
-      box-shadow: 0 5px 14px -5px rgba(178,80,30,.4), inset 0 0 0 1px rgba(178,120,70,.1);
+      background: #FFFDFB; color: #FF5A1F; font-weight: 700;
+      box-shadow: 0 6px 16px -5px rgba(178,80,30,.5), inset 0 0 0 1px rgba(255,140,90,.22);
     }
+    .pill-ico { display: block; }
 
     /* dial — aspect-ratio + no flex-shrink guarantee it stays a perfect circle
        even when a flex parent (e.g. the landscape row layout) tries to squeeze it. */
@@ -80,7 +82,7 @@
     }
 
     /* footer */
-    .footer { display: flex; flex-direction: column; align-items: center; gap: 26px; }
+    .footer { display: flex; flex-direction: column; align-items: center; gap: 38px; }
     .controls { display: flex; align-items: center; gap: 22px; }
     .reset {
       width: 56px; height: 56px; border: none; cursor: pointer; border-radius: 50%;
@@ -102,24 +104,46 @@
     .play:active { transform: scale(.95); }
     .spacer { width: 56px; height: 56px; }
 
-    /* continuous-mode (repeat) toggle */
-    .loop-toggle { display: flex; align-items: center; gap: 10px; cursor: pointer; user-select: none; }
+    /* continuous-mode (repeat) chip — a soft toggle chip in the same language
+       as the mode pills / round controls, not a formal iOS switch */
+    .loop-toggle { cursor: pointer; user-select: none; }
     .loop-toggle input { position: absolute; opacity: 0; pointer-events: none; }
-    .loop-track {
-      position: relative; width: 46px; height: 26px; border-radius: 999px;
-      background: rgba(178,120,70,.25); transition: background .2s ease;
+    .loop-chip {
+      display: inline-flex; align-items: center; gap: 8px;
+      height: 40px; padding: 0 18px; border-radius: 999px;
+      background: transparent; color: rgba(120,72,40,.5);
+      box-shadow: inset 0 0 0 1.5px rgba(178,120,70,.3);
+      transition: all .2s ease;
     }
-    .loop-knob {
-      position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%;
-      background: #fff; box-shadow: 0 2px 5px rgba(120,60,20,.3); transition: transform .2s ease;
+    .loop-ico { transition: transform .4s cubic-bezier(.34,1.56,.64,1); }
+    .loop-label { font-size: 15px; font-weight: 600; letter-spacing: .02em; }
+    .loop-toggle:active .loop-chip { transform: scale(.96); }
+    /* ON: filled green chip — uses the palette's break-green so it reads clearly
+       "on" while giving the all-orange UI some variation */
+    .loop-toggle input:checked + .loop-chip {
+      background: #7CB342; color: #fff;
+      box-shadow: 0 6px 16px -5px rgba(124,179,66,.55), inset 0 0 0 1.5px #7CB342;
     }
-    .loop-toggle input:checked + .loop-track { background: #FF5A1F; }
-    .loop-toggle input:checked + .loop-track .loop-knob { transform: translateX(20px); }
-    .loop-label { font-size: 15px; font-weight: 600; color: rgba(120,72,40,.62); letter-spacing: .02em; }
+    .loop-toggle input:checked + .loop-chip .loop-ico { transform: rotate(180deg); }
 
     /* hub: small phase word + subtle remaining-minutes number */
     .hubphase { font-size: 11px; font-weight: 700; letter-spacing: .12em; }
-    .hubmin { font-size: 26px; font-weight: 600; line-height: 1; color: rgba(92,70,52,.4); }
+    /* translateY corrects the optical lift of digits (empty descender space) */
+    .hubmin { font-size: 26px; font-weight: 600; line-height: 1; color: rgba(92,70,52,.4); transform: translateY(1.5px); }
+
+    /* running indicator — a status-LED dot just OUTSIDE the pie rim at the
+       lower-right (≈4:30), on the beige, blinking in the current phase colour.
+       A soft glow of its own colour makes it read on the light background. Hidden when stopped. */
+    .run-dot {
+      position: absolute; left: 89%; top: 89%;
+      transform: translate(-50%, -50%);
+      width: 10px; height: 10px; border-radius: 50%;
+      background: currentColor; color: #FF5A1F;
+      box-shadow: 0 0 9px 2px currentColor, 0 1px 2px rgba(120,60,20,.35);
+      opacity: 0; z-index: 5; pointer-events: none;
+    }
+    .dial.running .run-dot { animation: runblink 1.1s ease-in-out infinite; }
+    @keyframes runblink { 0%, 100% { opacity: 1; } 50% { opacity: .12; } }
 
 
     
@@ -207,7 +231,7 @@
       <div class="modes">
         <button class="pill" id="pillShort">25 / 5</button>
         <button class="pill" id="pillLong">50 / 10</button>
-        <button class="pill" id="pillCustom">CUSTOM</button>
+        <button class="pill" id="pillCustom" aria-label="Custom" title="Custom"></button>
       </div>
     </div>
 
@@ -229,6 +253,7 @@
       <div class="ticks"></div>
       <div class="pie" id="pie"></div>
       <div class="hub" id="hub"></div>
+      <div class="run-dot" id="runDot" aria-hidden="true"></div>
     </div>
 
     <!-- footer -->
@@ -244,8 +269,15 @@
       </div>
       <label class="loop-toggle">
         <input type="checkbox" id="loopChk">
-        <span class="loop-track"><span class="loop-knob"></span></span>
-        <span class="loop-label">Repeat</span>
+        <span class="loop-chip">
+          <svg class="loop-ico" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M17 1l4 4-4 4"></path>
+            <path d="M3 11V9a4 4 0 0 1 4-4h14"></path>
+            <path d="M7 23l-4-4 4-4"></path>
+            <path d="M21 13v2a4 4 0 0 1-4 4H3"></path>
+          </svg>
+          <span class="loop-label">Repeat</span>
+        </span>
       </label>
     </div>
 
@@ -302,6 +334,8 @@
     // ── glyphs ────────────────────────────────────────────────
     const PLAY = "<svg width='30' height='30' viewBox='0 0 24 24' fill='white'><path d='M7 5v14l12-7z'/></svg>";
     const PAUSE = "<svg width='30' height='30' viewBox='0 0 24 24' fill='white'><rect x='6' y='5' width='4' height='14' rx='1'/><rect x='14' y='5' width='4' height='14' rx='1'/></svg>";
+    // pencil glyph for the unset CUSTOM pill — reads as "edit your own", inherits the pill's text colour
+    const CUSTOM_ICON = "<svg class='pill-ico' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='M17 3a2.83 2.83 0 0 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z'/><path d='M15 5l4 4'/></svg>";
 
     // ── pomodoro logic (ported faithfully from the design source) ──
     const DUR = {
@@ -435,6 +469,8 @@
     const el = {
       pie: document.getElementById('pie'),
       hub: document.getElementById('hub'),
+      dial: document.querySelector('.dial'),
+      runDot: document.getElementById('runDot'),
       pillShort: document.getElementById('pillShort'),
       pillLong: document.getElementById('pillLong'),
       pillCustom: document.getElementById('pillCustom'),
@@ -478,11 +514,15 @@
       el.pillShort.classList.toggle('active', state.mode === 'focus25');
       el.pillLong.classList.toggle('active', state.mode === 'deep50');
       el.pillCustom.classList.toggle('active', state.mode === 'custom');
-      el.pillCustom.textContent = customSet
+      el.pillCustom.innerHTML = customSet
         ? `${Math.round(DUR.custom.work / 60)} / ${Math.round(DUR.custom.break / 60)}`
-        : 'CUSTOM';
+        : CUSTOM_ICON;
 
       el.play.innerHTML = state.running ? PAUSE : PLAY;
+
+      // running indicator: blink the status-LED dot in the current phase colour
+      el.dial.classList.toggle('running', state.running);
+      el.runDot.style.color = accent;
     }
 
     // ── confirm dialog — switching mode or resetting clears a live timer ──
