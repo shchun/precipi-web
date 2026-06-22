@@ -122,21 +122,7 @@
     .hubmin { font-size: 26px; font-weight: 600; line-height: 1; color: rgba(92,70,52,.4); }
 
 
-    /* DND permission banner (APK only; hidden until access is missing) */
-    .permbanner {
-      display: none; position: fixed; left: 16px; right: 16px; bottom: 18px; z-index: 50;
-      align-items: center; gap: 12px; padding: 13px 16px; border-radius: 16px;
-      background: rgba(36,28,22,.92); color: #FFE9D8;
-      box-shadow: 0 10px 28px -8px rgba(36,28,22,.5);
-      font-size: 14px; line-height: 1.35;
-    }
-    .permbanner span { flex: 1; }
-    .permbanner button {
-      flex: none; border: none; cursor: pointer; border-radius: 999px;
-      padding: 9px 16px; font-size: 14px; font-weight: 600;
-      font-family: inherit; color: #fff;
-      background: linear-gradient(180deg, #FF7A3D 0%, #FF5A1F 100%);
-    }
+    
 
     /* confirm dialog (mode switch / reset both clear the timer) */
     .confirm {
@@ -263,11 +249,7 @@
       </label>
     </div>
 
-    <!-- DND access prompt (native APK only) -->
-    <div class="permbanner" id="permBanner">
-      <span>Allow Do Not Disturb access so focus sessions can silence notifications.</span>
-      <button id="permBtn" type="button">Allow</button>
-    </div>
+    
 
     <!-- confirm dialog (switching mode / resetting clears the running timer) -->
     <div class="confirm" id="confirm">
@@ -351,32 +333,17 @@
     const dur = (mode, phase) => DUR[mode || state.mode][phase || state.phase];
 
     // ── native bridge (Capacitor APK only; every call no-ops on the web) ──
-    // The custom "Pomodoro" plugin provides: hasDndAccess / requestDndAccess,
-    // setDnd(enabled), scheduleBoundary(at, nextPhase), cancelBoundary().
+    // The custom "Pomodoro" plugin provides: scheduleBoundary(at, nextPhase), cancelBoundary().
     // In the APK an exact alarm fires at the phase boundary even while the app
-    // is backgrounded, handling vibration + DND + a notification natively.
+    // is backgrounded, handling vibration + a notification natively.
     const Cap = window.Capacitor;
     const isNative = !!(Cap && Cap.isNativePlatform && Cap.isNativePlatform());
     const Native = isNative && Cap.Plugins ? Cap.Plugins.Pomodoro : null;
-    let askedDnd = false;       // only prompt for DND access once per session
     let reconciling = false;    // true while catching up a boundary that elapsed in the background
 
-    function applyDnd(on)            { if (Native) Native.setDnd({ enabled: on }).catch(() => {}); }
     function cancelBoundary()        { if (Native) Native.cancelBoundary().catch(() => {}); }
     function scheduleBoundary(at, nextPhase) {
       if (Native && at) Native.scheduleBoundary({ at, nextPhase }).catch(() => {});
-    }
-    async function ensureDndAccess() {
-      if (!Native || askedDnd) return;
-      askedDnd = true;
-      try {
-        const res = await Native.hasDndAccess();
-        if (!res || !res.granted) showPermBanner();
-      } catch (e) {}
-    }
-    function showPermBanner() {
-      const b = document.getElementById('permBanner');
-      if (b) b.style.display = 'flex';
     }
 
     // ── screen wake lock — keep the display on while the timer runs ──
@@ -401,8 +368,7 @@
       if (state.remaining <= 0) return;
       state.running = true; state.targetEnd = Date.now() + msFor(state.remaining);
       const isWork = state.phase === 'work';
-      if (isWork) ensureDndAccess();
-      applyDnd(isWork);                                         // focus → DND on
+      // focus start: keep screen on and schedule boundary
       requestWakeLock();                                        // running → keep screen on
       scheduleBoundary(state.targetEnd, isWork ? 'break' : 'work');
       render();
@@ -410,20 +376,20 @@
     function pause() {
       state.remaining = state.targetEnd ? Math.max(0, secsLeft(state.targetEnd)) : state.remaining;
       state.running = false; state.targetEnd = null;
-      applyDnd(false); cancelBoundary();                       // stopping → release DND
+      cancelBoundary();
       releaseWakeLock();                                        // stopped → allow screen to sleep
       render();
     }
     function toggle() { state.running ? pause() : start(); }
     function reset() {
       state.running = false; state.targetEnd = null; state.remaining = dur();
-      applyDnd(false); cancelBoundary(); releaseWakeLock();
+      cancelBoundary(); releaseWakeLock();
       render();
     }
     function setMode(mode) {
       state.mode = mode; state.phase = 'work'; state.running = false;
       state.targetEnd = null; state.remaining = dur(mode, 'work');
-      applyDnd(false); cancelBoundary(); releaseWakeLock();
+      cancelBoundary(); releaseWakeLock();
       render();
     }
 
@@ -455,7 +421,6 @@
       // standby — unless continuous mode is on, then cycle into the next work.
       state.running = wasWork || loop;
       state.targetEnd = state.running ? Date.now() + msFor(newRem) : null;
-      applyDnd(state.running && state.phase === 'work');        // work → DND on; break/standby → off
       if (state.running) {
         scheduleBoundary(state.targetEnd, state.phase === 'work' ? 'break' : 'work');
         requestWakeLock();                                      // still running → keep screen on
@@ -597,10 +562,7 @@
     el.pillShort.addEventListener('click', () => requestMode('focus25'));
     el.pillLong.addEventListener('click', () => requestMode('deep50'));
     el.pillCustom.addEventListener('click', openCustom);
-    document.getElementById('permBtn').addEventListener('click', () => {
-      if (Native) Native.requestDndAccess().catch(() => {});
-      document.getElementById('permBanner').style.display = 'none';
-    });
+    // DND permission UI removed
     setInterval(tick, 200);
 
     // Keep the timer correct in the background: timekeeping is wall-clock based
