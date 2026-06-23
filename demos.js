@@ -119,8 +119,8 @@ const demos = [
     href: "pomodoro/index.html",
     install: "pomodoro/index.html",
     download: "https://github.com/shchun/precipi-web/releases/download/apks-v1/pomodoro-debug.apk",
-    downloadLabel: "📱 APK",
-    downloadLabelEn: "📱 APK",
+    downloadLabel: "📱 안드로이드 APK",
+    downloadLabelEn: "📱 Android APK",
     tags: ["tool"],
   },
   {

@@ -263,8 +263,8 @@
           <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"></path><path d="M3 4v4.5h4.5"></path></svg>
         </button>
         <button class="play" id="playBtn" title="Start / Pause"></button>
-        <button class="reset" id="helpBtn" title="How to use" aria-label="How to use">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.2 9a2.8 2.8 0 0 1 5.5.8c0 1.9-2.8 2.4-2.8 4"></path><circle cx="12" cy="17.4" r="0.1"></circle></svg>
+        <button class="reset" id="helpBtn" title="How to use" aria-label="How to use" style="color:#7A3F18">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8.4 9.3a3.6 3.6 0 1 1 5.4 3.1c-1 .65-1.8 1.3-1.8 2.3"></path><circle cx="12" cy="17.8" r="1.6" fill="currentColor" stroke="none"></circle></svg>
         </button>
       </div>
       <label class="loop-toggle">
@@ -337,6 +337,52 @@
     // pencil glyph for the unset CUSTOM pill — reads as "edit your own", inherits the pill's text colour
     const CUSTOM_ICON = "<svg class='pill-ico' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='M17 3a2.83 2.83 0 0 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z'/><path d='M15 5l4 4'/></svg>";
 
+    // ──CORE START── pure timing/transition logic, no DOM/Capacitor/clock deps.
+    // The whole block between these markers is extracted verbatim and unit-tested
+    // in Node (see tests/timer-core.test.js). Keep it side-effect free: every
+    // function takes `now`/`speed`/`DUR` explicitly instead of reading globals, so
+    // the test can drive a fake clock. It attaches to globalThis so the rest of the
+    // inline script (and the test sandbox) can reach it.
+    (function (root) {
+      const Core = {
+        // display-seconds → real ms, and back, honouring the test SPEED multiplier
+        msFor:    (secs, speed)         => secs * 1000 / speed,
+        secsLeft: (target, now, speed)  => (target - now) / 1000 * speed,
+
+        // configured length of a phase, defaulting to the live state's mode/phase
+        dur: (DUR, mode, phase) => DUR[mode][phase],
+
+        // the wedge updates in 10-second jumps; snap remaining up to the next step
+        snapRemaining: (remaining) => Math.ceil(Math.max(0, remaining) / 10) * 10,
+
+        // tick decision: has the running phase elapsed, and if not how much is left?
+        tickStatus: (targetEnd, now, speed) => {
+          const remaining = (targetEnd - now) / 1000 * speed;
+          return remaining <= 0 ? { done: true, remaining: 0 } : { done: false, remaining };
+        },
+
+        // phase-boundary transition: given the current state, what does the next
+        // phase look like? work→break always; break→work only when looping (else
+        // we stop in standby). `completed` counts finished work phases. The caller
+        // applies the side effects (buzz / alarm / wake lock) from this result.
+        completeNext: (state, DUR, loop) => {
+          const wasWork = state.phase === 'work';
+          const phase = wasWork ? 'break' : 'work';
+          return {
+            phase,
+            remaining: DUR[state.mode][phase],
+            completed: state.completed + (wasWork ? 1 : 0),
+            running: wasWork || loop,
+            // what to arm the *following* boundary for, once this one starts
+            nextBoundaryPhase: phase === 'work' ? 'break' : 'work',
+          };
+        },
+      };
+      if (typeof module !== 'undefined' && module.exports) module.exports = Core;
+      else root.PomodoroCore = Core;
+    })(typeof globalThis !== 'undefined' ? globalThis : this);
+    // ──CORE END──
+
     // ── pomodoro logic (ported faithfully from the design source) ──
     const DUR = {
       focus25: { work: 1500, break: 300 },
@@ -359,25 +405,88 @@
     //    deploying, set SPEED = 1. (A red on-screen banner + console warning appear
     //    whenever SPEED ≠ 1 — see the deploy safeguard near the bottom of this script.)
     const SPEED = 1;
-    const msFor    = (secs)   => secs * 1000 / SPEED;              // display-seconds → real ms
-    const secsLeft = (target) => (target - Date.now()) / 1000 * SPEED; // real ms left → display-seconds
+    const msFor    = (secs)   => PomodoroCore.msFor(secs, SPEED);              // display-seconds → real ms
+    const secsLeft = (target) => PomodoroCore.secsLeft(target, Date.now(), SPEED); // real ms left → display-seconds
 
     const state = { mode: 'focus25', phase: 'work', running: false, remaining: 1500, targetEnd: null, completed: 0 };
 
-    const dur = (mode, phase) => DUR[mode || state.mode][phase || state.phase];
+    const dur = (mode, phase) => PomodoroCore.dur(DUR, mode || state.mode, phase || state.phase);
 
     // ── native bridge (Capacitor APK only; every call no-ops on the web) ──
-    // The custom "Pomodoro" plugin provides: scheduleBoundary(at, nextPhase), cancelBoundary().
-    // In the APK an exact alarm fires at the phase boundary even while the app
-    // is backgrounded, handling vibration + a notification natively.
+    // The custom "Pomodoro" plugin provides: startTimer({at,phase,workSec,breakSec,
+    // loop,completed}), stopTimer(), getState(). In the APK an exact alarm fires at
+    // each phase boundary even while backgrounded; native advances the whole work↔
+    // break cycle, vibrates, and keeps an ongoing notification with a live count-
+    // down. getState() lets the web UI re-adopt native's truth on return.
     const Cap = window.Capacitor;
     const isNative = !!(Cap && Cap.isNativePlatform && Cap.isNativePlatform());
     const Native = isNative && Cap.Plugins ? Cap.Plugins.Pomodoro : null;
     let reconciling = false;    // true while catching up a boundary that elapsed in the background
 
-    function cancelBoundary()        { if (Native) Native.cancelBoundary().catch(() => {}); }
+    // ── analytics (GA4) ─────────────────────────────────────────
+    // The gtag script is injected dynamically so this file stays self-contained
+    // and a failed/offline load is silently ignored (the timer never depends on
+    // it). One measurement ID covers both the web PWA and the APK WebView; every
+    // hit carries `app_platform` so the two can be split (register it as a custom
+    // dimension in GA4 to surface it in reports).
+    const GA_ID = 'G-TXBG9QS3K7';
+    const appPlatform = isNative ? 'apk' : 'web';
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
+    gtag('set', { app_platform: appPlatform });
+    gtag('config', GA_ID);
+    (function () {
+      const s = document.createElement('script');
+      s.async = true;
+      s.src = 'https://www.googletagmanager.com/gtag/js?id=' + GA_ID;
+      s.onerror = function () {};                  // offline / blocked → ignore
+      document.head.appendChild(s);
+    })();
+    // fire a GA event; harmless no-op if gtag never loaded (offline)
+    function track(name, params) {
+      try { gtag('event', name, Object.assign({ app_platform: appPlatform }, params || {})); } catch (e) {}
+    }
+    // the active mode as readable analytics params: key + "work/break" minutes
+    // (e.g. focus25 → "25/5", deep50 → "50/10", custom → its actual pair)
+    function modeInfo() {
+      const w = Math.round(DUR[state.mode].work / 60);
+      const b = Math.round(DUR[state.mode].break / 60);
+      return { mode: state.mode, mode_label: w + '/' + b };
+    }
+
+    function cancelBoundary()        { if (Native) Native.stopTimer().catch(() => {}); }
+    // Hand the running phase to native: it arms the boundary alarm and shows the
+    // ongoing notification, and (while backgrounded) advances the whole work↔break
+    // cycle itself. `nextPhase` is unused now — native derives it from the state.
     function scheduleBoundary(at, nextPhase) {
-      if (Native && at) Native.scheduleBoundary({ at, nextPhase }).catch(() => {});
+      if (Native && at) Native.startTimer({
+        at,
+        phase: state.phase,
+        workSec: DUR[state.mode].work,
+        breakSec: DUR[state.mode].break,
+        loop,
+        completed: state.completed,
+      }).catch(() => {});
+    }
+
+    // On returning to the foreground, adopt native's authoritative snapshot: while
+    // we were away native may have rolled through several phases. Returns true if
+    // it handled the sync (native present), false on the web.
+    async function syncFromNative() {
+      if (!Native || !Native.getState) return false;
+      try {
+        const s = await Native.getState();
+        if (!s || typeof s.running === 'undefined') return false;
+        state.phase = s.phase;
+        state.completed = s.completed;
+        state.running = s.running;
+        state.targetEnd = s.running ? s.targetEnd : null;
+        state.remaining = s.running ? Math.max(0, secsLeft(s.targetEnd)) : dur();
+        render();
+        if (state.running) requestWakeLock();
+      } catch (e) { return false; }
+      return true;
     }
 
     // ── screen wake lock — keep the display on while the timer runs ──
@@ -405,6 +514,7 @@
       // focus start: keep screen on and schedule boundary
       requestWakeLock();                                        // running → keep screen on
       scheduleBoundary(state.targetEnd, isWork ? 'break' : 'work');
+      track('timer_start', Object.assign(modeInfo(), { phase: state.phase }));
       render();
     }
     function pause() {
@@ -412,15 +522,18 @@
       state.running = false; state.targetEnd = null;
       cancelBoundary();
       releaseWakeLock();                                        // stopped → allow screen to sleep
+      track('timer_pause', Object.assign(modeInfo(), { phase: state.phase, remaining: Math.round(state.remaining) }));
       render();
     }
     function toggle() { state.running ? pause() : start(); }
     function reset() {
       state.running = false; state.targetEnd = null; state.remaining = dur();
       cancelBoundary(); releaseWakeLock();
+      track('timer_reset', Object.assign(modeInfo(), { phase: state.phase }));
       render();
     }
     function setMode(mode) {
+      track('mode_change', { from: state.mode, to: mode });
       state.mode = mode; state.phase = 'work'; state.running = false;
       state.targetEnd = null; state.remaining = dur(mode, 'work');
       cancelBoundary(); releaseWakeLock();
@@ -429,9 +542,9 @@
 
     function tick() {
       if (!state.running || !state.targetEnd) return;
-      const rem = secsLeft(state.targetEnd);
-      if (rem <= 0) { complete(); return; }
-      state.remaining = rem; render();
+      const st = PomodoroCore.tickStatus(state.targetEnd, Date.now(), SPEED);
+      if (st.done) { complete(); return; }
+      state.remaining = st.remaining; render();
     }
     // mode-change vibration — distinct patterns for focus vs break.
     // navigator.vibrate works on Android browsers (and the future Capacitor APK
@@ -442,21 +555,23 @@
     }
 
     function complete() {
-      const wasWork = state.phase === 'work';
-      const next = wasWork ? 'break' : 'work';
+      // CORE decides the next phase; this function applies the side effects.
+      const finished = state.phase;   // the phase that just elapsed (work/break)
+      const next = PomodoroCore.completeNext(state, DUR, loop);
+      // a finished work phase is a completed pomodoro; `completed` is the running tally
+      track('phase_complete', Object.assign(modeInfo(), { phase: finished, completed: next.completed }));
       // When catching up a boundary that already elapsed in the background, the
       // native side (or nobody, on the web) already buzzed — stay silent.
-      if (!reconciling) buzz(next);
-      const newRem = dur(state.mode, next);
-      state.phase = next;
-      if (wasWork) state.completed += 1;
-      state.remaining = newRem;
+      if (!reconciling) buzz(next.phase);
+      state.phase = next.phase;
+      state.completed = next.completed;
+      state.remaining = next.remaining;
       // Roll straight into the break after work. After the break, stop back to
       // standby — unless continuous mode is on, then cycle into the next work.
-      state.running = wasWork || loop;
-      state.targetEnd = state.running ? Date.now() + msFor(newRem) : null;
+      state.running = next.running;
+      state.targetEnd = state.running ? Date.now() + msFor(next.remaining) : null;
       if (state.running) {
-        scheduleBoundary(state.targetEnd, state.phase === 'work' ? 'break' : 'work');
+        scheduleBoundary(state.targetEnd, next.nextBoundaryPhase);
         requestWakeLock();                                      // still running → keep screen on
       } else {
         cancelBoundary();                                       // set finished
@@ -487,7 +602,7 @@
       const workDeg = workTotal / setTotal * 360;
 
       // snap remaining to 10-second steps so the wedge updates in responsive jumps
-      const remSnap = Math.ceil(Math.max(0, state.remaining) / 10) * 10;
+      const remSnap = PomodoroCore.snapRemaining(state.remaining);
       let consumed = isWork ? (workTotal - remSnap) : (workTotal + (breakTotal - remSnap));
       consumed = Math.max(0, Math.min(setTotal, consumed));
       const consumedDeg = consumed / setTotal * 360;
@@ -610,13 +725,21 @@
     // no time is lost. On returning we tick once immediately to refresh the dial
     // and settle any boundary that elapsed while hidden — silently, since the
     // alert (vibration/notification) already fired natively while backgrounded.
-    document.addEventListener('visibilitychange', () => {
+    document.addEventListener('visibilitychange', async () => {
       if (document.hidden) return;
+      // Native drove the cycle while we were away — adopt its truth.
+      if (await syncFromNative()) return;
+      // Web: no native helper, so settle any boundary that elapsed while hidden —
+      // silently, since on the web nobody alerted in the background.
       reconciling = true;
       tick();
       reconciling = false;
       if (state.running) requestWakeLock();   // re-acquire: the lock drops when hidden
     });
+
+    // Cold start on native: if a session is still running (the app was closed, not
+    // paused), resume from native's snapshot instead of standing idle.
+    syncFromNative();
 
     render();
 
