@@ -1,4 +1,4 @@
-const CACHE_NAME = 'deskclock-v6';
+const CACHE_NAME = 'deskclock-v7';
 const CORE_ASSETS = [
   './',
   'index.html',

@@ -621,12 +621,12 @@
     <!-- FACE 1 — MINIMAL -->
     <section class="face" id="face1">
       <div class="f1-wrap">
-        <div class="f1-date" id="f1-date">SUNDAY · JUNE 14</div>
+        <div class="f1-date" data-bind="date">SUNDAY · JUNE 14</div>
         <div class="f1-clock">
-          <div class="f1-time" id="f1-time">2:30</div>
+          <div class="f1-time" data-bind="time">2:30</div>
           <div class="f1-side">
-            <div class="f1-sec" id="f1-sec">00</div>
-            <div class="f1-ampm" id="f1-ampm">PM</div>
+            <div class="f1-sec" data-bind="sec">00</div>
+            <div class="f1-ampm" data-bind="ampm">PM</div>
           </div>
         </div>
         <div class="f1-rule"></div>
@@ -636,10 +636,10 @@
     <!-- FACE 3 — TYPOGRAPHY -->
     <section class="face" id="face3">
       <div class="f3-wrap">
-        <div class="f3-ampm" id="f3-ampm">PM</div>
-        <div class="f3-time" id="f3-time">2:30</div>
-        <div class="f3-date" id="f3-date">SUNDAY JUNE 14</div>
-        <div class="f3-sec" id="f3-sec">00</div>
+        <div class="f3-ampm" data-bind="ampm">PM</div>
+        <div class="f3-time" data-bind="time">2:30</div>
+        <div class="f3-date" data-bind="date">SUNDAY JUNE 14</div>
+        <div class="f3-sec" data-bind="sec">00</div>
       </div>
     </section>
 
@@ -647,13 +647,14 @@
     <section class="face" id="face4">
       <div class="f4-wrap">
         <div class="f4-clock">
-          <div class="f4-time" id="f4-time">2<span class="f4-colon">:</span>30</div>
-          <div class="f4-ampm" id="f4-ampm">PM</div>
+          <!-- 콜론 span은 마크업에 고정 — 매초 innerHTML 재생성 없이 숫자만 갱신 -->
+          <div class="f4-time"><span data-bind="h">2</span><span class="f4-colon">:</span><span data-bind="m">30</span></div>
+          <div class="f4-ampm" data-bind="ampm">PM</div>
         </div>
         <div class="f4-meta">
-          <div class="f4-sec" id="f4-sec">00</div>
+          <div class="f4-sec" data-bind="sec">00</div>
           <div class="f4-dot"></div>
-          <div class="f4-date" id="f4-date">SUNDAY · JUNE 14</div>
+          <div class="f4-date" data-bind="date">SUNDAY · JUNE 14</div>
         </div>
       </div>
     </section>
@@ -661,12 +662,12 @@
     <!-- FACE 5 — MINIMAL (classic) -->
     <section class="face" id="face5">
       <div class="f5-wrap">
-        <div class="f5-date" id="f5-date">SUNDAY · JUNE 14</div>
+        <div class="f5-date" data-bind="date">SUNDAY · JUNE 14</div>
         <div class="f5-clock">
-          <div class="f5-time" id="f5-time">2:30</div>
+          <div class="f5-time" data-bind="time">2:30</div>
           <div class="f5-side">
-            <div class="f5-sec" id="f5-sec">00</div>
-            <div class="f5-ampm" id="f5-ampm">PM</div>
+            <div class="f5-sec" data-bind="sec">00</div>
+            <div class="f5-ampm" data-bind="ampm">PM</div>
           </div>
         </div>
         <div class="f5-rule"></div>
@@ -683,8 +684,8 @@
           <div class="flip-group sec" id="f6-s"></div>
         </div>
         <div class="f6-meta">
-          <div class="f6-ampm" id="f6-ampm">PM</div>
-          <div class="f6-date" id="f6-date">SUN · JUN 14</div>
+          <div class="f6-ampm" data-bind="ampm">PM</div>
+          <div class="f6-date" data-bind="date">SUN · JUN 14</div>
         </div>
       </div>
     </section>
@@ -692,10 +693,10 @@
     <!-- FACE 7 — TYPOGRAPHY (classic) -->
     <section class="face" id="face7">
       <div class="f7-wrap">
-        <div class="f7-ampm" id="f7-ampm">PM</div>
-        <div class="f7-time" id="f7-time">2:30</div>
-        <div class="f7-date" id="f7-date">SUNDAY JUNE 14</div>
-        <div class="f7-sec" id="f7-sec">00</div>
+        <div class="f7-ampm" data-bind="ampm">PM</div>
+        <div class="f7-time" data-bind="time">2:30</div>
+        <div class="f7-date" data-bind="date">SUNDAY JUNE 14</div>
+        <div class="f7-sec" data-bind="sec">00</div>
       </div>
     </section>
 
@@ -703,13 +704,14 @@
     <section class="face" id="face8">
       <div class="f8-wrap">
         <div class="f8-clock">
-          <div class="f8-time" id="f8-time">2<span class="f8-colon">:</span>30</div>
-          <div class="f8-ampm" id="f8-ampm">PM</div>
+          <!-- 콜론 span 고정 — 숫자만 갱신 -->
+          <div class="f8-time"><span data-bind="h">2</span><span class="f8-colon">:</span><span data-bind="m">30</span></div>
+          <div class="f8-ampm" data-bind="ampm">PM</div>
         </div>
         <div class="f8-meta">
-          <div class="f8-sec" id="f8-sec">00</div>
+          <div class="f8-sec" data-bind="sec">00</div>
           <div class="f8-dot"></div>
-          <div class="f8-date" id="f8-date">SUNDAY · JUNE 14</div>
+          <div class="f8-date" data-bind="date">SUNDAY · JUNE 14</div>
         </div>
       </div>
     </section>
@@ -718,10 +720,11 @@
     <section class="face" id="face9">
       <div class="f9-wrap">
         <div class="f9-glass">
-          <div class="f9-time" id="f9-time">2<span class="f9-colon">:</span>30<span class="f9-ampm">PM</span></div>
-          <div class="f9-sec" id="f9-sec">00</div>
+          <!-- 콜론·AM/PM span 고정 — 숫자만 갱신 -->
+          <div class="f9-time"><span data-bind="h">2</span><span class="f9-colon">:</span><span data-bind="m">30</span><span class="f9-ampm" data-bind="ampm">PM</span></div>
+          <div class="f9-sec" data-bind="sec">00</div>
         </div>
-        <div class="f9-date" id="f9-date">SUNDAY · JUNE 14</div>
+        <div class="f9-date" data-bind="date">SUNDAY · JUNE 14</div>
       </div>
     </section>
 
@@ -729,8 +732,8 @@
     <section class="face" id="face10">
       <div class="f10-wrap">
         <div class="f10-line"><span class="f10-prompt">visitor@deskclock</span>:<span class="f10-path">~</span>$ <span class="f10-cmd">clock --now</span></div>
-        <div class="f10-time" id="f10-time">14:30:08</div>
-        <div class="f10-line f10-dim" id="f10-date">SUNDAY · JUNE 14</div>
+        <div class="f10-time" data-bind="time">14:30:08</div>
+        <div class="f10-line f10-dim" data-bind="date">SUNDAY · JUNE 14</div>
         <div class="f10-line"><span class="f10-prompt">visitor@deskclock</span>:<span class="f10-path">~</span>$ <span class="f10-cursor"></span></div>
       </div>
     </section>
@@ -744,20 +747,21 @@
         <div class="f11-goo-container">
           <div class="f11-time-row" id="f11-time-row">
             <!-- JS tick()에서 동적으로 숫자 업데이트 — 초기값 표시 -->
-            <div class="f11-digit" id="f11-d0"><span class="f11-digit-label">1</span></div>
-            <div class="f11-digit" id="f11-d1"><span class="f11-digit-label">2</span></div>
+            <!-- ⚠ .f11-digit:nth-child 진동 애니메이션이 자식 순서에 의존하므로 순서 변경 금지 -->
+            <div class="f11-digit"><span class="f11-digit-label" data-bind="d0">1</span></div>
+            <div class="f11-digit"><span class="f11-digit-label" data-bind="d1">2</span></div>
             <div class="f11-colon-wrap blink"><div class="f11-dot"></div><div class="f11-dot"></div></div>
-            <div class="f11-digit" id="f11-d2"><span class="f11-digit-label">0</span></div>
-            <div class="f11-digit" id="f11-d3"><span class="f11-digit-label">0</span></div>
+            <div class="f11-digit"><span class="f11-digit-label" data-bind="d2">0</span></div>
+            <div class="f11-digit"><span class="f11-digit-label" data-bind="d3">0</span></div>
           </div>
         </div>
         <!-- 초 표시 — 독립 소형 goo 필터 적용 -->
         <div class="f11-sec-wrap" id="f11-sec-wrap">
-          <div class="f11-sec-blob" id="f11-sb0"><span class="f11-sec-label" id="f11-sl0">0</span></div>
-          <div class="f11-sec-blob" id="f11-sb1"><span class="f11-sec-label" id="f11-sl1">0</span></div>
+          <div class="f11-sec-blob"><span class="f11-sec-label" data-bind="s0">0</span></div>
+          <div class="f11-sec-blob"><span class="f11-sec-label" data-bind="s1">0</span></div>
         </div>
         <!-- 날짜 -->
-        <div class="f11-date" id="f11-date">SUNDAY · JUNE 14</div>
+        <div class="f11-date" data-bind="date">SUNDAY · JUNE 14</div>
       </div>
     </section>
 
@@ -772,22 +776,46 @@
 
 <script>
 (function(){
+  // 노드가 있으면 텍스트만 갱신(없으면 무시) — render 헬퍼
+  const set = (n,v)=>{ if(n) n.textContent=v; };
+
+  /* FACES — 단일 진실 공급원.
+     각 face는 자기 갱신법(render)과 확대 설정(fit)을 직접 들고 있다.
+       render(p,r): p=공통 시간 모델(parts), r=data-bind 으로 자동 수집된 노드맵
+       fit{sel,aw,ah,max}: f.el 하위에서 sel 을 골라 가용폭(aw)·높이(ah)·최대배율(max)로 확대 */
   const FACES = [
-    { id:'face1', name:'Brutal Minimal',  theme:'light' },
-    { id:'face3', name:'Brutal Type',     theme:'light' },
-    { id:'face4', name:'Brutal Electric', theme:'dark'  },
-    { id:'face5', name:'Minimal',         theme:'light' },
-    { id:'face6', name:'Retro Flip',      theme:'dark'  },
-    { id:'face7', name:'Typography',      theme:'light' },
-    { id:'face8', name:'Neon',            theme:'dark'  },
-    { id:'face9', name:'Liquid Glass',    theme:'dark'  },
-    { id:'face10',name:'Terminal',        theme:'dark'  },
-    { id:'face11',name:'Liquid Goo',      theme:'dark'  },
+    { id:'face1', name:'Brutal Minimal',  theme:'light', fit:{sel:'.f1-wrap', aw:.92, ah:.92, max:4},
+      render(p,r){ set(r.time,p.h12+':'+p.mm); set(r.sec,p.ss); set(r.ampm,p.ampm); set(r.date,p.dlongDot); } },
+    { id:'face3', name:'Brutal Type',     theme:'light', fit:{sel:'.f3-time', aw:.9, ah:.6, max:5},
+      render(p,r){ set(r.time,p.h12+':'+p.mm); set(r.ampm,p.ampm); set(r.sec,p.ss); set(r.date,p.dlongMon3); } },
+    { id:'face4', name:'Brutal Electric', theme:'dark',  fit:{sel:'.f4-wrap', aw:.92, ah:.92, max:4},
+      render(p,r){ set(r.h,p.h12); set(r.m,p.mm); set(r.ampm,p.ampm); set(r.sec,p.ss); set(r.date,p.dlongDot); } },
+    { id:'face5', name:'Minimal',         theme:'light', fit:{sel:'.f5-wrap', aw:.92, ah:.92, max:4},
+      render(p,r){ set(r.time,p.h12+':'+p.mm); set(r.sec,p.ss); set(r.ampm,p.ampm); set(r.date,p.dlongDot); } },
+    { id:'face6', name:'Retro Flip',      theme:'dark',  fit:{sel:'.f6-wrap', aw:.92, ah:.92, max:4},
+      render(p,r){ set(r.ampm,p.ampm); set(r.date,p.dshort); renderFlip(); } },
+    { id:'face7', name:'Typography',      theme:'light', fit:{sel:'.f7-time', aw:.9, ah:.6, max:5},
+      render(p,r){ set(r.time,p.h12+':'+p.mm); set(r.ampm,p.ampm); set(r.sec,p.ss); set(r.date,p.dlongMon3); } },
+    { id:'face8', name:'Neon',            theme:'dark',  fit:{sel:'.f8-wrap', aw:.92, ah:.92, max:4},
+      render(p,r){ set(r.h,p.h12); set(r.m,p.mm); set(r.ampm,p.ampm); set(r.sec,p.ss); set(r.date,p.dlongDot); } },
+    { id:'face9', name:'Liquid Glass',    theme:'dark',  fit:{sel:'.f9-wrap', aw:.92, ah:.92, max:4},
+      render(p,r){ set(r.h,p.h12); set(r.m,p.mm); set(r.ampm,p.ampm); set(r.sec,p.ss); set(r.date,p.dlongDot); } },
+    { id:'face10',name:'Terminal',        theme:'dark',  fit:{sel:'.f10-wrap', aw:.92, ah:.92, max:4},
+      render(p,r){ set(r.time,p.h24+':'+p.mm+':'+p.ss); set(r.date,p.dlongDot); } },
+    { id:'face11',name:'Liquid Goo',      theme:'dark',  fit:{sel:'.f11-goo-container', aw:.88, ah:.82, max:4},
+      render(p,r){ set(r.d0,p.hh[0]); set(r.d1,p.hh[1]); set(r.d2,p.mm[0]); set(r.d3,p.mm[1]); set(r.s0,p.ss[0]); set(r.s1,p.ss[1]); set(r.date,p.dlongDot); } },
   ];
 
   const stage = document.getElementById('stage');
   const nav   = document.getElementById('nav');
   const dotsC = document.getElementById('dots');
+
+  // 각 face 요소와 갱신 노드를 1회 수집 — data-bind 속성으로 자동(수동 ref 선언 제거)
+  FACES.forEach(f=>{
+    f.el = document.getElementById(f.id);
+    f.r  = {};
+    if(f.el) f.el.querySelectorAll('[data-bind]').forEach(n=>{ f.r[n.dataset.bind] = n; });
+  });
 
   // build dots
   FACES.forEach((f,i)=>{
@@ -797,17 +825,25 @@
   });
   const dots=[...dotsC.children];
 
-  let active = parseInt(localStorage.getItem('deskclock.face')||'0',10);
-  if(isNaN(active)||active<0||active>=FACES.length) active=0;
+  // 저장값은 face id — 순서가 바뀌어도 안전. 구버전 숫자 인덱스도 호환 폴백.
+  function loadActive(){
+    const raw = localStorage.getItem('deskclock.face');
+    if(raw==null) return 0;
+    const byId = FACES.findIndex(f=>f.id===raw);
+    if(byId>=0) return byId;
+    const n = parseInt(raw,10);
+    return (!isNaN(n) && n>=0 && n<FACES.length) ? n : 0;
+  }
+  let active = loadActive();
 
   function go(i){
     active=(i+FACES.length)%FACES.length;
     FACES.forEach((f,idx)=>{
-      document.getElementById(f.id).classList.toggle('active', idx===active);
+      f.el.classList.toggle('active', idx===active);
       dots[idx].classList.toggle('on', idx===active);
     });
     stage.dataset.theme = FACES[active].theme;
-    localStorage.setItem('deskclock.face', active);
+    localStorage.setItem('deskclock.face', FACES[active].id);
     if(FACES[active].id==='face6') renderFlip(false); // set instantly, no animation
     fitActive();
     setTimeout(fitActive, 600); // 진입 애니메이션이 끝난 뒤 정확히 다시 맞춤
@@ -826,23 +862,14 @@
     el.dataset.fit = s;
     el.style.transform = 'scale('+s+')';
   }
+  /* 활성 face의 fit 설정대로 확대.
+     타이포(face3·7)는 중앙 시간만(세로 0.6으로 제한해 모서리 라벨과 안 겹침),
+     goo(face11)는 헤일로 포함 컨테이너 기준 — 모두 FACES[].fit 에 데이터로 들어있다. */
   function fitActive(){
-    const id = FACES[active].id;
-    const vw = window.innerWidth, vh = window.innerHeight;
-    if(id==='face3'||id==='face7'){
-      // 타이포: 중앙 시간만 맞춤(모서리 라벨은 vmin 기준 그대로 둠)
-      // 시간의 세로 크기를 제한해 위/아래 모서리 라벨(AM·초·날짜)과 겹치지 않게 한다
-      const t = document.getElementById(id.replace('face','f')+'-time');
-      if(t) fitEl(t, vw*0.9, vh*0.6, 5);
-    }else if(id==='face11'){
-      // face11 (liquid goo): goo-container 기준으로 스케일
-      // goo 필터 헤일로(padding 6vmin)를 포함한 실제 크기로 맞춤
-      const w = document.querySelector('#face11 .f11-goo-container');
-      if(w) fitEl(w, vw*0.88, vh*0.82, 4);
-    }else{
-      const w = document.querySelector('#'+id+' .'+id.replace('face','f')+'-wrap');
-      if(w) fitEl(w, vw*0.92, vh*0.92, 4);
-    }
+    const f = FACES[active], ft = f.fit;
+    if(!f.el || !ft) return;
+    const el = f.el.querySelector(ft.sel);
+    if(el) fitEl(el, window.innerWidth*ft.aw, window.innerHeight*ft.ah, ft.max);
   }
   let lastHlen = 0;
   window.addEventListener('resize', fitActive);
@@ -922,24 +949,6 @@
   const MON3=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
   const pad=n=>String(n).padStart(2,'0');
 
-  const el=id=>document.getElementById(id);
-  const f1t=el('f1-time'),f1s=el('f1-sec'),f1a=el('f1-ampm'),f1d=el('f1-date');
-  const f3t=el('f3-time'),f3a=el('f3-ampm'),f3d=el('f3-date'),f3s=el('f3-sec');
-  const f4t=el('f4-time'),f4a=el('f4-ampm'),f4s=el('f4-sec'),f4d=el('f4-date');
-  const f5t=el('f5-time'),f5s=el('f5-sec'),f5a=el('f5-ampm'),f5d=el('f5-date');
-  const f6a=el('f6-ampm'),f6d=el('f6-date');
-  const f7t=el('f7-time'),f7a=el('f7-ampm'),f7d=el('f7-date'),f7s=el('f7-sec');
-  const f8t=el('f8-time'),f8a=el('f8-ampm'),f8s=el('f8-sec'),f8d=el('f8-date');
-  const f9t=el('f9-time'),f9s=el('f9-sec'),f9d=el('f9-date');
-  const f10t=el('f10-time'),f10d=el('f10-date');
-  // face11 (liquid goo) — 블롭 숫자 레이블 4개 + 초 레이블 2개 + 날짜
-  const f11d0=el('f11-d0').querySelector('.f11-digit-label');
-  const f11d1=el('f11-d1').querySelector('.f11-digit-label');
-  const f11d2=el('f11-d2').querySelector('.f11-digit-label');
-  const f11d3=el('f11-d3').querySelector('.f11-digit-label');
-  const f11sl0=el('f11-sl0'), f11sl1=el('f11-sl1');
-  const f11date=el('f11-date');
-
   let cur={h:'',m:'',s:''};
 
   // force===false 면 무조건 즉시(애니메이션 없이) 세팅. 그 외엔 활성 플립 페이스(face6)만 애니메이션.
@@ -951,50 +960,23 @@
 
   function tick(){
     const d=new Date();
-    let h=d.getHours(); const m=d.getMinutes(); const s=d.getSeconds();
-    const ampm=h>=12?'PM':'AM'; const h12=h%12||12;
+    const h24n=d.getHours(), m=d.getMinutes(), s=d.getSeconds();
+    const ampm=h24n>=12?'PM':'AM'; const h12=h24n%12||12;
     const hh=pad(h12),mm=pad(m),ss=pad(s);
     cur={h:hh,m:mm,s:ss};
 
     const dayL=DAYS[d.getDay()], day3=DAYS3[d.getDay()];
-    const monL=MON[d.getMonth()], mon3=MON3[d.getMonth()];
-    const dn=d.getDate();
+    const monL=MON[d.getMonth()], mon3=MON3[d.getMonth()], dn=d.getDate();
 
-    // face 1
-    f1t.textContent=h12+':'+mm; f1s.textContent=ss; f1a.textContent=ampm;
-    f1d.textContent=dayL+' · '+monL+' '+dn;
-    renderFlip(); // face6(클래식 플립) 카드 갱신
-    // face 3
-    f3t.textContent=h12+':'+mm; f3a.textContent=ampm; f3s.textContent=ss;
-    f3d.textContent=dayL+'  '+mon3+' '+dn;
-    // face 4
-    f4t.innerHTML=h12+'<span class="f4-colon">:</span>'+mm;
-    f4a.textContent=ampm; f4s.textContent=ss;
-    f4d.textContent=dayL+' · '+monL+' '+dn;
-    // face 5 (classic minimal)
-    f5t.textContent=h12+':'+mm; f5s.textContent=ss; f5a.textContent=ampm;
-    f5d.textContent=dayL+' · '+monL+' '+dn;
-    // face 6 (classic flip) — flip 카드는 renderFlip()에서 함께 갱신
-    f6a.textContent=ampm; f6d.textContent=day3+' · '+mon3+' '+dn;
-    // face 7 (classic typography)
-    f7t.textContent=h12+':'+mm; f7a.textContent=ampm; f7s.textContent=ss;
-    f7d.textContent=dayL+'  '+mon3+' '+dn;
-    // face 8 (classic neon)
-    f8t.innerHTML=h12+'<span class="f8-colon">:</span>'+mm;
-    f8a.textContent=ampm; f8s.textContent=ss;
-    f8d.textContent=dayL+' · '+monL+' '+dn;
-    // face 9 (apple liquid glass)
-    f9t.innerHTML=h12+'<span class="f9-colon">:</span>'+mm+'<span class="f9-ampm">'+ampm+'</span>';
-    f9s.textContent=ss; f9d.textContent=dayL+' · '+monL+' '+dn;
-    // face 10 (terminal) — 24h HH:MM:SS
-    f10t.textContent=pad(h)+':'+mm+':'+ss;
-    f10d.textContent=dayL+' · '+monL+' '+dn;
-    // face 11 (liquid goo) — 각 자리를 독립 블롭 레이블에 개별 업데이트
-    // hh는 항상 2자리(pad된 값)이므로 [0],[1]이 시, [2],[3]이 분
-    f11d0.textContent=hh[0]; f11d1.textContent=hh[1];
-    f11d2.textContent=mm[0]; f11d3.textContent=mm[1];
-    f11sl0.textContent=ss[0]; f11sl1.textContent=ss[1];
-    f11date.textContent=dayL+' · '+monL+' '+dn;
+    // 공통 시간 모델(parts) — face별로 반복 계산하던 값들을 1회만 만든다
+    const p = {
+      h12, hh, mm, ss, ampm, h24: pad(h24n),
+      dlongDot:  dayL+' · '+monL+' '+dn,   // 요일 · 전체월 일 (face1·4·5·8·9·10·11)
+      dlongMon3: dayL+'  '+mon3+' '+dn,    // 요일  약식월 일 (face3·7 타이포)
+      dshort:    day3+' · '+mon3+' '+dn,   // 약식요일 · 약식월 일 (face6 플립)
+    };
+    // 각 face가 자기 render 로 갱신 (face6.render 안에서 flip 카드도 함께 갱신)
+    for(const f of FACES) f.render(p, f.r);
 
     // 시 자릿수(예: 9→10, 12→1)가 바뀌면 시간 폭이 달라지므로 다시 맞춤
     const hlen = String(h12).length;
