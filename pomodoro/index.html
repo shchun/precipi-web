@@ -377,6 +377,15 @@
             nextBoundaryPhase: phase === 'work' ? 'break' : 'work',
           };
         },
+
+        // reset returns the timer to the *start of a fresh work session*, not
+        // the middle of whatever phase was running. Resetting during a break
+        // used to keep phase='break', leaving you in a break-only standby whose
+        // start button could only launch another break (issue #4).
+        resetState: (state, DUR) => ({
+          phase: 'work',
+          remaining: DUR[state.mode].work,
+        }),
       };
       if (typeof module !== 'undefined' && module.exports) module.exports = Core;
       else root.PomodoroCore = Core;
@@ -527,7 +536,9 @@
     }
     function toggle() { state.running ? pause() : start(); }
     function reset() {
-      state.running = false; state.targetEnd = null; state.remaining = dur();
+      const r = PomodoroCore.resetState(state, DUR);
+      state.running = false; state.targetEnd = null;
+      state.phase = r.phase; state.remaining = r.remaining;
       cancelBoundary(); releaseWakeLock();
       track('timer_reset', Object.assign(modeInfo(), { phase: state.phase }));
       render();
