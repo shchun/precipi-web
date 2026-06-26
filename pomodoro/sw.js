@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pomodoro-timer-v15';
+const CACHE_NAME = 'pomodoro-timer-v16';
 const urlsToCache = [
   './',
   'index.html',
@@ -114,12 +114,12 @@ self.addEventListener('notificationclick', event => {
       .then(clientList => {
         for (let i = 0; i < clientList.length; i++) {
           const client = clientList[i];
-          if (client.url === '/' && 'focus' in client) {
+          if (client.url.includes('/pomodoro/') && 'focus' in client) {
             return client.focus();
           }
         }
         if (clients.openWindow) {
-          return clients.openWindow('/');
+          return clients.openWindow('./');
         }
       })
   );

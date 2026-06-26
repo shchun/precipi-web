@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="theme-color" content="#FCE3D2">
+  <meta name="theme-color" content="#FCE3D2" id="themeColorMeta">
   <meta name="description" content="A minimal pomodoro timer with a warm pie-dial that steps down every ten seconds. Short (25/5) and long (50/10) focus sessions.">
   <title>Pomodoro Timer</title>
   <link rel="manifest" href="manifest.json">
@@ -126,6 +126,19 @@
     }
     .loop-toggle input:checked + .loop-chip .loop-ico { transform: rotate(180deg); }
 
+    /* the Repeat chip and the dark-mode toggle sit on one centred row */
+    .toggle-row { display: flex; align-items: center; gap: 12px; }
+    /* dark-mode toggle — a round icon button in the same chip language as Repeat */
+    .theme-toggle {
+      width: 40px; height: 40px; border: none; cursor: pointer; border-radius: 999px;
+      display: inline-flex; align-items: center; justify-content: center;
+      background: transparent; color: rgba(120,72,40,.5);
+      box-shadow: inset 0 0 0 1.5px rgba(178,120,70,.3);
+      transition: all .2s ease;
+    }
+    .theme-toggle:hover { color: #FF7A3D; }
+    .theme-toggle:active { transform: scale(.94); }
+
     /* hub: small phase word + subtle remaining-minutes number */
     .hubphase { font-size: 11px; font-weight: 700; letter-spacing: .12em; }
     /* translateY corrects the optical lift of digits (empty descender space) */
@@ -222,6 +235,31 @@
       .play { width: 80px; height: 80px; }
       .reset, .spacer { width: 50px; height: 50px; }
     }
+
+    /* ── dark theme ──────────────────────────────────────────────
+       Re-skins the warm surfaces only; the dial's orange work / green break
+       colours (set in render()) stay — they pop on the dark ground. Toggled by
+       body.dark, the choice persisted in localStorage. Kept as an override block
+       so the light design above is unchanged byte-for-byte. */
+    body.dark { background: #1A1411; }
+    body.dark .screen { background: linear-gradient(180deg, #2A211C 0%, #211A16 55%, #181210 100%); }
+    body.dark .modes { background: rgba(255,255,255,.05); box-shadow: inset 0 0 0 1px rgba(255,255,255,.07), 0 6px 18px rgba(0,0,0,.35); }
+    body.dark .pill { color: rgba(255,224,200,.4); }
+    body.dark .pill.active { background: #38291F; color: #FF8A4A; box-shadow: 0 6px 16px -5px rgba(0,0,0,.6), inset 0 0 0 1px rgba(255,140,90,.3); }
+    body.dark .hub { background: #2C231D; box-shadow: 0 8px 22px -8px rgba(0,0,0,.65), inset 0 0 0 1px rgba(255,255,255,.06); }
+    body.dark .ticks { background: repeating-conic-gradient(from 0deg, rgba(255,200,150,.22) 0deg 0.7deg, transparent 0.7deg 6deg); }
+    body.dark .reset { background: rgba(255,255,255,.07); box-shadow: inset 0 0 0 1px rgba(255,255,255,.09), 0 6px 16px rgba(0,0,0,.35); color: #D9AC7C; }
+    body.dark .reset:hover { background: rgba(255,255,255,.12); color: #FF8A4A; }
+    body.dark #helpBtn { color: #C99A6E !important; }
+    body.dark .loop-chip { color: rgba(255,224,200,.5); box-shadow: inset 0 0 0 1.5px rgba(255,255,255,.18); }
+    body.dark .theme-toggle { color: #FFCB5A; box-shadow: inset 0 0 0 1.5px rgba(255,255,255,.18); }
+    body.dark .theme-toggle:hover { color: #FFD97A; }
+    body.dark .confirm-box { background: #2C231D; box-shadow: 0 24px 60px -16px rgba(0,0,0,.75); }
+    body.dark .confirm-msg { color: #F0DCC8; }
+    body.dark .confirm-btn.cancel { background: rgba(255,255,255,.08); color: #E2BC96; }
+    body.dark .help-list li { color: #E8D2BE; }
+    body.dark .slider-head span { color: #D9AC7C; }
+    body.dark input[type=range] { background: rgba(255,255,255,.12); }
   </style>
 </head>
 <body>
@@ -267,18 +305,21 @@
           <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8.4 9.3a3.6 3.6 0 1 1 5.4 3.1c-1 .65-1.8 1.3-1.8 2.3"></path><circle cx="12" cy="17.8" r="1.6" fill="currentColor" stroke="none"></circle></svg>
         </button>
       </div>
-      <label class="loop-toggle">
-        <input type="checkbox" id="loopChk">
-        <span class="loop-chip">
-          <svg class="loop-ico" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M17 1l4 4-4 4"></path>
-            <path d="M3 11V9a4 4 0 0 1 4-4h14"></path>
-            <path d="M7 23l-4-4 4-4"></path>
-            <path d="M21 13v2a4 4 0 0 1-4 4H3"></path>
-          </svg>
-          <span class="loop-label">Repeat</span>
-        </span>
-      </label>
+      <div class="toggle-row">
+        <label class="loop-toggle">
+          <input type="checkbox" id="loopChk">
+          <span class="loop-chip">
+            <svg class="loop-ico" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M17 1l4 4-4 4"></path>
+              <path d="M3 11V9a4 4 0 0 1 4-4h14"></path>
+              <path d="M7 23l-4-4 4-4"></path>
+              <path d="M21 13v2a4 4 0 0 1-4 4H3"></path>
+            </svg>
+            <span class="loop-label">Repeat</span>
+          </span>
+        </label>
+        <button class="theme-toggle" id="themeBtn" type="button" aria-label="Toggle dark mode" title="Dark mode"></button>
+      </div>
     </div>
 
     
@@ -336,6 +377,9 @@
     const PAUSE = "<svg width='30' height='30' viewBox='0 0 24 24' fill='white'><rect x='6' y='5' width='4' height='14' rx='1'/><rect x='14' y='5' width='4' height='14' rx='1'/></svg>";
     // pencil glyph for the unset CUSTOM pill — reads as "edit your own", inherits the pill's text colour
     const CUSTOM_ICON = "<svg class='pill-ico' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='M17 3a2.83 2.83 0 0 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z'/><path d='M15 5l4 4'/></svg>";
+    // dark-mode toggle glyphs: moon in light mode (tap → dark), sun in dark mode (tap → light)
+    const MOON = "<svg width='19' height='19' viewBox='0 0 24 24' fill='currentColor'><path d='M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z'/></svg>";
+    const SUN = "<svg width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.1' stroke-linecap='round'><circle cx='12' cy='12' r='4.2'/><path d='M12 2v2.5M12 19.5V22M4.2 4.2l1.8 1.8M18 18l1.8 1.8M2 12h2.5M19.5 12H22M4.2 19.8L6 18M18 6l1.8-1.8'/></svg>";
 
     // ──CORE START── pure timing/transition logic, no DOM/Capacitor/clock deps.
     // The whole block between these markers is extracted verbatim and unit-tested
@@ -408,6 +452,15 @@
     let loop = false;
     try { loop = localStorage.getItem('pomodoro-loop') === '1'; } catch (e) {}
 
+    // dark mode: stored choice wins; first run follows the OS preference
+    let darkMode = false;
+    try {
+      const saved = localStorage.getItem('pomodoro-theme');
+      darkMode = saved ? saved === 'dark'
+                       : window.matchMedia('(prefers-color-scheme: dark)').matches;
+    } catch (e) {}
+    const themeName = () => (darkMode ? 'dark' : 'light');
+
     // ⚠ TEMP TESTING — MUST BE 1 IN PRODUCTION.
     //    SPEED > 1 runs the clock that many times faster so a minute elapses like a
     //    second (25 min work → 25 s) while the dial still shows minutes. Before
@@ -452,9 +505,11 @@
       s.onerror = function () {};                  // offline / blocked → ignore
       document.head.appendChild(s);
     })();
-    // fire a GA event; harmless no-op if gtag never loaded (offline)
+    // fire a GA event; harmless no-op if gtag never loaded (offline). Every event
+    // carries the active theme ('light'/'dark') so dark-mode usage is visible in
+    // any report without a per-call param.
     function track(name, params) {
-      try { gtag('event', name, Object.assign({ app_platform: appPlatform }, params || {})); } catch (e) {}
+      try { gtag('event', name, Object.assign({ app_platform: appPlatform, theme: themeName() }, params || {})); } catch (e) {}
     }
     // the active mode as readable analytics params: key + "work/break" minutes
     // (e.g. focus25 → "25/5", deep50 → "50/10", custom → its actual pair)
@@ -523,7 +578,12 @@
       // focus start: keep screen on and schedule boundary
       requestWakeLock();                                        // running → keep screen on
       scheduleBoundary(state.targetEnd, isWork ? 'break' : 'work');
-      track('timer_start', Object.assign(modeInfo(), { phase: state.phase }));
+      track('timer_start', Object.assign(modeInfo(), {
+        phase: state.phase,
+        work_sec: DUR[state.mode].work,
+        break_sec: DUR[state.mode].break,
+        repeat: loop,
+      }));
       render();
     }
     function pause() {
@@ -570,7 +630,14 @@
       const finished = state.phase;   // the phase that just elapsed (work/break)
       const next = PomodoroCore.completeNext(state, DUR, loop);
       // a finished work phase is a completed pomodoro; `completed` is the running tally
-      track('phase_complete', Object.assign(modeInfo(), { phase: finished, completed: next.completed }));
+      // `reconciling` is set when we're catching up a boundary that already
+      // elapsed while the app was hidden/backgrounded — so it doubles as the
+      // "did this completion happen in the background?" signal.
+      track('phase_complete', Object.assign(modeInfo(), {
+        phase: finished,
+        completed: next.completed,
+        in_background: reconciling,
+      }));
       // When catching up a boundary that already elapsed in the background, the
       // native side (or nobody, on the web) already buzzed — stay silent.
       if (!reconciling) buzz(next.phase);
@@ -624,7 +691,8 @@
       // down the left. Work and break sit flush — no divider gap.
       const workCol  = '#FF5A1F';   // work region (the big orange slice)
       const breakCol = '#7CB342';   // break region (the small green slice)
-      const track = 'rgba(178,120,70,.14)';
+      // the drained/elapsed arc: a faint warm tint on light, a faint light tint on dark
+      const track = darkMode ? 'rgba(255,235,215,.10)' : 'rgba(178,120,70,.14)';
 
       const stops = [];
       if (consumedDeg > 0.01) stops.push(`${track} 0deg ${consumedDeg}deg`);            // elapsed
@@ -714,14 +782,37 @@
     loopChk.addEventListener('change', () => {
       loop = loopChk.checked;
       try { localStorage.setItem('pomodoro-loop', loop ? '1' : '0'); } catch (e) {}
+      track('loop_toggle', { enabled: loop });
     });
 
     // ── help dialog ──
     const helpDlg = document.getElementById('helpDlg');
     const hideHelp = () => { helpDlg.style.display = 'none'; };
-    document.getElementById('helpBtn').addEventListener('click', () => { helpDlg.style.display = 'flex'; });
+    document.getElementById('helpBtn').addEventListener('click', () => {
+      helpDlg.style.display = 'flex';
+      track('help_open');
+    });
     document.getElementById('helpClose').addEventListener('click', hideHelp);
     helpDlg.addEventListener('click', (e) => { if (e.target === helpDlg) hideHelp(); });
+
+    // ── dark mode ──
+    const themeBtn = document.getElementById('themeBtn');
+    const themeColorMeta = document.getElementById('themeColorMeta');
+    // paint the current theme: body class, status-bar colour, toggle icon. The
+    // dial track (the elapsed-arc colour in render()) reads body.dark too.
+    function applyTheme() {
+      document.body.classList.toggle('dark', darkMode);
+      themeColorMeta.setAttribute('content', darkMode ? '#211A16' : '#FCE3D2');
+      themeBtn.innerHTML = darkMode ? SUN : MOON;   // show where a tap takes you
+      render();
+    }
+    themeBtn.addEventListener('click', () => {
+      darkMode = !darkMode;
+      try { localStorage.setItem('pomodoro-theme', themeName()); } catch (e) {}
+      applyTheme();
+      track('theme_toggle');                        // theme param (new value) added by track()
+    });
+    applyTheme();
 
     el.play.addEventListener('click', toggle);
     document.getElementById('resetBtn').addEventListener('click', requestReset);
