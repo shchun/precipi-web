@@ -109,14 +109,13 @@
     .loop-toggle { cursor: pointer; user-select: none; }
     .loop-toggle input { position: absolute; opacity: 0; pointer-events: none; }
     .loop-chip {
-      display: inline-flex; align-items: center; gap: 8px;
-      height: 40px; padding: 0 18px; border-radius: 999px;
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 40px; height: 40px; border-radius: 999px;
       background: transparent; color: rgba(120,72,40,.5);
       box-shadow: inset 0 0 0 1.5px rgba(178,120,70,.3);
       transition: all .2s ease;
     }
     .loop-ico { transition: transform .4s cubic-bezier(.34,1.56,.64,1); }
-    .loop-label { font-size: 15px; font-weight: 600; letter-spacing: .02em; }
     .loop-toggle:active .loop-chip { transform: scale(.96); }
     /* ON: filled green chip — uses the palette's break-green so it reads clearly
        "on" while giving the all-orange UI some variation */
@@ -308,14 +307,13 @@
       <div class="toggle-row">
         <label class="loop-toggle">
           <input type="checkbox" id="loopChk">
-          <span class="loop-chip">
-            <svg class="loop-ico" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <span class="loop-chip" title="Repeat" aria-label="Repeat">
+            <svg class="loop-ico" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <path d="M17 1l4 4-4 4"></path>
               <path d="M3 11V9a4 4 0 0 1 4-4h14"></path>
               <path d="M7 23l-4-4 4-4"></path>
               <path d="M21 13v2a4 4 0 0 1-4 4H3"></path>
             </svg>
-            <span class="loop-label">Repeat</span>
           </span>
         </label>
         <button class="theme-toggle" id="themeBtn" type="button" aria-label="Toggle dark mode" title="Dark mode"></button>
