@@ -138,6 +138,16 @@
     .theme-toggle:hover { color: #FF7A3D; }
     .theme-toggle:active { transform: scale(.94); }
 
+    /* today's finished pomodoros — a row of small tomato dots (max 5, then "+") */
+    .tomato-row { display: flex; align-items: center; justify-content: center; gap: 7px; min-height: 11px; }
+    .tdot {
+      width: 10px; height: 10px; border-radius: 50%; background: #FF5A1F;
+      box-shadow: 0 1px 3px rgba(255,90,31,.45), inset 0 1px 0 rgba(255,255,255,.35);
+    }
+    .tplus { font-size: 16px; font-weight: 800; line-height: 1; color: #FF5A1F; margin-left: 1px; }
+    body.dark .tdot { box-shadow: 0 1px 3px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.2); }
+    body.dark .tplus { color: #FF8A4A; }
+
     /* hub: small phase word + subtle remaining-minutes number */
     .hubphase { font-size: 11px; font-weight: 700; letter-spacing: .12em; }
     /* translateY corrects the optical lift of digits (empty descender space) */
@@ -295,6 +305,8 @@
 
     <!-- footer -->
     <div class="footer">
+      <!-- today's finished pomodoros (max 5 dots, then "+"); resets at midnight -->
+      <div class="tomato-row" id="tomatoRow"></div>
       <div class="controls">
         <button class="reset" id="resetBtn" title="Reset">
           <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"></path><path d="M3 4v4.5h4.5"></path></svg>
@@ -361,6 +373,7 @@
           <li>Play runs work, then the break starts on its own, then stops.</li>
           <li>Orange is work, green is break — the ring drains from the top.</li>
           <li>It buzzes on each switch and keeps the screen awake.</li>
+          <li>🍅 Tomatoes count today's finished sessions — they reset at midnight.</li>
         </ul>
         <div class="confirm-actions">
           <button class="confirm-btn ok" id="helpClose" type="button">Got it</button>
@@ -458,6 +471,20 @@
                        : window.matchMedia('(prefers-color-scheme: dark)').matches;
     } catch (e) {}
     const themeName = () => (darkMode ? 'dark' : 'light');
+
+    // today's finished-pomodoro tally (local only — no sync). Stored with the date
+    // so it rolls back to 0 at midnight; reading it always re-checks the date, so a
+    // session left open across midnight resets on the next render.
+    const dayKey = () => new Date().toLocaleDateString('en-CA');   // YYYY-MM-DD, local
+    function dayCount() {
+      let o = {};
+      try { o = JSON.parse(localStorage.getItem('pomodoro-daycount')) || {}; } catch (e) {}
+      return o.date === dayKey() ? (o.count || 0) : 0;
+    }
+    function addPomodoro() {
+      const n = dayCount() + 1;
+      try { localStorage.setItem('pomodoro-daycount', JSON.stringify({ date: dayKey(), count: n })); } catch (e) {}
+    }
 
     // ⚠ TEMP TESTING — MUST BE 1 IN PRODUCTION.
     //    SPEED > 1 runs the clock that many times faster so a minute elapses like a
@@ -639,6 +666,7 @@
       // When catching up a boundary that already elapsed in the background, the
       // native side (or nobody, on the web) already buzzed — stay silent.
       if (!reconciling) buzz(next.phase);
+      if (finished === 'work') addPomodoro();   // tomato dots: one per finished focus session today
       state.phase = next.phase;
       state.completed = next.completed;
       state.remaining = next.remaining;
@@ -666,6 +694,7 @@
       pillLong: document.getElementById('pillLong'),
       pillCustom: document.getElementById('pillCustom'),
       play: document.getElementById('playBtn'),
+      tomatoRow: document.getElementById('tomatoRow'),
     };
 
     function render() {
@@ -715,6 +744,14 @@
       // running indicator: blink the status-LED dot in the current phase colour
       el.dial.classList.toggle('running', state.running);
       el.runDot.style.color = accent;
+
+      // today's pomodoros: up to 5 dots, then a "+" once you pass five
+      const done = dayCount();
+      let dots = '';
+      for (let i = 0; i < Math.min(done, 5); i++) dots += '<span class="tdot"></span>';
+      if (done > 5) dots += '<span class="tplus">+</span>';
+      el.tomatoRow.innerHTML = dots;
+      el.tomatoRow.style.display = done > 0 ? 'flex' : 'none';
     }
 
     // ── confirm dialog — switching mode or resetting clears a live timer ──
