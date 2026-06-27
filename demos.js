@@ -60,15 +60,6 @@ const demos = [
     tags: ["space", "sim"],
   },
   {
-    icon: "📦",
-    title: "Fold Hologram 3D",
-    titleEn: "Fold Hologram 3D",
-    desc: "종이를 접듯 3D 도형을 펼치고 접으며 홀로그램처럼 관찰하는 인터랙티브 작품입니다.",
-    descEn: "Unfold and fold 3D shapes like paper and observe them like a hologram in this interactive art piece.",
-    href: "3d-fold/fold3d-bundle.html",
-    tags: ["art"],
-  },
-  {
     icon: "🎆",
     title: "한강 불꽃축제",
     titleEn: "Han River Fireworks",
