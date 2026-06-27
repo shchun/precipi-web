@@ -138,14 +138,10 @@
     .theme-toggle:hover { color: #FF7A3D; }
     .theme-toggle:active { transform: scale(.94); }
 
-    /* today's finished pomodoros — a row of small tomato dots (max 5, then "+") */
-    .tomato-row { display: flex; align-items: center; justify-content: center; gap: 7px; min-height: 11px; }
-    .tdot {
-      width: 10px; height: 10px; border-radius: 50%; background: #FF5A1F;
-      box-shadow: 0 1px 3px rgba(255,90,31,.45), inset 0 1px 0 rgba(255,255,255,.35);
-    }
+    /* today's finished pomodoros — a row of small 🍅 (max 5, then "+") */
+    .tomato-row { display: flex; align-items: center; justify-content: center; gap: 4px; min-height: 15px; }
+    .tdot { font-size: 13px; line-height: 1; }
     .tplus { font-size: 16px; font-weight: 800; line-height: 1; color: #FF5A1F; margin-left: 1px; }
-    body.dark .tdot { box-shadow: 0 1px 3px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.2); }
     body.dark .tplus { color: #FF8A4A; }
 
     /* hub: small phase word + subtle remaining-minutes number */
@@ -748,7 +744,7 @@
       // today's pomodoros: up to 5 dots, then a "+" once you pass five
       const done = dayCount();
       let dots = '';
-      for (let i = 0; i < Math.min(done, 5); i++) dots += '<span class="tdot"></span>';
+      for (let i = 0; i < Math.min(done, 5); i++) dots += '<span class="tdot">🍅</span>';
       if (done > 5) dots += '<span class="tplus">+</span>';
       el.tomatoRow.innerHTML = dots;
       el.tomatoRow.style.display = done > 0 ? 'flex' : 'none';
