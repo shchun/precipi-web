@@ -509,6 +509,34 @@
   }
 
   /* ======================================================= */
+  /* FACE 12·13 — FOLD 3D (폴드 단말 전용)                   */
+  /* ======================================================= */
+  /* 화면을 상단=벽 / 하단=바닥 두 뷰포트로 나눠 off-axis 투영으로 그려,
+     단말을 크레이즈에서 90°로 접으면 입체 숫자로 보이는 아나모픽 착시.
+     face12=네온(공중) / face13=솔리드(바닥). 두 페이스는 아래 공유 오버레이를 함께 쓴다.
+     섹션은 비어있는 투명 마커(중앙정렬/fitActive 우회). 실제 렌더는 #fold3d-stage. */
+  .fold-face{ background:transparent; padding:0; }
+  /* 공유 오버레이 — 폴드 페이스 활성 시 JS가 display:block 으로 표시(기본 숨김). */
+  #fold3d-stage{ position:fixed; inset:0; z-index:1; display:none; }
+  #fold3d-stage canvas{ position:absolute; inset:0; width:100%; height:100%; display:block; }
+  /* 접는 선(크레이즈) 가이드 — 화면 정중앙 가로선. 실제로 접히는 지점 안내용. */
+  #fold3d-stage .fold-crease{
+    position:absolute; left:0; right:0; top:50%; height:0;
+    border-top:1px dashed rgba(122,246,255,.35);
+    pointer-events:none; z-index:2;
+  }
+  /* 셋업 안내 — 진입 시 잠깐 떴다 사라짐 */
+  #fold3d-stage .fold-hint{
+    position:absolute; left:50%; bottom:13vmin; transform:translateX(-50%);
+    z-index:3; pointer-events:none;
+    font-family:'Orbitron',monospace; font-size:2.4vmin; letter-spacing:.15em;
+    color:rgba(155,243,255,.9); text-align:center; line-height:1.5;
+    text-shadow:0 0 8px rgba(53,232,255,.6);
+    transition:opacity .8s ease; white-space:nowrap;
+  }
+  #fold3d-stage .fold-hint.gone{ opacity:0; }
+
+  /* ======================================================= */
   /* NAV                                                     */
   /* ======================================================= */
   .stage[data-theme="light"]{ --ui:#0a0a0a; --ui-soft:rgba(10,10,10,.4); --ui-bg:rgba(255,255,255,.55); }
@@ -765,6 +793,21 @@
       </div>
     </section>
 
+    <!-- FACE 12·13 — FOLD 3D (폴드 단말 전용) -->
+    <!-- 폴드 단말로 감지될 때만 JS가 FACES 에 동적 등록한다(비폴드 단말엔 미존재). -->
+    <!-- 두 페이스는 같은 off-axis 엔진/캔버스를 공유하고 스타일(네온/솔리드)만 다르다. -->
+    <!-- 섹션 자체는 비어있는 투명 마커 — 실제 렌더는 아래 공유 오버레이(#fold3d-stage)가 담당. -->
+    <section class="face fold-face" id="face12"></section>   <!-- 네온 LED, 공중에 뜬 숫자 -->
+    <section class="face fold-face" id="face13"></section>   <!-- 솔리드, 입체 숫자 -->
+    <section class="face fold-face" id="face14"></section>   <!-- 아날로그, 입체 다이얼+바늘 -->
+
+    <!-- 공유 폴드 3D 오버레이: 캔버스(상단=벽/하단=바닥) + 접는선/안내. 폴드 페이스 활성 시에만 표시. -->
+    <div id="fold3d-stage">
+      <canvas id="fold3d-canvas"></canvas>
+      <div class="fold-crease"></div>
+      <div class="fold-hint" id="fold3d-hint">단말을 90°로 접고<br>아래 화면을 바닥에 놓으세요</div>
+    </div>
+
   </div>
 
   <!-- NAV (위치 표시용 점만 — 화면을 터치하면 다음 시계로 전환) -->
@@ -823,7 +866,21 @@
     d.addEventListener('click',()=>go(i));
     dotsC.appendChild(d);
   });
-  const dots=[...dotsC.children];
+  let dots=[...dotsC.children];
+
+  /* 폴드 3D 같은 조건부 face 를 런타임에 추가하는 훅(모듈 스크립트가 호출).
+     비폴드 단말에선 호출되지 않아 face 자체가 존재하지 않는다. */
+  window.__deskAddFace = function(def){
+    if(FACES.some(f=>f.id===def.id)) return;
+    def.el = document.getElementById(def.id);
+    def.r  = {};
+    if(def.el) def.el.querySelectorAll('[data-bind]').forEach(n=>{ def.r[n.dataset.bind]=n; });
+    const i = FACES.push(def) - 1;
+    const d = document.createElement('i');
+    d.addEventListener('click',()=>go(i));
+    dotsC.appendChild(d);
+    dots.push(d);
+  };
 
   // 저장값은 face id — 순서가 바뀌어도 안전. 구버전 숫자 인덱스도 호환 폴백.
   function loadActive(){
@@ -845,6 +902,8 @@
     stage.dataset.theme = FACES[active].theme;
     localStorage.setItem('deskclock.face', FACES[active].id);
     if(FACES[active].id==='face6') renderFlip(false); // set instantly, no animation
+    // 폴드 3D 엔진은 해당 face 활성일 때만 렌더(배터리/성능). 폴드 페이스 id를 넘겨 스타일 선택.
+    if(window.Fold3D) window.Fold3D.setActive(FACES[active].id);
     fitActive();
     setTimeout(fitActive, 600); // 진입 애니메이션이 끝난 뒤 정확히 다시 맞춤
   }
@@ -1083,6 +1142,465 @@
   window.addEventListener('keydown', start, { once:true });
   window.addEventListener('pagehide', () => setBrightness(-1));
   document.addEventListener('visibilitychange', () => { if (document.hidden) setBrightness(-1); });
+})();
+</script>
+
+<!-- ───────────────────────────────────────────────────────────────────────
+  FACE 12 — FOLD 3D 엔진 (입체 디지털 시계, 폴드 단말 전용)
+  - 참고: precipi-web/3d-fold 의 off-axis(Kooima 일반화 원근) 듀얼 카메라 기법.
+  - 화면 상단 절반 = 수직 '벽', 하단 절반 = 수평 '바닥' 두 뷰포트로 같은 씬을 따로 렌더.
+    단말을 크레이즈(화면 정중앙)에서 접으면 두 수직 화면이 하나의 입체 공간으로 합쳐짐.
+  - three.js 는 오프라인 번들(app/vendor/three.module.js).
+  - 폴드 단말로 감지될 때만 window.__deskAddFace 로 FACES 에 등록(비폴드 단말엔 미존재).
+  - 경첩 각도: 네이티브 TYPE_HINGE_ANGLE 센서를 window.__foldHinge(deg) 로 받아 벽 평면
+    기울기를 실제 각도에 맞춰 보정 → 90°가 아니어도 착시가 정확.
+─────────────────────────────────────────────────────────────────────── -->
+<script type="module">
+import * as THREE from './vendor/three.module.js';
+import { FontLoader } from './vendor/FontLoader.js';
+import { TextGeometry } from './vendor/TextGeometry.js';
+
+(function(){
+  'use strict';
+
+  // ---- 폴드 감지 → FACES 동적 등록 -------------------------------------
+  // 폴드 단말로 확인되면 두 폴드 페이스를 함께 등록(네온/솔리드, 같은 엔진 공유).
+  let registered = false;
+  function tryRegister(){
+    if(registered || !window.__deskAddFace) return;
+    registered = true;
+    window.__deskAddFace({ id:'face12', name:'Fold Neon',   theme:'dark', fit:null, render(p){ setTime(p.hh,p.mm,p.ss); } });
+    window.__deskAddFace({ id:'face13', name:'Fold Solid',  theme:'dark', fit:null, render(p){ setTime(p.hh,p.mm,p.ss); } });
+    window.__deskAddFace({ id:'face14', name:'Fold Analog', theme:'dark', fit:null, render(p){ setTime(p.hh,p.mm,p.ss); } });
+  }
+  // 네이티브 브리지가 가장 확실한 신호(경첩 센서 존재 = 폴드 단말).
+  function checkNative(){
+    try{ if(window.DeskClock && typeof window.DeskClock.isFoldable==='function'
+         && window.DeskClock.isFoldable()) tryRegister(); }catch(e){}
+  }
+  checkNative();
+  // 브리지/센서 준비가 늦을 수 있어 잠시 폴링
+  let tries=0; const iv=setInterval(()=>{ checkNative(); if(registered || ++tries>20) clearInterval(iv); }, 500);
+  // 웹 표준 폴백(precipi-web 데모 등): 실제로 접혀 posture 가 folded 가 되면 노출
+  if(navigator.devicePosture){
+    const dp=navigator.devicePosture;
+    if(dp.type==='folded') tryRegister();
+    dp.addEventListener('change',()=>{ if(dp.type==='folded') tryRegister(); });
+  }
+
+  // ---- 상태 ------------------------------------------------------------
+  let scene, renderer, wallCam, floorCam, room, shadow, stars;
+  let digitsGroup, container;                 // 네온 스테이지(face12)
+  let solidGroup, containerSolid, solidFont, solidColon, solidMeshes=[];
+  let solidBuilt=false;
+  let analogGroup, containerAnalog, analogHands, analogBuilt=false;
+  let mode='face12';                          // 활성 폴드 스타일
+  let active=false, raf=0, built=false;
+  let W=0, H=0, screenLen=1;
+  let hingeRad = Math.PI/2;                    // 경첩 각도(라디안), 기본 90°
+  const time = { hh:'12', mm:'00', ss:'00' };
+  const overlay = document.getElementById('fold3d-stage');
+  const canvas  = document.getElementById('fold3d-canvas');
+  const hint    = document.getElementById('fold3d-hint');
+
+  // ---- 관찰자(물리) ----------------------------------------------------
+  // 월드 좌표는 화면 폭에 상대적(x ∈ [-1,1] = 디스플레이 폭). 폴드 내부 디스플레이 폭을
+  // 약 148mm로 가정 → 1 world unit ≈ 74mm. 관찰자는 50cm 바깥, 45° 위에서 내려다봄.
+  // 시점을 실제 거리에 맞춰야(과장된 근접 원근 제거) 아나모픽 착시가 정확하다.
+  const MM_PER_UNIT  = 74;                     // 단말 폭 가정에 따른 환산(틀어지면 이 값만 조정)
+  const VIEW_DIST_MM = 500;                    // 관찰자 거리 50cm
+  const VIEW_ELEV    = 45 * Math.PI / 180;     // 45° 위에서
+  const eyeDistU = VIEW_DIST_MM / MM_PER_UNIT; // ≈ 6.76 units
+  const EYE_Y = eyeDistU * Math.sin(VIEW_ELEV);// 절대 월드단위(× L 아님)
+  const EYE_Z = eyeDistU * Math.cos(VIEW_ELEV);
+
+  // 스테이지별 배치(높이/깊이는 screenLen(L) 비례, 폭 스케일은 월드 고정).
+  const PLACE = {
+    face12:{ y:0.62, z:0.50 },   // 네온: 공중에 띄움
+    face13:{ y:0.36, z:0.45 },   // 솔리드: 공중 띄워 중심을 화면 세로 중심(크레이즈)에 맞춤
+    face14:{ y:0.48, z:0.45 },   // 아날로그: 조금 위로
+  };
+  const NEON_SCALE   = 0.40;   // 네온 7-세그 그룹 스케일(축소)
+  const SOLID_SCALE  = 0.60;   // 솔리드 글자 그룹 스케일(축소)
+  const ANALOG_SCALE = 0.85;   // 아날로그 다이얼 그룹 스케일
+  const NEON = 0x35e8ff;    // 시안 네온
+  const NEON_DIM = 0x0a3550;// 꺼진 세그먼트(LED 패널 느낌)
+
+  // ---- 7-세그먼트 숫자 -------------------------------------------------
+  //   aaa
+  //  f   b
+  //   ggg
+  //  e   c
+  //   ddd
+  const SEG_ON = new THREE.MeshStandardMaterial({
+    color:0x0a2a33, emissive:NEON, emissiveIntensity:1.4,
+    metalness:0.2, roughness:0.35 });
+  const SEG_OFF = new THREE.MeshStandardMaterial({
+    color:0x05161c, emissive:NEON_DIM, emissiveIntensity:0.25,
+    metalness:0.2, roughness:0.6 });
+  const DIGIT_MAP = {
+    '0':'abcdef','1':'bc','2':'abged','3':'abgcd','4':'fgbc',
+    '5':'afgcd','6':'afgedc','7':'abc','8':'abcdefg','9':'abcdfg',' ':''
+  };
+  const halfW=0.25, halfH=0.45, bt=0.09, dp=0.10, gap=0.02;
+  const hLen = 2*halfW - bt - 2*gap;          // 가로 막대 길이
+  const vLen = halfH - bt - 2*gap;            // 세로 막대 길이
+  const hGeo = new THREE.BoxGeometry(hLen, bt, dp);
+  const vGeo = new THREE.BoxGeometry(bt, vLen, dp);
+  const SEG_POS = {
+    a:[0,  halfH, 0, hGeo], g:[0, 0, 0, hGeo], d:[0, -halfH, 0, hGeo],
+    f:[-halfW,  halfH/2, 0, vGeo], b:[halfW,  halfH/2, 0, vGeo],
+    e:[-halfW, -halfH/2, 0, vGeo], c:[halfW, -halfH/2, 0, vGeo]
+  };
+  function makeDigit(){
+    const g = new THREE.Group();
+    g.userData.seg = {};
+    for(const k in SEG_POS){
+      const [x,y,z,geo] = SEG_POS[k];
+      const m = new THREE.Mesh(geo, SEG_OFF);
+      m.position.set(x,y,z);
+      g.add(m);
+      g.userData.seg[k] = m;
+    }
+    return g;
+  }
+  function setDigit(g, ch){
+    const on = DIGIT_MAP[ch] || '';
+    const seg = g.userData.seg;
+    for(const k in seg) seg[k].material = on.indexOf(k)>=0 ? SEG_ON : SEG_OFF;
+  }
+
+  // ---- 씬 생성(최초 활성 시 1회) --------------------------------------
+  function build(){
+    if(built) return; built=true;
+    renderer = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:false, powerPreference:'high-performance' });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio||1, 2));
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.setClearColor(0x03040c, 1);
+
+    scene = new THREE.Scene();
+    scene.environment = buildEnv();   // 솔리드 재질 반사용 환경맵
+    scene.add(new THREE.AmbientLight(0x4060a0, 0.6));
+    const key=new THREE.PointLight(0x6fe8ff,18,0,2); key.position.set(1.2,1.6,1.6); scene.add(key);
+    const fill=new THREE.PointLight(0xff5fd0,8,0,2); fill.position.set(-1.4,0.8,1.2); scene.add(fill);
+
+    wallCam = new THREE.PerspectiveCamera();
+    floorCam = new THREE.PerspectiveCamera();
+    [wallCam,floorCam].forEach(c=>{ c.matrixAutoUpdate=false; });
+
+    room = new THREE.Group(); scene.add(room);
+    buildRoom();
+
+    // 떠 있는 숫자: HH : MM (콜론 깜빡임)
+    digitsGroup = new THREE.Group();
+    const colonHalf=0.09, dGap=0.10;
+    const x1 = -(colonHalf + dGap + halfW);   // 시 오른쪽 자리
+    const x0 = x1 - (2*halfW + dGap);         // 시 왼쪽 자리
+    const x2 = -x1, x3 = -x0;                 // 분(대칭)
+    digitsGroup.userData.d = [];
+    [x0,x1,x2,x3].forEach(x=>{ const d=makeDigit(); d.position.x=x; digitsGroup.add(d); digitsGroup.userData.d.push(d); });
+    // 콜론
+    const colon=new THREE.Group();
+    [0.16,-0.16].forEach(y=>{ const dot=new THREE.Mesh(new THREE.BoxGeometry(bt,bt,dp), SEG_ON); dot.position.y=y; colon.add(dot); });
+    digitsGroup.add(colon); digitsGroup.userData.colon=colon;
+    digitsGroup.scale.setScalar(NEON_SCALE);
+
+    container = new THREE.Group();
+    container.add(digitsGroup);
+    scene.add(container);
+
+    // 바닥 글로우(접지감)
+    shadow = new THREE.Mesh(new THREE.PlaneGeometry(1,1),
+      new THREE.MeshBasicMaterial({ map:glowTex(), transparent:true, blending:THREE.AdditiveBlending, depthWrite:false }));
+    shadow.rotation.x = -Math.PI/2; room.add(shadow);
+
+    // 별(벽 뒤)
+    stars = makeStars(); scene.add(stars);
+
+    applyTime();
+  }
+
+  function glowTex(){
+    const c=document.createElement('canvas'); c.width=c.height=128; const x=c.getContext('2d');
+    const g=x.createRadialGradient(64,64,0,64,64,64);
+    g.addColorStop(0,'rgba(90,230,255,0.7)'); g.addColorStop(0.35,'rgba(55,160,255,0.3)'); g.addColorStop(1,'rgba(0,0,0,0)');
+    x.fillStyle=g; x.fillRect(0,0,128,128); return new THREE.CanvasTexture(c);
+  }
+  function makeStars(){
+    const n=240, pos=new Float32Array(n*3);
+    for(let i=0;i<n;i++){ pos[i*3]=(Math.random()-0.5)*8; pos[i*3+1]=Math.random()*4-0.5; pos[i*3+2]=-1-Math.random()*6; }
+    const geo=new THREE.BufferGeometry(); geo.setAttribute('position',new THREE.BufferAttribute(pos,3));
+    return new THREE.Points(geo, new THREE.PointsMaterial({ color:0x9fd8ff, size:0.018, transparent:true, opacity:0.85, blending:THREE.AdditiveBlending, depthWrite:false }));
+  }
+  // 반사용 환경맵(절차적 스튜디오 그라데이션)
+  function buildEnv(){
+    const c=document.createElement('canvas'); c.width=512; c.height=256; const x=c.getContext('2d');
+    const g=x.createLinearGradient(0,0,0,256);
+    g.addColorStop(0,'#0a1e44'); g.addColorStop(0.5,'#3a6fff'); g.addColorStop(0.55,'#7a2bd6'); g.addColorStop(1,'#05030f');
+    x.fillStyle=g; x.fillRect(0,0,512,256);
+    x.fillStyle='rgba(120,230,255,0.5)'; x.fillRect(60,70,120,8);
+    x.fillStyle='rgba(255,120,220,0.4)'; x.fillRect(330,150,140,6);
+    const tex=new THREE.CanvasTexture(c); tex.mapping=THREE.EquirectangularReflectionMapping;
+    const pm=new THREE.PMREMGenerator(renderer); const e=pm.fromEquirectangular(tex).texture; pm.dispose(); tex.dispose();
+    return e;
+  }
+
+  // ---- 솔리드 스테이지(face13): 바닥에 선 입체 숫자 + 반사 -------------
+  function glyphGeo(ch){
+    const g=new TextGeometry(ch, { font:solidFont, size:0.7, height:0.22, curveSegments:5,
+      bevelEnabled:true, bevelThickness:0.025, bevelSize:0.02, bevelSegments:2 });
+    g.computeBoundingBox(); const b=g.boundingBox;
+    g.translate(-(b.max.x+b.min.x)/2, -(b.max.y+b.min.y)/2, -(b.max.z+b.min.z)/2);  // 완전 중앙 정렬
+    return g;
+  }
+  function buildSolid(){
+    if(solidBuilt) return; solidBuilt=true;
+    fetch('./vendor/helvetiker_bold.typeface.json').then(r=>r.json()).then(json=>{
+      solidFont = new FontLoader().parse(json);
+      const mat = new THREE.MeshPhysicalMaterial({ color:0xcfeeff, metalness:0.55, roughness:0.12,
+        clearcoat:1, clearcoatRoughness:0.12, emissive:0x0c2a3a, emissiveIntensity:0.4, envMapIntensity:1.5 });
+      solidGroup = new THREE.Group();
+      const pitch=0.5, off=0.08;
+      const xs=[-(pitch*1.5+off), -(pitch*0.5+off), (pitch*0.5+off), (pitch*1.5+off)];
+      solidMeshes=[];
+      for(let i=0;i<4;i++){
+        const m=new THREE.Mesh(undefined, mat); m.position.x=xs[i]; solidGroup.add(m); solidMeshes.push(m);
+      }
+      // 콜론(작은 입체 점 2개) — 글자 중앙 기준
+      solidColon = new THREE.Group();
+      const cmat=new THREE.MeshPhysicalMaterial({ color:0x9fe8ff, emissive:0x35c8ff, emissiveIntensity:0.8, metalness:0.3, roughness:0.2 });
+      [0.14,-0.14].forEach(y=>{ const dot=new THREE.Mesh(new THREE.BoxGeometry(0.08,0.08,0.12), cmat); dot.position.set(0,y,0); solidColon.add(dot); });
+      solidGroup.add(solidColon);
+      containerSolid = new THREE.Group(); containerSolid.add(solidGroup);
+      containerSolid.visible=false; scene.add(containerSolid);
+      applySolid(true);
+      if(active && mode==='face13'){ layout(); }
+    }).catch(()=>{ solidBuilt=false; });
+  }
+  function applySolid(force){
+    if(!solidFont) return;
+    const str=time.hh+time.mm;
+    for(let i=0;i<4;i++){
+      if(force || solidMeshes[i].userData.ch!==str[i]){
+        const old=solidMeshes[i].geometry; const g=glyphGeo(str[i]);
+        solidMeshes[i].geometry=g;
+        solidMeshes[i].userData.ch=str[i];
+        if(old) old.dispose();
+      }
+    }
+    if(solidColon) solidColon.visible = (parseInt(time.ss,10)%2)===0;   // 콜론 깜빡임
+  }
+
+  // ---- 아날로그 스테이지(face14): 입체 다이얼 + 바늘 -------------------
+  function buildAnalog(){
+    if(analogBuilt) return; analogBuilt=true;
+    const grp = new THREE.Group();
+    // 다이얼 링
+    const ringMat = new THREE.MeshStandardMaterial({ color:0x0a2a33, emissive:NEON, emissiveIntensity:1.2, metalness:0.3, roughness:0.4 });
+    grp.add(new THREE.Mesh(new THREE.TorusGeometry(0.5, 0.035, 16, 72), ringMat));
+    // 12눈금(3·6·9·12 굵게)
+    const tickMat = new THREE.MeshStandardMaterial({ color:0x0a2a33, emissive:NEON, emissiveIntensity:1.0 });
+    for(let i=0;i<12;i++){
+      const big=(i%3===0), a=i/12*Math.PI*2;
+      const t=new THREE.Mesh(new THREE.BoxGeometry(big?0.05:0.022, big?0.13:0.07, 0.03), tickMat);
+      t.position.set(Math.sin(a)*0.42, Math.cos(a)*0.42, 0); t.rotation.z=-a; grp.add(t);
+    }
+    // 중심 허브
+    grp.add(new THREE.Mesh(new THREE.SphereGeometry(0.035,16,12),
+      new THREE.MeshStandardMaterial({ color:0xffffff, emissive:0x99e8ff, emissiveIntensity:0.8 })));
+    // 바늘(중심에서 위로 뻗는 박스를 그룹 회전)
+    function hand(len,w,color,emi,z){
+      const g=new THREE.Group();
+      const m=new THREE.Mesh(new THREE.BoxGeometry(w,len,0.025),
+        new THREE.MeshStandardMaterial({ color:0x0a1418, emissive:color, emissiveIntensity:emi }));
+      m.position.set(0, len/2-0.05, z); g.add(m); return g;
+    }
+    analogHands = {
+      h: hand(0.30,0.045,0xeafcff,1.0,0.01),
+      m: hand(0.44,0.028,0xbfefff,1.1,0.02),
+      s: hand(0.47,0.012,0xff4fd8,1.4,0.03),
+    };
+    grp.add(analogHands.h, analogHands.m, analogHands.s);
+    analogGroup = grp;
+    containerAnalog = new THREE.Group(); containerAnalog.add(grp);
+    containerAnalog.visible=false; scene.add(containerAnalog);
+    updateAnalog();
+  }
+  function updateAnalog(){
+    if(!analogHands) return;
+    const d=new Date();
+    const s=d.getSeconds()+d.getMilliseconds()/1000;
+    const m=d.getMinutes()+s/60;
+    const h=(d.getHours()%12)+m/60;
+    analogHands.h.rotation.z = -(h/12)*Math.PI*2;   // 12시=위, 시계방향
+    analogHands.m.rotation.z = -(m/60)*Math.PI*2;
+    analogHands.s.rotation.z = -(s/60)*Math.PI*2;
+  }
+
+  // 바닥/벽 그리드 + 크레이즈 — screenLen 변할 때마다 재생성
+  const floorGrid=new THREE.Group(), wallGrid=new THREE.Group();
+  function buildRoom(){
+    room.add(floorGrid, wallGrid);
+  }
+  function rebuildGrids(){
+    [floorGrid,wallGrid].forEach(grp=>{ while(grp.children.length){ const c=grp.children.pop(); c.geometry.dispose(); } });
+    const half=1.0, L=screenLen, div=8;
+    const pts=a=>{ const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.BufferAttribute(new Float32Array(a),3)); return g; };
+    const gmat=o=>new THREE.LineBasicMaterial({ color:0x2bd6ff, transparent:true, opacity:o, blending:THREE.AdditiveBlending, depthWrite:false });
+    // 바닥: y=0, z 0..L
+    const fs=[]; for(let i=0;i<=div;i++){ const x=-half+2*half*i/div; fs.push(x,0,0, x,0,L); }
+    for(let j=0;j<=div;j++){ const z=L*j/div; fs.push(-half,0,z, half,0,z); }
+    floorGrid.add(new THREE.LineSegments(pts(fs), gmat(0.35)));
+    // 벽: 경첩 각도에 맞춰 기울인 평면 (방향 d=(0,sinθ,cosθ))
+    const sy=Math.sin(hingeRad), sz=Math.cos(hingeRad);
+    const ws=[]; for(let i=0;i<=div;i++){ const x=-half+2*half*i/div; ws.push(x,0,0, x,L*sy,L*sz); }
+    for(let j=0;j<=div;j++){ const t=L*j/div; ws.push(-half,t*sy,t*sz, half,t*sy,t*sz); }
+    wallGrid.add(new THREE.LineSegments(pts(ws), gmat(0.28)));
+    // 크레이즈(밝은 접는 선)
+    floorGrid.add(new THREE.LineSegments(pts([-half,0,0, half,0,0]),
+      new THREE.LineBasicMaterial({ color:0x7af6ff, transparent:true, opacity:0.9, blending:THREE.AdditiveBlending, depthWrite:false })));
+  }
+
+  // ---- off-axis 투영(Kooima 일반화 원근) ------------------------------
+  const _vr=new THREE.Vector3(),_vu=new THREE.Vector3(),_vn=new THREE.Vector3();
+  const _va=new THREE.Vector3(),_vb=new THREE.Vector3(),_vc=new THREE.Vector3();
+  const _M=new THREE.Matrix4(),_T=new THREE.Matrix4();
+  function offAxis(cam,pa,pb,pc,pe,near,far){
+    _vr.subVectors(pb,pa).normalize(); _vu.subVectors(pc,pa).normalize(); _vn.crossVectors(_vr,_vu).normalize();
+    _va.subVectors(pa,pe); _vb.subVectors(pb,pe); _vc.subVectors(pc,pe);
+    const dist=-_va.dot(_vn), nd=near/dist;
+    const l=_vr.dot(_va)*nd, r=_vr.dot(_vb)*nd, b=_vu.dot(_va)*nd, t=_vu.dot(_vc)*nd;
+    cam.projectionMatrix.makePerspective(l,r,t,b,near,far);
+    cam.projectionMatrixInverse.copy(cam.projectionMatrix).invert();
+    _M.set(_vr.x,_vr.y,_vr.z,0, _vu.x,_vu.y,_vu.z,0, _vn.x,_vn.y,_vn.z,0, 0,0,0,1);
+    _T.makeTranslation(-pe.x,-pe.y,-pe.z);
+    const view=_M.multiply(_T);
+    cam.matrixWorld.copy(view).invert(); cam.matrixWorldInverse.copy(view);
+  }
+  const eye=new THREE.Vector3(), pa=new THREE.Vector3(), pb=new THREE.Vector3(), pc=new THREE.Vector3();
+  function updateCameras(){
+    const L=screenLen, hx=1.0, sy=Math.sin(hingeRad), sz=Math.cos(hingeRad);
+    eye.set(0, EYE_Y, EYE_Z);   // 50cm·45° — 절대 월드단위
+    // 벽(상단): 경첩 각도로 기울임. 아래모서리 좌/우, 위모서리 좌.
+    pa.set(-hx,0,0); pb.set(hx,0,0); pc.set(-hx, L*sy, L*sz);
+    offAxis(wallCam, pa,pb,pc, eye, 0.5, 80);
+    // 바닥(하단): 근단(z=L)이 시청자 쪽.
+    pa.set(-hx,0,L); pb.set(hx,0,L); pc.set(-hx,0,0);
+    offAxis(floorCam, pa,pb,pc, eye, 0.5, 80);
+  }
+
+  function layout(){
+    const L=screenLen;
+    if(container) container.visible=false;
+    if(containerSolid) containerSolid.visible=false;
+    if(containerAnalog) containerAnalog.visible=false;
+    shadow.visible=false;
+    if(mode==='face12'){
+      container.visible=true;
+      container.position.set(0, PLACE.face12.y*L, PLACE.face12.z*L);
+      shadow.visible=true; shadow.position.set(0, 0.004, PLACE.face12.z*L);
+      const sw=1.9; shadow.scale.set(sw,sw,sw);   // 숫자 아래 빛 웅덩이(부유 단서)
+    } else if(mode==='face13' && containerSolid){
+      containerSolid.visible=true;
+      containerSolid.position.set(0, PLACE.face13.y*L, PLACE.face13.z*L);
+      containerSolid.scale.setScalar(SOLID_SCALE);
+    } else if(mode==='face14' && containerAnalog){
+      containerAnalog.visible=true;
+      containerAnalog.position.set(0, PLACE.face14.y*L, PLACE.face14.z*L);
+      containerAnalog.scale.setScalar(ANALOG_SCALE);
+    }
+  }
+
+  function resize(){
+    if(!built) return;
+    W = canvas.clientWidth || window.innerWidth;
+    H = canvas.clientHeight || window.innerHeight;
+    renderer.setSize(W, H, false);
+    screenLen = 2.0 * ((H/2)/W);   // 각 절반의 월드 높이(x 가 2 폭)
+    rebuildGrids(); layout(); updateCameras();
+  }
+
+  // ---- 시간 적용 -------------------------------------------------------
+  function applyNeon(){
+    const d = digitsGroup.userData.d;
+    const str = time.hh + time.mm;
+    for(let i=0;i<4;i++) setDigit(d[i], str[i]);
+    // 콜론 깜빡임(짝수 초 점등)
+    const on = (parseInt(time.ss,10)%2)===0;
+    digitsGroup.userData.colon.children.forEach(dot=> dot.material = on?SEG_ON:SEG_OFF);
+  }
+  function applyTime(){
+    if(!built) return;
+    if(mode==='face12') applyNeon();
+    else if(mode==='face13') applySolid(false);
+    // face14(아날로그)는 frame()에서 매끄럽게 갱신
+  }
+  function setTime(hh,mm,ss){
+    time.hh=hh; time.mm=mm; time.ss=ss;
+    applyTime();
+  }
+
+  // ---- 경첩 각도(네이티브) --------------------------------------------
+  window.__foldHinge = function(deg){
+    if(typeof deg!=='number' || !isFinite(deg) || deg<=0) return;
+    tryRegister();                         // 경첩 센서가 값을 주면 폴드 단말 확정
+    hingeRad = Math.max(0.35, Math.min(Math.PI*0.98, deg*Math.PI/180));
+    if(built){ rebuildGrids(); updateCameras(); }
+  };
+
+  // ---- 렌더 루프 -------------------------------------------------------
+  let last=performance.now();
+  function frame(now){
+    const dt=Math.min(0.05,(now-last)/1000); last=now;
+    const t=now/1000;
+    if(mode==='face12'){
+      // 네온: 가독성 위해 회전 대신 미세한 흔들림 + 위아래 부유
+      digitsGroup.rotation.y = Math.sin(t*0.5)*0.12;
+      digitsGroup.position.y = Math.sin(t*0.9)*0.03;
+    } else if(mode==='face13' && solidGroup){
+      // 솔리드: 좌우로만 아주 살짝 흔들어 입체감
+      solidGroup.rotation.y = Math.sin(t*0.4)*0.06;
+    } else if(mode==='face14'){
+      // 아날로그: 바늘을 실시간으로 매끄럽게 갱신 + 미세 흔들림
+      updateAnalog();
+      if(analogGroup) analogGroup.rotation.y = Math.sin(t*0.35)*0.05;
+    }
+    if(stars) stars.rotation.y = t*0.008;
+
+    renderer.setScissorTest(true);
+    renderer.setViewport(0, H/2, W, H/2); renderer.setScissor(0, H/2, W, H/2); renderer.render(scene, wallCam);
+    renderer.setViewport(0, 0, W, H/2);   renderer.setScissor(0, 0, W, H/2);   renderer.render(scene, floorCam);
+    raf = requestAnimationFrame(frame);
+  }
+
+  // ---- 외부 API(메인 IIFE 가 호출) ------------------------------------
+  let hintTimer=0;
+  window.Fold3D = {
+    // id = 현재 활성 face id. 폴드 페이스(face12/13)면 해당 스타일로 렌더, 아니면 정지.
+    setActive(id){
+      const isFold = (id==='face12' || id==='face13' || id==='face14');
+      if(isFold){
+        mode = id;
+        build();
+        if(id==='face13') buildSolid();    // 폰트 비동기 로드(최초 1회)
+        if(id==='face14') buildAnalog();   // 아날로그 즉시 생성
+        overlay.style.display='block';
+        active = true;
+        requestAnimationFrame(()=>{ resize(); applyTime();
+          if(!raf){ last=performance.now(); raf=requestAnimationFrame(frame); } });
+        // 진입 안내 표시 후 자동 숨김
+        if(hint){ hint.classList.remove('gone'); clearTimeout(hintTimer); hintTimer=setTimeout(()=>hint.classList.add('gone'), 8000); }
+      } else {
+        active = false;
+        overlay.style.display='none';
+        if(raf){ cancelAnimationFrame(raf); raf=0; }
+      }
+    },
+    setTime
+  };
+
+  window.addEventListener('resize', ()=>{ if(active) resize(); });
 })();
 </script>
 </body>

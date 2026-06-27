@@ -1,4 +1,4 @@
-const CACHE_NAME = 'deskclock-v7';
+const CACHE_NAME = 'deskclock-v8';
 const CORE_ASSETS = [
   './',
   'index.html',
@@ -6,7 +6,11 @@ const CORE_ASSETS = [
   'fonts/jost-var.woff2',
   'fonts/archivo-var.woff2',
   'fonts/orbitron-var.woff2',
-  'fonts/anton-400.woff2'
+  'fonts/anton-400.woff2',
+  'vendor/three.module.js',
+  'vendor/FontLoader.js',
+  'vendor/TextGeometry.js',
+  'vendor/helvetiker_bold.typeface.json'
 ];
 
 self.addEventListener('install', event => {
