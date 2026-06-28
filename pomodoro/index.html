@@ -76,7 +76,7 @@
       box-shadow: 0 22px 54px -14px rgba(178,80,30,.45), inset 0 0 0 1px rgba(255,255,255,.45);
     }
     .hub {
-      position: relative; width: 78px; height: 78px; border-radius: 50%; background: #FFFDFB;
+      position: relative; width: 117px; height: 117px; border-radius: 50%; background: #FFFDFB;
       display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
       box-shadow: 0 8px 22px -8px rgba(120,60,20,.4), inset 0 0 0 1px rgba(178,120,70,.12);
     }
@@ -144,25 +144,11 @@
     .tplus { font-size: 16px; font-weight: 800; line-height: 1; color: #FF5A1F; margin-left: 1px; }
     body.dark .tplus { color: #FF8A4A; }
 
-    /* hub: small phase word + subtle remaining-minutes number */
+    /* hub: small phase word + subtle remaining MM:SS readout */
     .hubphase { font-size: 11px; font-weight: 700; letter-spacing: .12em; }
-    /* translateY corrects the optical lift of digits (empty descender space) */
-    .hubmin { font-size: 26px; font-weight: 600; line-height: 1; color: rgba(92,70,52,.4); transform: translateY(1.5px); }
-
-    /* running indicator — a status-LED dot just OUTSIDE the pie rim at the
-       lower-right (≈4:30), on the beige, blinking in the current phase colour.
-       A soft glow of its own colour makes it read on the light background. Hidden when stopped. */
-    .run-dot {
-      position: absolute; left: 89%; top: 89%;
-      transform: translate(-50%, -50%);
-      width: 10px; height: 10px; border-radius: 50%;
-      background: currentColor; color: #FF5A1F;
-      box-shadow: 0 0 9px 2px currentColor, 0 1px 2px rgba(120,60,20,.35);
-      opacity: 0; z-index: 5; pointer-events: none;
-    }
-    .dial.running .run-dot { animation: runblink 1.1s ease-in-out infinite; }
-    @keyframes runblink { 0%, 100% { opacity: 1; } 50% { opacity: .12; } }
-
+    /* translateY corrects the optical lift of digits (empty descender space);
+       tabular-nums keeps the MM:SS from jittering as the seconds tick. */
+    .hubmin { font-size: 27px; font-weight: 600; line-height: 1; color: rgba(92,70,52,.4); transform: translateY(1.5px); font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
 
     
 
@@ -296,7 +282,6 @@
       <div class="ticks"></div>
       <div class="pie" id="pie"></div>
       <div class="hub" id="hub"></div>
-      <div class="run-dot" id="runDot" aria-hidden="true"></div>
     </div>
 
     <!-- footer -->
@@ -685,7 +670,6 @@
       pie: document.getElementById('pie'),
       hub: document.getElementById('hub'),
       dial: document.querySelector('.dial'),
-      runDot: document.getElementById('runDot'),
       pillShort: document.getElementById('pillShort'),
       pillLong: document.getElementById('pillLong'),
       pillCustom: document.getElementById('pillCustom'),
@@ -725,8 +709,11 @@
       el.pie.style.background = `conic-gradient(from 0deg, ${stops.join(', ')})`;
 
       const accent = isWork ? workCol : breakCol;
-      const mins = Math.max(0, Math.ceil(state.remaining / 60));
-      el.hub.innerHTML = `<span class="hubmin" style="color:${accent}">${mins}</span>`;
+      const totalSec = Math.max(0, Math.ceil(state.remaining));
+      const mm = Math.floor(totalSec / 60);
+      const ss = totalSec % 60;
+      const clock = `${mm}:${String(ss).padStart(2, '0')}`;
+      el.hub.innerHTML = `<span class="hubmin" style="color:${accent}">${clock}</span>`;
 
       el.pillShort.classList.toggle('active', state.mode === 'focus25');
       el.pillLong.classList.toggle('active', state.mode === 'deep50');
@@ -736,10 +723,6 @@
         : CUSTOM_ICON;
 
       el.play.innerHTML = state.running ? PAUSE : PLAY;
-
-      // running indicator: blink the status-LED dot in the current phase colour
-      el.dial.classList.toggle('running', state.running);
-      el.runDot.style.color = accent;
 
       // today's pomodoros: up to 5 dots, then a "+" once you pass five
       const done = dayCount();
