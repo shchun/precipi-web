@@ -162,6 +162,9 @@
       width: 100%; max-width: 320px; padding: 24px 22px 18px;
       border-radius: 22px; background: #FFFDFB; text-align: center;
       box-shadow: 0 24px 60px -16px rgba(120,60,20,.5);
+      /* never taller than the viewport — in short landscape the help list would
+         otherwise overflow off-screen top & bottom; scroll inside instead. */
+      max-height: calc(100dvh - 36px); overflow-y: auto;
     }
     .confirm-msg { font-size: 16px; font-weight: 500; color: #5A3A22; line-height: 1.4; }
     .confirm-actions { display: flex; gap: 10px; margin-top: 20px; }
@@ -225,6 +228,11 @@
       .controls { gap: 16px; }
       .play { width: 80px; height: 80px; }
       .reset, .spacer { width: 50px; height: 50px; }
+      /* dialogs (esp. the help list) get tight in short landscape — slim the
+         overlay padding and list spacing so they fit without scrolling. */
+      .confirm { padding: 12px; }
+      .help-list { margin: 12px 0 2px; }
+      .help-list li { padding: 4px 0 4px 22px; line-height: 1.4; }
     }
 
     /* ── dark theme ──────────────────────────────────────────────
