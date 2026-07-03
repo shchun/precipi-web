@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pomodoro-timer-v22';
+const CACHE_NAME = 'pomodoro-timer-v23';
 const urlsToCache = [
   './',
   'index.html',
@@ -81,7 +81,7 @@ self.addEventListener('fetch', event => {
 self.addEventListener('sync', event => {
   if (event.tag === 'sync-notifications') {
     event.waitUntil(
-      self.registration.showNotification('Pomodoro Timer', {
+      self.registration.showNotification('Domado Timer', {
         body: 'Session complete!',
         icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192"><rect width="192" height="192" rx="42" fill="%23FCE3D2"/><circle cx="96" cy="96" r="44" fill="%23FF5A1F"/></svg>',
         badge: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192"><circle cx="96" cy="96" r="96" fill="%23FF7A42"/></svg>',
@@ -103,7 +103,7 @@ self.addEventListener('push', event => {
     tag: 'pomodoro-notification'
   };
 
-  event.waitUntil(self.registration.showNotification('Pomodoro Timer', options));
+  event.waitUntil(self.registration.showNotification('Domado Timer', options));
 });
 
 // Handle notification clicks

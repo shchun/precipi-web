@@ -1,6 +1,6 @@
 {
-  "name": "Pomodoro Timer",
-  "short_name": "Pomodoro",
+  "name": "Domado Timer",
+  "short_name": "Domado",
   "description": "A beautiful pomodoro timer app to boost your productivity",
   "start_url": ".",
   "scope": "./",

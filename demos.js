@@ -104,7 +104,7 @@ const demos = [
   {
     icon: "🍅",
     title: "뽀모도로 타이머",
-    titleEn: "Pomodoro Timer",
+    titleEn: "Domado Timer",
     desc: "25·50분 집중과 휴식을 반복하는 미니멀 뽀모도로 타이머입니다. 집중 중 방해 금지, 전체화면, 백그라운드 동작을 지원합니다.",
     descEn: "A minimal pomodoro timer cycling focus and break. Supports Do-Not-Disturb during focus, full screen, and background running.",
     href: "pomodoro/index.html",

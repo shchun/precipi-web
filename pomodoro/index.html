@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#FCE3D2" id="themeColorMeta">
   <meta name="description" content="A minimal pomodoro timer with a warm pie-dial that steps down every ten seconds. Short (25/5) and long (50/10) focus sessions.">
-  <title>Pomodoro Timer</title>
+  <title>Domado Timer</title>
   <link rel="manifest" href="manifest.json">
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='42' fill='%23FCE3D2'/><circle cx='96' cy='96' r='44' fill='%23FF5A1F'/><path d='M96 96 V48 A48 48 0 0 1 144 96 Z' fill='%23FF7A3D'/><circle cx='96' cy='96' r='14' fill='%23FFFDFB'/></svg>">
   <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='42' fill='%23FCE3D2'/><circle cx='96' cy='96' r='44' fill='%23FF5A1F'/><path d='M96 96 V48 A48 48 0 0 1 144 96 Z' fill='%23FF7A3D'/><circle cx='96' cy='96' r='14' fill='%23FFFDFB'/></svg>">
@@ -879,7 +879,7 @@
     //    impossible to miss — a red banner + console warning. Setting SPEED = 1
     //    (the production value) removes both automatically.
     if (SPEED !== 1) {
-      console.warn(`⚠ Pomodoro TEST MODE: clock runs ${SPEED}× faster (min→sec). Set SPEED = 1 before deploying.`);
+      console.warn(`⚠ Domado TEST MODE: clock runs ${SPEED}× faster (min→sec). Set SPEED = 1 before deploying.`);
       const warn = document.createElement('div');
       warn.textContent = `⚡ TEST MODE ${SPEED}× (min→sec) — set SPEED = 1 before deploy`;
       warn.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:200;text-align:center;'
