@@ -430,6 +430,23 @@
           phase: 'work',
           remaining: DUR[state.mode].work,
         }),
+
+        // Validate persisted/bridge data before it reaches the timer or dial.
+        restoreState: (s, now, speed) => {
+          if (!s || !['focus25', 'deep50', 'custom'].includes(s.mode)
+              || !['work', 'break'].includes(s.phase) || typeof s.running !== 'boolean'
+              || !Number.isFinite(s.workSec) || s.workSec < 60 || s.workSec > 7200
+              || !Number.isFinite(s.breakSec) || s.breakSec < 60 || s.breakSec > 3600
+              || !Number.isInteger(s.completed) || s.completed < 0
+              || !Number.isFinite(s.remaining) || s.remaining < 0
+              || (s.running && (!Number.isFinite(s.targetEnd) || s.targetEnd <= 0))) return null;
+          return {
+            mode: s.mode, phase: s.phase, running: s.running, completed: s.completed,
+            targetEnd: s.running ? s.targetEnd : null,
+            remaining: s.running ? Math.max(0, (s.targetEnd - now) / 1000 * speed)
+              : Math.min(s.remaining, s.phase === 'work' ? s.workSec : s.breakSec),
+          };
+        },
       };
       if (typeof module !== 'undefined' && module.exports) module.exports = Core;
       else root.PomodoroCore = Core;
@@ -464,15 +481,23 @@
     // today's finished-pomodoro tally (local only — no sync). Stored with the date
     // so it rolls back to 0 at midnight; reading it always re-checks the date, so a
     // session left open across midnight resets on the next render.
-    const dayKey = () => new Date().toLocaleDateString('en-CA');   // YYYY-MM-DD, local
+    const dayKey = (at = Date.now()) => new Date(at).toLocaleDateString('en-CA');
     function dayCount() {
       let o = {};
       try { o = JSON.parse(localStorage.getItem('pomodoro-daycount')) || {}; } catch (e) {}
       return o.date === dayKey() ? (o.count || 0) : 0;
     }
-    function addPomodoro() {
-      const n = dayCount() + 1;
-      try { localStorage.setItem('pomodoro-daycount', JSON.stringify({ date: dayKey(), count: n })); } catch (e) {}
+    function addPomodoro(at, id = 'work:' + at) {
+      if (!Number.isFinite(at) || dayKey(at) !== dayKey()) return;
+      try {
+        let tally = JSON.parse(localStorage.getItem('pomodoro-daycount'));
+        if (!tally || tally.date !== dayKey()) tally = { date: dayKey(), count: 0, ids: [] };
+        if (!Array.isArray(tally.ids)) tally.ids = [];
+        if (tally.ids.includes(id)) return;
+        tally.ids.push(id);
+        tally.count = (Number(tally.count) || 0) + 1;
+        localStorage.setItem('pomodoro-daycount', JSON.stringify(tally));
+      } catch (e) {}
     }
 
     // ⚠ TEMP TESTING — MUST BE 1 IN PRODUCTION.
@@ -533,19 +558,40 @@
       return { mode: state.mode, mode_label: w + '/' + b };
     }
 
-    function cancelBoundary()        { if (Native) Native.stopTimer().catch(() => {}); }
+    let stateRevision = 0;
+    let nativeWrites = Promise.resolve();
+    function timerSnapshot() {
+      return Object.assign({}, state, {
+        workSec: DUR[state.mode].work, breakSec: DUR[state.mode].break, loop,
+      });
+    }
+    function persistTimer() {
+      stateRevision++;
+      const snapshot = timerSnapshot();
+      if (!Native) {
+        try { localStorage.setItem('pomodoro-timer-v1', JSON.stringify(snapshot)); } catch (e) {}
+      }
+      return snapshot;
+    }
+    function applySnapshot(snapshot) {
+      const restored = PomodoroCore.restoreState(snapshot, Date.now(), SPEED);
+      if (!restored) return false;
+      DUR[restored.mode] = { work: snapshot.workSec, break: snapshot.breakSec };
+      if (restored.mode === 'custom') customSet = true;
+      Object.assign(state, restored);
+      return true;
+    }
+    function cancelBoundary() {
+      const snapshot = persistTimer();
+      if (Native) nativeWrites = nativeWrites.then(() => Native.stopTimer(snapshot)).catch(() => {});
+    }
     // Hand the running phase to native: it arms the boundary alarm and shows the
     // ongoing notification, and (while backgrounded) advances the whole work↔break
     // cycle itself. `nextPhase` is unused now — native derives it from the state.
     function scheduleBoundary(at, nextPhase) {
-      if (Native && at) Native.startTimer({
-        at,
-        phase: state.phase,
-        workSec: DUR[state.mode].work,
-        breakSec: DUR[state.mode].break,
-        loop,
-        completed: state.completed,
-      }).catch(() => {});
+      const snapshot = persistTimer();
+      if (Native && at) nativeWrites = nativeWrites
+        .then(() => Native.startTimer(Object.assign({ at }, snapshot))).catch(() => {});
     }
 
     // On returning to the foreground, adopt native's authoritative snapshot: while
@@ -553,16 +599,18 @@
     // it handled the sync (native present), false on the web.
     async function syncFromNative() {
       if (!Native || !Native.getState) return false;
+      const revision = stateRevision;
       try {
+        await nativeWrites;
         const s = await Native.getState();
-        if (!s || typeof s.running === 'undefined') return false;
-        state.phase = s.phase;
-        state.completed = s.completed;
-        state.running = s.running;
-        state.targetEnd = s.running ? s.targetEnd : null;
-        state.remaining = s.running ? Math.max(0, secsLeft(s.targetEnd)) : dur();
+        if (s && Array.isArray(s.completions)) {
+          for (const event of s.completions) addPomodoro(event.at, event.id);
+        }
+        if (revision !== stateRevision) return true;
+        if (!applySnapshot(s)) return false;
         render();
         if (state.running) requestWakeLock();
+        else releaseWakeLock();
       } catch (e) { return false; }
       return true;
     }
@@ -631,9 +679,18 @@
 
     function tick() {
       if (!state.running || !state.targetEnd) return;
-      const st = PomodoroCore.tickStatus(state.targetEnd, Date.now(), SPEED);
-      if (st.done) { complete(); return; }
-      state.remaining = st.remaining; render();
+      const now = Date.now();
+      let advanced = false;
+      while (state.running && state.targetEnd <= now) {
+        complete(state.targetEnd, true);
+        advanced = true;
+      }
+      if (state.running) state.remaining = Math.max(0, (state.targetEnd - now) / 1000 * SPEED);
+      if (advanced) {
+        if (!reconciling) buzz(state.phase);
+        publishTransition();
+      }
+      render();
     }
     // mode-change vibration — distinct patterns for focus vs break.
     // navigator.vibrate works on Android browsers (and the future Capacitor APK
@@ -647,7 +704,7 @@
       navigator.vibrate(pat);
     }
 
-    function complete() {
+    function complete(boundaryAt = Date.now(), deferred = false) {
       // CORE decides the next phase; this function applies the side effects.
       const finished = state.phase;   // the phase that just elapsed (work/break)
       const next = PomodoroCore.completeNext(state, DUR, loop);
@@ -662,23 +719,32 @@
       }));
       // When catching up a boundary that already elapsed in the background, the
       // native side (or nobody, on the web) already buzzed — stay silent.
-      if (!reconciling) buzz(next.phase);
-      if (finished === 'work') addPomodoro();   // tomato dots: one per finished focus session today
+      if (!reconciling && !deferred) buzz(next.phase);
+      if (finished === 'work') {
+        const at = state.targetEnd || Date.now();
+        addPomodoro(at);
+        if (Native) nativeWrites = nativeWrites
+          .then(() => Native.recordCompletion({ at })).catch(() => {});
+      }
       state.phase = next.phase;
       state.completed = next.completed;
       state.remaining = next.remaining;
       // Roll straight into the break after work. After the break, stop back to
       // standby — unless continuous mode is on, then cycle into the next work.
       state.running = next.running;
-      state.targetEnd = state.running ? Date.now() + msFor(next.remaining) : null;
+      state.targetEnd = state.running ? boundaryAt + msFor(next.remaining) : null;
+      if (!deferred) { publishTransition(); render(); }
+    }
+
+    // Publish only the final reconciled state, never rearm expired boundaries.
+    function publishTransition() {
       if (state.running) {
-        scheduleBoundary(state.targetEnd, next.nextBoundaryPhase);
+        scheduleBoundary(state.targetEnd);
         requestWakeLock();                                      // still running → keep screen on
       } else {
         cancelBoundary();                                       // set finished
         releaseWakeLock();                                      // standby → allow screen to sleep
       }
-      render();
     }
 
     // ── render ────────────────────────────────────────────────
@@ -796,11 +862,15 @@
     function saveCustom() {
       const w = Math.min(120, Math.max(1, parseInt(custWork.value, 10) || 1));
       const b = Math.min(60, Math.max(1, parseInt(custBreak.value, 10) || 1));
-      DUR.custom = { work: w * 60, break: b * 60 };
-      customSet = true;
-      try { localStorage.setItem('pomodoro-custom', JSON.stringify(DUR.custom)); } catch (e) {}
       hideCustom();
-      setMode('custom');
+      const applyCustom = () => {
+        DUR.custom = { work: w * 60, break: b * 60 };
+        customSet = true;
+        try { localStorage.setItem('pomodoro-custom', JSON.stringify(DUR.custom)); } catch (e) {}
+        setMode('custom');
+      };
+      if (sessionInProgress()) askConfirm('Change custom timer? This resets the timer.', 'Change', applyCustom);
+      else applyCustom();
     }
     document.getElementById('custCancel').addEventListener('click', hideCustom);
     document.getElementById('custSave').addEventListener('click', saveCustom);
@@ -812,6 +882,11 @@
     loopChk.addEventListener('change', () => {
       loop = loopChk.checked;
       try { localStorage.setItem('pomodoro-loop', loop ? '1' : '0'); } catch (e) {}
+      const snapshot = persistTimer();
+      // Change only the repeat preference: do not restart the current phase or
+      // replace native state that may already have crossed a phase boundary.
+      if (Native) nativeWrites = nativeWrites
+        .then(() => Native.updateLoop({ loop: snapshot.loop })).catch(() => {});
       track('loop_toggle', { enabled: loop });
     });
 
@@ -871,7 +946,15 @@
 
     // Cold start on native: if a session is still running (the app was closed, not
     // paused), resume from native's snapshot instead of standing idle.
-    syncFromNative();
+    if (Native) {
+      syncFromNative();
+    } else {
+      try { applySnapshot(JSON.parse(localStorage.getItem('pomodoro-timer-v1'))); } catch (e) {}
+      reconciling = true;
+      tick();
+      reconciling = false;
+      if (state.running) requestWakeLock();
+    }
 
     render();
 
