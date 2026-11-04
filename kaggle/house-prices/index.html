@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>House Prices — Lesson Learned</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #172033;
+      --muted: #62708a;
+      --paper: #f5f7fb;
+      --card: #ffffff;
+      --line: #dfe5ef;
+      --blue: #2357d9;
+      --blue-soft: #eaf0ff;
+      --green: #167a55;
+      --green-soft: #e7f7f0;
+      --orange: #9b5517;
+      --orange-soft: #fff1df;
+      font-family: Inter, Pretendard, "Noto Sans KR", system-ui, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; color: var(--ink); background: var(--paper); line-height: 1.65; }
+    header { padding: 64px 24px 52px; color: white; background: linear-gradient(135deg, #132b68, #245bdd 68%, #4b7df0); }
+    header > div, main { width: min(960px, calc(100% - 36px)); margin: auto; }
+    .eyebrow { margin: 0 0 8px; opacity: .78; font-size: .82rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+    h1 { margin: 0; font-size: clamp(2rem, 6vw, 4rem); line-height: 1.08; letter-spacing: -.04em; }
+    header p { max-width: 660px; margin: 18px 0 0; opacity: .88; }
+    main { padding: 36px 0 80px; }
+    section { margin: 0 0 24px; padding: 28px; border: 1px solid var(--line); border-radius: 18px; background: var(--card); box-shadow: 0 8px 28px rgba(31, 48, 82, .06); }
+    h2 { margin: 0 0 18px; font-size: 1.35rem; letter-spacing: -.02em; }
+    h3 { margin: 0 0 8px; font-size: 1rem; }
+    p { margin: 8px 0; }
+    code { padding: .12em .35em; border-radius: 5px; background: #edf1f7; font-family: "Cascadia Code", Consolas, monospace; font-size: .9em; }
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+    .card { padding: 20px; border: 1px solid var(--line); border-radius: 14px; }
+    .metric { margin-top: 12px; color: var(--blue); font-size: 1.85rem; font-weight: 800; }
+    .label { color: var(--muted); font-size: .86rem; }
+    .callout { margin-top: 18px; padding: 16px 18px; border-left: 4px solid var(--orange); border-radius: 8px; background: var(--orange-soft); }
+    .success { border-left-color: var(--green); background: var(--green-soft); }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+    th, td { padding: 12px 14px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
+    th:first-child, td:first-child { text-align: left; }
+    th { color: var(--muted); font-size: .83rem; }
+    ul, ol { margin: 10px 0 0; padding-left: 1.3rem; }
+    li + li { margin-top: 7px; }
+    a { color: var(--blue); font-weight: 650; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .flow { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 16px; }
+    .step { padding: 8px 12px; border-radius: 999px; background: var(--blue-soft); color: #173d9f; font-size: .9rem; font-weight: 700; }
+    .arrow { color: var(--muted); }
+    footer { color: var(--muted); font-size: .86rem; text-align: center; }
+    @media (max-width: 680px) {
+      header { padding-top: 44px; }
+      section { padding: 22px 18px; }
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <p class="eyebrow">Kaggle · House Prices</p>
+      <h1>Lesson Learned</h1>
+      <p>검증 전략을 고정하고 Ridge와 HistGradientBoostingRegressor를 비교하며 배운 전처리와 범주형 인코딩의 핵심을 정리한다.</p>
+    </div>
+  </header>
+
+  <main>
+    <section>
+      <h2>이번 실험의 결론</h2>
+      <div class="grid">
+        <article class="card">
+          <h3>Ridge</h3>
+          <div class="metric">0.15208</div>
+          <div class="label">OOF RMSE (log)</div>
+          <p>선형 관계를 안정적으로 학습하는 기준 모델이다.</p>
+        </article>
+        <article class="card">
+          <h3>HistGradientBoosting</h3>
+          <div class="metric">0.13213</div>
+          <div class="label">OOF RMSE (log)</div>
+          <p>비선형 관계와 변수 간 상호작용을 학습해 점수를 약 13.1% 낮췄다.</p>
+        </article>
+      </div>
+      <div class="callout success">
+        점수는 좋아졌지만 전처리와 모델을 함께 바꿨다. 개선 원인을 모델 하나로 단정할 수 없는 비교라는 한계가 있다.
+      </div>
+    </section>
+
+    <section>
+      <h2>같은 조건에서 비교하기</h2>
+      <p>모델 비교에서는 같은 5-fold KFold 분할과 같은 평가 지표를 사용했다. 전처리의 <code>fit</code>은 각 학습 fold 안에서만 수행해 검증 데이터의 정보가 새지 않도록 했다.</p>
+      <div class="flow">
+        <span class="step">KFold 분할</span><span class="arrow">→</span>
+        <span class="step">fold 안에서 전처리 fit</span><span class="arrow">→</span>
+        <span class="step">모델 학습</span><span class="arrow">→</span>
+        <span class="step">OOF 예측</span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>모델</th><th>OOF RMSE</th><th>fold 평균</th><th>fold 표준편차</th><th>시간(초)</th></tr></thead>
+          <tbody>
+            <tr><td>Ridge</td><td>0.152076</td><td>0.146849</td><td>0.044194</td><td>0.208</td></tr>
+            <tr><td>HistGradientBoosting</td><td>0.132130</td><td>0.131672</td><td>0.012285</td><td>2.151</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <h2>모델에 따라 인코딩이 달라진다</h2>
+      <div class="grid">
+        <article class="card">
+          <h3>Ridge + OneHotEncoder</h3>
+          <p>Ridge는 숫자 행렬의 선형 결합을 학습한다. 범주를 임의의 숫자 하나로 바꾸면 숫자 사이의 거리와 순서를 의미로 받아들일 수 있다.</p>
+          <p><code>OneHotEncoder</code>는 범주마다 독립된 0/1 열을 만들어 이런 가짜 순서를 피한다. 수치형 열에는 스케일링도 적용한다.</p>
+        </article>
+        <article class="card">
+          <h3>HistGradientBoosting + OrdinalEncoder</h3>
+          <p><code>OrdinalEncoder</code>로 각 범주를 하나의 코드로 표현하고, <code>categorical_mask</code>로 어떤 열이 범주형인지 모델에 알려준다.</p>
+          <p>열 수가 크게 늘지 않아 트리 기반 모델에서 효율적이다.</p>
+        </article>
+      </div>
+      <div class="callout">
+        OrdinalEncoder의 0, 1, 2는 범주의 식별 코드다. 품질 순위를 뜻하지 않는다. 히스토그램의 bin을 만드는 과정은 모델 내부의 별도 동작이다.
+      </div>
+    </section>
+
+    <section>
+      <h2>두 모델의 기본 동작</h2>
+      <h3>Ridge</h3>
+      <p>여러 특성의 가중합으로 집값을 예측한다. 큰 계수에 L2 페널티를 주어 과도한 적합을 줄인다.</p>
+      <p><code>예측 = 절편 + β₁x₁ + β₂x₂ + …</code></p>
+      <h3>HistGradientBoostingRegressor</h3>
+      <p>연속값을 구간으로 묶은 뒤 작은 결정 트리를 순서대로 추가한다. 각 트리는 앞선 예측의 오차를 줄이는 방향을 학습한다. 선형 모델보다 비선형 관계와 특성 간 상호작용을 자연스럽게 표현한다.</p>
+    </section>
+
+    <section>
+      <h2>오류에서 배운 점</h2>
+      <p>HistGradientBoosting 실험에서 실수로 Ridge용 전처리기를 연결하자 OneHotEncoder가 79개 원본 열을 더 많은 열로 확장했다. 반면 <code>categorical_mask</code>는 원래 전처리 결과를 기준으로 만들어져 길이가 맞지 않았다.</p>
+      <ol>
+        <li>각 모델에 맞는 전처리기를 연결했는지 확인한다.</li>
+        <li>변환 후 열 수와 <code>categorical_mask</code> 길이가 같은지 확인한다.</li>
+        <li>Pipeline으로 전처리와 모델의 조합을 하나의 단위로 관리한다.</li>
+      </ol>
+    </section>
+
+    <section>
+      <h2>다음 실험</h2>
+      <ul>
+        <li>CatBoostRegressor로 범주형 특성을 직접 처리해 본다.</li>
+        <li>XGBoost 또는 LightGBM을 같은 KFold 조건에서 비교한다.</li>
+        <li>OOF 점수뿐 아니라 fold 간 변동과 학습 시간도 함께 기록한다.</li>
+        <li>검증 결과를 반복해서 보며 튜닝할 때 생기는 선택 편향을 기록한다.</li>
+      </ul>
+      <p>
+        <a href="https://github.com/shchun/kaggle/blob/main/competitions/house-prices-advanced-regression-techniques/notebooks/01-validation-strategies.ipynb">검증 전략 노트북</a> ·
+        <a href="https://github.com/shchun/kaggle/blob/main/competitions/house-prices-advanced-regression-techniques/notebooks/02-model-comparison.ipynb">모델 비교 노트북</a> ·
+        <a href="https://www.kaggle.com/competitions/house-prices-advanced-regression-techniques">Kaggle 대회</a>
+      </p>
+    </section>
+
+    <footer><a href="../">Kaggle 학습 기록</a> · 2026-11-05 · Python 3.12 · scikit-learn 1.9.1</footer>
+  </main>
+</body>
+</html>

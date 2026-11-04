@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kaggle 학습 기록 · Precipi</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: Inter, Pretendard, "Noto Sans KR", system-ui, sans-serif;
+      color: #172033;
+      background: #f4f7fb;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; }
+    header { padding: 64px 24px 52px; color: white; background: linear-gradient(135deg, #132b68, #245bdd 68%, #4b7df0); }
+    header > div, main { width: min(920px, calc(100% - 36px)); margin: auto; }
+    .back { color: rgba(255,255,255,.8); font-weight: 700; text-decoration: none; }
+    h1 { margin: 20px 0 8px; font-size: clamp(2rem, 6vw, 3.5rem); letter-spacing: -.04em; }
+    header p { margin: 0; opacity: .86; }
+    main { padding: 36px 0 72px; }
+    .card { display: block; padding: 26px; border: 1px solid #dfe5ef; border-radius: 18px; color: inherit; background: white; box-shadow: 0 8px 28px rgba(31,48,82,.07); text-decoration: none; transition: transform .2s, box-shadow .2s; }
+    .card:hover { transform: translateY(-3px); box-shadow: 0 13px 32px rgba(31,48,82,.13); }
+    h2 { margin: 0 0 8px; color: #2357d9; }
+    .card p { margin: 0 0 16px; line-height: 1.65; color: #62708a; }
+    .meta { font-size: .86rem; font-weight: 700; color: #167a55; }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <a class="back" href="../">← Precipi</a>
+      <h1>Kaggle 학습 기록</h1>
+      <p>대회를 풀며 검증하고 이해한 내용을 기록합니다.</p>
+    </div>
+  </header>
+  <main>
+    <a class="card" href="house-prices/">
+      <h2>House Prices</h2>
+      <p>검증 전략을 고정하고 Ridge와 HistGradientBoostingRegressor를 비교하며 배운 전처리와 범주형 인코딩을 정리했습니다.</p>
+      <span class="meta">2026-11-05 · 회귀 · 모델 비교</span>
+    </a>
+  </main>
+</body>
+</html>
