@@ -33,6 +33,8 @@
     h3 { margin: 0 0 8px; font-size: 1rem; }
     p { margin: 8px 0; }
     code { padding: .12em .35em; border-radius: 5px; background: #edf1f7; font-family: "Cascadia Code", Consolas, monospace; font-size: .9em; }
+    pre { overflow-x: auto; margin: 14px 0; padding: 16px 18px; border-radius: 12px; color: #e8eefc; background: #172033; line-height: 1.55; }
+    pre code { padding: 0; color: inherit; background: transparent; }
     .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
     .card { padding: 20px; border: 1px solid var(--line); border-radius: 14px; }
     .metric { margin-top: 12px; color: var(--blue); font-size: 1.85rem; font-weight: 800; }
@@ -149,6 +151,81 @@
     </section>
 
     <section>
+      <h2>복습: 읽기 쉬운 데이터 로딩</h2>
+      <p>사용하지 않을 가능성까지 모두 추측해 경로를 탐색하기보다 실제 실행 환경인 로컬과 Kaggle 두 곳을 명시한다. 짧은 조건문은 어느 경로를 먼저 확인하는지 바로 보여준다.</p>
+      <pre><code>local_path = Path("../data/train.csv")
+kaggle_path = Path(
+    "/kaggle/input/house-prices-advanced-regression-techniques/train.csv"
+)
+
+if local_path.is_file():
+    train_path = local_path
+elif kaggle_path.is_file():
+    train_path = kaggle_path
+else:
+    raise FileNotFoundError("train.csv를 찾을 수 없습니다.")</code></pre>
+      <p><code>next((p for p in candidates if p.is_file()), None)</code>도 첫 파일을 찾는 좋은 표현이지만, 여기서는 명시적인 조건문이 학습 목적에 더 잘 맞는다. 제너레이터는 함수 인자 하나이며 <code>*generator</code>처럼 별표를 붙일 때만 여러 인자로 펼쳐진다.</p>
+    </section>
+
+    <section>
+      <h2>복습: dtype은 출발점, 의미는 설명서에서 확인</h2>
+      <pre><code>numeric = X.select_dtypes(include="number").columns.tolist()
+categorical = X.select_dtypes(exclude="number").columns.tolist()
+
+X[numeric].hist(figsize=(18, 16), bins=30)</code></pre>
+      <p><code>df.info()</code>와 히스토그램으로 자료형과 분포를 먼저 살핀다. 값이 몇 개의 불규칙한 숫자에 몰려 있으면 범주 코드인지 의심하고 데이터 설명서에서 의미를 확인한다.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>컬럼</th><th>의미</th><th>판단</th></tr></thead>
+          <tbody>
+            <tr><td>MSSubClass</td><td>주택 유형 코드</td><td>숫자로 저장된 명목형 범주</td></tr>
+            <tr><td>OverallQual</td><td>전체 자재·마감 품질</td><td>1~10 순서형 등급</td></tr>
+            <tr><td>OverallCond</td><td>주택의 현재 상태</td><td>1~10 순서형 등급</td></tr>
+            <tr><td>LotFrontage</td><td>도로에 접한 대지 폭(ft)</td><td>수치형</td></tr>
+            <tr><td>LotArea</td><td>대지 전체 면적(ft²)</td><td>수치형</td></tr>
+            <tr><td>GrLivArea</td><td>지하실을 제외한 생활 면적(ft²)</td><td>수치형</td></tr>
+            <tr><td>YearRemodAdd</td><td>리모델링·증축 연도</td><td>연도, 1950 경계 집중에 주의</td></tr>
+            <tr><td>MasVnrArea</td><td>석재·벽돌 외장 면적(ft²)</td><td>수치형</td></tr>
+            <tr><td>BsmtFinSF1</td><td>첫 번째 유형으로 마감한 지하실 면적(ft²)</td><td>수치형</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout">
+        히스토그램은 질문을 만드는 도구다. 최종 분류는 숫자의 차이·순서·평균이 실제 의미를 갖는지 확인하고 설명서를 근거로 결정한다.
+      </div>
+    </section>
+
+    <section>
+      <h2>복습: Ridge 전처리 Pipeline</h2>
+      <p>숫자형은 중앙값 대치와 표준화, 범주형은 결측 범주 대치와 원핫 인코딩을 적용한다. <code>ColumnTransformer</code>가 두 결과를 합치고, 바깥 <code>Pipeline</code>이 전처리와 Ridge를 하나로 묶는다.</p>
+      <pre><code>ridge_model = Pipeline([
+    ("preprocess", ridge_preprocessor),
+    ("model", Ridge(alpha=10.0, solver="lsqr")),
+])</code></pre>
+      <ul>
+        <li><code>keep_empty_features=True</code>: 학습 fold에서 전부 결측인 컬럼도 유지해 출력 차원과 범주형 마스크의 불일치를 막는다.</li>
+        <li><code>handle_unknown="ignore"</code>: 학습 때 없었던 범주가 검증 데이터에 나타나도 오류 없이 처리한다.</li>
+        <li><code>alpha=10.0</code>: 계수 크기에 적용하는 L2 규제 강도다.</li>
+        <li><code>solver="lsqr"</code>: 원핫 인코딩으로 만들어진 희소 행렬에 적합한 반복 최소제곱 계산법이다.</li>
+      </ul>
+      <p>최소제곱, MSE와 RMSE는 규제가 없고 평가 행이 같을 때 같은 예측을 최적점으로 선택한다. Ridge 학습에는 여기에 L2 규제 항이 추가된다.</p>
+    </section>
+
+    <section>
+      <h2>복습: KFold와 OOF 예측</h2>
+      <pre><code>oof = np.full(len(X), np.nan)
+
+for fold, (train_idx, valid_idx) in enumerate(splits, start=1):
+    model.fit(X.iloc[train_idx], y.iloc[train_idx])
+    prediction = model.predict(X.iloc[valid_idx])
+    oof[valid_idx] = prediction
+
+assert not np.isnan(oof).any()</code></pre>
+      <p><code>kf.split(X)</code>는 데이터가 아니라 학습 행과 검증 행의 위치 인덱스를 반환하므로 <code>iloc</code>으로 선택한다. 각 fold의 검증 예측을 <code>oof[valid_idx]</code>에 저장하면 모든 행이 자신을 학습하지 않은 모델로 한 번씩 예측된다.</p>
+      <p>처음에 <code>NaN</code>으로 채워두면 분할이나 대입 실수로 예측되지 않은 행을 마지막 검증에서 발견할 수 있다.</p>
+    </section>
+
+    <section>
       <h2>다음 실험</h2>
       <ul>
         <li>CatBoostRegressor로 범주형 특성을 직접 처리해 본다.</li>
@@ -163,7 +240,7 @@
       </p>
     </section>
 
-    <footer><a href="../">Kaggle 학습 기록</a> · 2026-11-05 · Python 3.12 · scikit-learn 1.9.1</footer>
+    <footer><a href="../">Kaggle 학습 기록</a> · 2026-11-06 · Python 3.12 · scikit-learn 1.9.1</footer>
   </main>
 </body>
 </html>
