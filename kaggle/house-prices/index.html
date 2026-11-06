@@ -66,7 +66,7 @@
     <div>
       <p class="eyebrow">Kaggle · House Prices</p>
       <h1>Lesson Learned</h1>
-      <p>검증 전략을 고정하고 Ridge와 HistGradientBoostingRegressor를 비교하며 배운 전처리와 범주형 인코딩의 핵심을 정리한다.</p>
+      <p>검증 전략을 고정하고 Ridge, HistGradientBoostingRegressor와 CatBoostRegressor를 비교하며 배운 전처리와 범주형 인코딩의 핵심을 정리한다.</p>
     </div>
   </header>
 
@@ -85,6 +85,12 @@
           <div class="metric">0.13213</div>
           <div class="label">OOF RMSE (log)</div>
           <p>비선형 관계와 변수 간 상호작용을 학습해 점수를 약 13.1% 낮췄다.</p>
+        </article>
+        <article class="card">
+          <h3>CatBoost</h3>
+          <div class="metric">0.12752</div>
+          <div class="label">OOF RMSE (log)</div>
+          <p>범주형 특성을 직접 처리해 HistGradientBoosting보다 점수를 약 3.49% 더 낮췄다.</p>
         </article>
       </div>
       <div class="callout success">
@@ -105,8 +111,9 @@
         <table>
           <thead><tr><th>모델</th><th>OOF RMSE</th><th>fold 평균</th><th>fold 표준편차</th><th>시간(초)</th></tr></thead>
           <tbody>
-            <tr><td>Ridge</td><td>0.152076</td><td>0.146849</td><td>0.044194</td><td>0.208</td></tr>
-            <tr><td>HistGradientBoosting</td><td>0.132130</td><td>0.131672</td><td>0.012285</td><td>2.151</td></tr>
+            <tr><td>Ridge</td><td>0.152076</td><td>0.146849</td><td>0.044194</td><td>0.380</td></tr>
+            <tr><td>HistGradientBoosting</td><td>0.132130</td><td>0.131672</td><td>0.012285</td><td>3.861</td></tr>
+            <tr><td>CatBoost</td><td>0.127522</td><td>0.126591</td><td>0.017198</td><td>346.088</td></tr>
           </tbody>
         </table>
       </div>
@@ -124,6 +131,11 @@
           <h3>HistGradientBoosting + OrdinalEncoder</h3>
           <p><code>OrdinalEncoder</code>로 각 범주를 하나의 코드로 표현하고, <code>categorical_mask</code>로 어떤 열이 범주형인지 모델에 알려준다.</p>
           <p>열 수가 크게 늘지 않아 트리 기반 모델에서 효율적이다.</p>
+        </article>
+        <article class="card">
+          <h3>CatBoost + 원래 범주</h3>
+          <p>범주형 결측치만 <code>"missing"</code>으로 채우고 원래 컬럼 이름을 <code>cat_features</code>로 전달한다.</p>
+          <p>원핫이나 순서형 인코딩 없이 범주의 조합과 타깃 통계를 학습 과정 안에서 처리한다.</p>
         </article>
       </div>
       <div class="callout">
@@ -226,9 +238,66 @@ assert not np.isnan(oof).any()</code></pre>
     </section>
 
     <section>
+      <h2>첫 CatBoost 실험</h2>
+      <p><code>iterations=1000</code>, <code>depth=6</code>, <code>learning_rate=0.03</code>으로 고정하고 같은 5-fold split에서 평가했다. 수치형 결측치는 CatBoost가 직접 처리하고 범주형 결측치는 고정 문자열로 바꿨다.</p>
+      <ul>
+        <li>OOF RMSE는 <strong>0.127522</strong>로 HistGradientBoosting보다 약 3.49% 낮았다.</li>
+        <li>Ridge보다 OOF RMSE가 약 16.15% 낮았다.</li>
+        <li>5-fold 총 학습 시간은 약 346초로 이 실행에서는 HistGradientBoosting보다 약 90배 길었다.</li>
+        <li>시간은 컴퓨터와 실행 당시 부하에 따라 달라지므로 상대적인 참고값이다.</li>
+      </ul>
+      <div class="callout success">
+        범주형 특성을 직접 처리하는 접근이 첫 실험에서 가장 낮은 OOF RMSE를 기록했다. 다음 단계에서는 반복 수와 조기 종료로 실행 시간을 줄이면서 점수를 유지할 수 있는지 확인한다.
+      </div>
+    </section>
+
+    <section>
+      <h2>코드를 읽으며 해결한 작은 궁금점</h2>
+      <p>2026-11-06 · 이번 기록은 문법과 모델 동작에 관한 복습이다. 새 실험을 실행하거나 점수를 추가한 것은 아니다. 낯선 축약 문법은 직접 외워 쓰기보다, 어떤 값이 전달되는지 읽을 수 있는 정도부터 익힌다.</p>
+      <h3>CatBoost도 트리 기반 머신러닝인가?</h3>
+      <p>CatBoost는 결정트리 여러 개를 순서대로 추가하는 그래디언트 부스팅 모델이다. 새 트리는 기존 예측의 오차를 줄이도록 학습한다. 분기 노드에서는 피처와 분기 기준을, 리프에서는 출력할 보정값을 학습한다. 신경망의 히든 레이어처럼 앞 트리의 출력을 다음 트리의 입력으로 전달하는 구조는 아니며, 예측할 때 각 트리의 출력을 합친다.</p>
+      <p>분기 조건은 <code>면적 &gt; 85</code>처럼 읽을 수 있지만, 많은 트리와 범주 통계를 함께 사용하는 최종 예측 전체가 쉽게 설명되는 것은 아니다. 기본 대칭 트리에서는 같은 깊이의 노드들이 같은 분기 조건을 공유한다.</p>
+      <h3>범주형 열만 사용하는가? 1,000번은 너무 많지 않은가?</h3>
+      <p>학습에 제공할 열은 <code>X</code>로 정한다. <code>cat_features=categorical</code>은 그중 범주형으로 처리할 열을 알려줄 뿐, 수치형 열을 제외하지 않는다. 이 노트북의 HistGradientBoosting은 <code>categorical_features=categorical_mask</code>로 전처리 결과의 열 순서에 맞춰 범주형 위치를 표시한다. 역할은 비슷하지만 라이브러리별 인자 이름과 지원 형식은 다르다.</p>
+      <p><code>iterations=1000</code>은 최대 부스팅 반복 수다. <code>learning_rate=0.03</code>처럼 보정을 조금씩 반영하면 더 많은 트리가 필요할 수 있으므로 횟수만으로 과도하다고 판단하지 않는다. 검증 오차와 학습 시간을 함께 확인한다. 조기 종료를 비교한다면 기존 고정 조건 실험과 구분하고, 검증 결과를 반복 활용하는 선택 편향도 기록한다.</p>
+      <h3>dict, *, **는 어디에 쓰였는지 함께 읽기</h3>
+      <pre><code>params = dict(iterations=1000, depth=6)
+# {"iterations": 1000, "depth": 6}과 같다.
+
+CatBoostRegressor(**params)
+# CatBoostRegressor(iterations=1000, depth=6)과 같다.
+
+experiment_params = {**params, "depth": 8}
+# 새 딕셔너리: 뒤의 depth=8이 우선하며 원본은 그대로다.
+
+func(*[10, 20])
+# func(10, 20): 값을 위치 인자로 펼친다.
+
+func(**{"a": 10, "b": 20})
+# func(a=10, b=20): 이름과 값을 키워드 인자로 펼친다.</code></pre>
+      <p><code>**</code>는 함수 호출에서는 키워드 인자로, 딕셔너리 안에서는 항목으로 펼친다. 별개의 문맥이므로 규칙도 다르다. <code>{**params, "depth": 8}</code>은 덮어쓰지만 <code>CatBoostRegressor(**params, depth=8)</code>은 같은 인자를 중복 전달해 오류가 난다. 함수 정의의 <code>def func(**kwargs):</code>는 반대로 키워드 인자들을 딕셔너리로 모은다. <code>*</code>로 펼칠 대상은 리스트에 한정되지 않고 반복 가능한 객체다.</p>
+      <p>설정 딕셔너리는 여러 모델 생성이나 실험 설정 재사용에 편리하다. 한 번만 사용하는 경우에는 생성자에 인자를 직접 적어도 된다.</p>
+      <h3>lambda, factory, clone은 왜 함께 나오는가?</h3>
+      <pre><code>estimator_factory=lambda: CatBoostRegressor(**catboost_params)
+
+# 전달한 lambda는 아래 함수와 같은 역할이다.
+def make_model():
+    return CatBoostRegressor(**catboost_params)
+
+# 평가 함수 내부의 조건식을 풀어 쓰면:
+if estimator_factory is not None:
+    fold_estimator = estimator_factory()
+else:
+    fold_estimator = clone(estimator)</code></pre>
+      <p><code>lambda:</code>는 인자를 받지 않는 함수를 만든다. 이 함수를 전달하는 순간에는 모델을 만들지 않고, <code>estimator_factory()</code>를 호출할 때마다 새 모델을 만든다. 생성자 호출은 설정된 객체를 만들며 실제 학습은 <code>fit()</code>에서 시작한다.</p>
+      <p>factory는 모델을 만드는 함수를 호출하고, <code>clone</code>은 전달받은 모델과 설정이 같은 미학습 모델을 만든다. 둘 다 fold마다 이전 학습 결과 없이 시작하려는 목적이다. CatBoost가 원래 clone을 지원하지 않는 것은 아니다. 다만 CatBoost 1.2.10에서 <code>cat_features</code> 같은 변경 가능한 인자가 있을 때 clone이 실패하는 호환성 문제가 보고됐다. 이 노트북의 저장된 환경 출력도 1.2.10이며, 생성자를 직접 호출하는 factory는 그 경로를 피할 수 있다. 이 문서화 작업에서 오류를 재현한 것은 아니다.</p>
+      <p>근거: <a href="https://github.com/catboost/catboost/issues/3078">CatBoost clone 호환성 이슈 #3078</a> · <a href="https://catboost.ai/docs/en/concepts/algorithm-main-stages">CatBoost 학습 과정</a></p>
+    </section>
+
+    <section>
       <h2>다음 실험</h2>
       <ul>
-        <li>CatBoostRegressor로 범주형 특성을 직접 처리해 본다.</li>
+        <li>CatBoost의 반복 수와 조기 종료를 비교해 학습 시간을 줄인다.</li>
         <li>XGBoost 또는 LightGBM을 같은 KFold 조건에서 비교한다.</li>
         <li>OOF 점수뿐 아니라 fold 간 변동과 학습 시간도 함께 기록한다.</li>
         <li>검증 결과를 반복해서 보며 튜닝할 때 생기는 선택 편향을 기록한다.</li>
