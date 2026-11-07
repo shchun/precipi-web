@@ -295,9 +295,84 @@ else:
     </section>
 
     <section>
+      <h2>반복 수와 조기 종료 비교 — 실험 마무리</h2>
+      <p>2026-11-07 · 사용자가 실행해 공유한 fold별 출력과 반복 수를 정리했다. 문서 작성 과정에서 재학습하지 않았다. 기존 CatBoost의 피처·전처리·5-fold 분할·seed·깊이 6·학습률 0.03을 유지하고 반복 수와 조기 종료를 비교하는 실험이다. 실행 환경은 기존 Python 3.12, CatBoost 1.2.10이며, seed는 노트북의 <code>SEED</code> 설정을 따른다.</p>
+      <p>데이터는 Kaggle House Prices의 공식 학습 데이터다. 지표는 기존 로그 변환 타깃과 예측 간 RMSE이며 낮을수록 좋다. 아래 fold 평균은 각 fold RMSE의 산술평균으로, 전체 OOF 예측으로 계산한 RMSE와 구별한다. 평균과 시간 합계는 공유된 표의 반올림된 값으로 집계했다.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>최대 반복 수</th><th>조기 종료</th><th>fold RMSE 평균</th><th>OOF RMSE</th><th>총시간(초)</th></tr></thead>
+          <tbody>
+            <tr><td>500</td><td>없음</td><td>0.130054</td><td>0.130844</td><td>218.68</td></tr>
+            <tr><td>1,000</td><td>없음</td><td>0.126591</td><td>0.127522 (앞선 기록)</td><td>452.94</td></tr>
+            <tr><td>1,000</td><td>100회 미개선 시 중단</td><td>0.126573</td><td>별도 출력 미제공</td><td>417.13</td></tr>
+            <tr><td>2,000</td><td>100회 미개선 시 중단</td><td>0.125590</td><td>별도 출력 미제공</td><td>596.39</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>1,000회 고정 실행의 시간은 이번 비교에서 공유된 452.94초를 사용했다. 앞선 첫 실험의 346.09초와는 별도 실행이다. 실행 당시 부하에 따라 시간이 달라지므로 반복 수 변화만으로 시간 차이를 모두 설명하지 않는다.</p>
+      <h3>실제로 언제 멈췄는가?</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>fold</th><th>1,000회 상한: 최고 / 실제 반복</th><th>2,000회 상한: 최고 / 실제 반복</th><th>2,000회 상한 RMSE</th><th>시간(초)</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>992 / 1,000</td><td>1,196 / 1,296</td><td>0.128891</td><td>124.860223</td></tr>
+            <tr><td>2</td><td>997 / 1,000</td><td>1,485 / 1,585</td><td>0.112229</td><td>141.139865</td></tr>
+            <tr><td>3</td><td>197 / 297</td><td>197 / 297</td><td>0.152497</td><td>25.429161</td></tr>
+            <tr><td>4</td><td>997 / 1,000</td><td>1,806 / 1,906</td><td>0.126579</td><td>168.542969</td></tr>
+            <tr><td>5</td><td>995 / 1,000</td><td>1,412 / 1,512</td><td>0.107752</td><td>136.415352</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>최고 성능 반복은 1부터 센 횟수다. <code>use_best_model=True</code>로 최종 저장 트리 수는 표의 최고 성능 반복 수와 같다. 1,000회 상한에서는 fold 3만 조기 종료됐다. 2,000회 상한에서는 모든 fold가 최고 성능 이후 100회 동안 개선되지 않아 종료됐으며, 실제 반복 수 합계는 6,596회였다. 이는 2,000회씩 모두 실행하는 10,000회보다 약 34% 적지만, 같은 비율의 시간 절약을 측정했다는 뜻은 아니다.</p>
+      <h3>구현하면서 해결한 점과 평가 한계</h3>
+      <ul>
+        <li><code>eval_set</code>은 현재 fold의 검증 입력과 정답을 담은 튜플이다. <code>valid_idx</code>를 알 수 있는 평가 함수의 반복문 안에서 <code>fit()</code>에 전달했다.</li>
+        <li>입력은 <code>features.iloc[valid_idx]</code>로 선택하고, NumPy 배열인 정답은 <code>y[valid_idx]</code>로 선택한다. 배열에는 <code>.iloc</code>이 없다.</li>
+        <li>공통 평가 함수에서 <code>eval_set</code>, <code>early_stopping_rounds</code>, <code>use_best_model</code>은 CatBoost에만 전달한다. Ridge Pipeline에는 전달할 수 없다.</li>
+        <li>추가 데이터 분할과 재학습 비용을 피하려고 OOF 검증 fold를 조기 종료에도 사용했다. 학습 데이터 양은 유지했지만, 같은 검증 정답으로 반복 수를 선택하고 평가하므로 점수가 낙관적일 수 있다.</li>
+        <li>이 결과는 고정 반복 수 실험과 완전히 같은 평가 조건이 아니다. 검증 결과를 보며 반복 수를 조정한 선택 편향도 있으며, 독립된 최종 평가로 일반화 성능 개선을 확인한 것은 아니다.</li>
+      </ul>
+      <div class="callout success">
+        이번 실험은 여기서 마무리한다. 500회는 1,000회 고정보다 시간을 약 51.7% 줄였지만 OOF RMSE가 약 2.6% 증가했다. 1,000회 상한의 조기 종료는 총시간을 약 7.9% 줄이는 데 그쳤다. 상한을 2,000회로 높이면 fold 3 외에는 추가 학습으로 점수가 개선됐지만, 1,000회 조기 종료 대비 시간은 약 43.0% 늘고 fold RMSE 평균은 약 0.78% 낮아졌다. 조기 종료의 가치는 항상 빨라지는 데 있지 않고, 충분한 상한 안에서 fold별로 학습량을 조절하는 데 있었다.
+      </div>
+      <p>이번 관측에서는 1,000회가 충분한 상한이 아니었다. 반대로 100회 동안 개선이 없었다고 이후에도 절대 개선되지 않는다는 보장은 없다. 2,000회를 보편적인 최적값으로 단정하지 않으며, 추가 튜닝은 진행하지 않는다.</p>
+    </section>
+
+    <section>
+      <h2>Lasso: 모델보다 먼저 규제 강도를 확인하기</h2>
+      <p>2026-11-07 · Ridge의 설정을 참고해 <code>Lasso(alpha=10.0)</code>을 적용했더니 OOF RMSE가 0.399576으로 크게 나빠졌다. 원인을 확인하기 위해 기존과 같은 데이터, 피처, 전처리, 5-fold 분할(seed 42)을 유지하고 규제 강도만 비교했다.</p>
+      <p>타깃은 <code>np.log(SalePrice)</code>이며 평가는 전체 OOF 예측의 로그 RMSE다. 수치형은 중앙값 대치와 표준화, 범주형은 결측 문자열 대치와 원핫 인코딩을 Pipeline 안에서 각 학습 fold에만 fit했다. 확인 실행에는 사용자 노트북과 같은 Python 3.12.9 / pandas 2.3.3 / scikit-learn 1.9.1 환경을 사용했다.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>설정</th><th>OOF RMSE</th><th>fold 1~5의 0이 아닌 계수 수</th></tr></thead>
+          <tbody>
+            <tr><td>Lasso, alpha=10</td><td>0.399576</td><td>0 / 0 / 0 / 0 / 0</td></tr>
+            <tr><td>학습 fold의 평균 로그 집값 예측</td><td>0.399576</td><td>피처 미사용</td></tr>
+            <tr><td>Lasso, alpha=0.001</td><td>0.150957</td><td>84 / 92 / 76 / 95 / 87</td></tr>
+            <tr><td>기존 Ridge, alpha=10</td><td>0.152076</td><td>이번 확인에서 집계하지 않음</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Lasso 두 설정은 모두 <code>max_iter=10000</code>으로 실제 실행해 확인했으며 수렴 경고는 없었다. Ridge는 앞선 기록을 비교 기준으로 사용했다. 계수 수는 원핫 인코딩 후 피처 기준이며, fold마다 등장하는 범주에 따라 전체 피처 수도 달라질 수 있다.</p>
+      <h3>왜 같은 가격만 예측했나?</h3>
+      <p>Lasso의 L1 규제는 계수를 정확히 0으로 만들 수 있다. 이번 데이터에서 <code>alpha=10</code>은 너무 강해서 모든 피처의 계수가 0이 됐고, 절편만 남았다. 따라서 각 fold에서 모든 검증 집에 학습 fold의 평균 로그 집값을 예측했다. 평균만 예측하는 기준 모델과 점수가 같은 이유다.</p>
+      <p>규제를 <code>0.001</code>로 낮추자 일부 피처의 계수가 남아 집의 특징에 따라 다른 가격을 예측하게 됐다. 모델 자체가 나쁘다고 판단하기 전에, 설정 때문에 피처를 전혀 활용하지 못하는지 확인해야 한다는 것을 배웠다.</p>
+      <pre><code>lasso_model = Pipeline([
+    ("preprocess", lasso_preprocessor),
+    ("model", Lasso(
+        alpha=0.001,
+        max_iter=10000,
+    )),
+])</code></pre>
+      <p><code>alpha</code>는 규제 강도이고 <code>max_iter</code>는 최적화 계산에 허용하는 최대 반복 수다. CatBoost의 트리 개수와 같은 의미는 아니다. Ridge와 Lasso는 규제 방식뿐 아니라 오차 항의 정규화도 달라서 같은 <code>alpha=10</code>을 같은 규제 강도로 해석할 수 없다.</p>
+      <div class="callout success">이번 결론은 “Lasso가 좋지 않다”가 아니라 “현재 데이터와 전처리에서 alpha=10의 규제가 지나치게 강했다”이다. 전처리·검증 코드는 유지하고, 계수와 평균 예측 기준을 확인해 원인을 찾았다.</div>
+      <p><code>0.001</code>은 문제 원인을 확인하기 위해 비교한 값으로, 최적값을 찾은 결과가 아니다. 같은 검증 결과를 보며 설정을 선택하면 선택 편향이 생기므로, Ridge보다 조금 낮은 점수만으로 일반적인 우위를 단정하지 않는다. 이번 확인에서 학습 시간은 별도로 기록하지 않았다.</p>
+      <p>참고: <a href="https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.Lasso.html">scikit-learn Lasso</a> · <a href="https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.Ridge.html">scikit-learn Ridge</a></p>
+    </section>
+
+    <section>
       <h2>다음 실험</h2>
       <ul>
-        <li>CatBoost의 반복 수와 조기 종료를 비교해 학습 시간을 줄인다.</li>
         <li>XGBoost 또는 LightGBM을 같은 KFold 조건에서 비교한다.</li>
         <li>OOF 점수뿐 아니라 fold 간 변동과 학습 시간도 함께 기록한다.</li>
         <li>검증 결과를 반복해서 보며 튜닝할 때 생기는 선택 편향을 기록한다.</li>
@@ -309,7 +384,7 @@ else:
       </p>
     </section>
 
-    <footer><a href="../">Kaggle 학습 기록</a> · 2026-11-06 · Python 3.12 · scikit-learn 1.9.1</footer>
+    <footer><a href="../">Kaggle 학습 기록</a> · 2026-11-07 · Python 3.12 · scikit-learn 1.9.1</footer>
   </main>
 </body>
 </html>
