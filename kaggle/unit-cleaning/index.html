@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="빌딩 데이터 100개로 배우는 정규표현식, pandas apply와 단위 정제 실습 기록">
+<title>문자열에서 숫자로 — 단위 정제 연습</title>
+<style>
+:root{font-family:system-ui,"Noto Sans KR",sans-serif;color:#172033;background:#f5f7fb;line-height:1.8}*{box-sizing:border-box}body{margin:0}header{background:#153a70;color:white;padding:56px 24px}header>div,main{max-width:920px;margin:auto}h1{font-size:clamp(2rem,5vw,3.4rem);line-height:1.25;margin:12px 0}header p{color:#dce8ff}main{padding:28px 18px 60px}section{background:white;border:1px solid #dfe5ef;border-radius:16px;padding:28px;margin:0 0 22px}h2{font-size:1.45rem;margin:0 0 16px}h3{margin:24px 0 10px}a{color:#2357d9}header a{color:#e6efff}pre{overflow:auto;background:#172033;color:#edf2ff;padding:20px;border-radius:10px;line-height:1.6}code{font-family:Consolas,monospace;font-size:.92em}p code,li code,td code{background:#edf1f7;padding:2px 5px;border-radius:4px}.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse}th,td{text-align:left;border-bottom:1px solid #dfe5ef;padding:12px;vertical-align:top}.note{border-left:4px solid #2357d9;padding:14px 18px;background:#edf3ff}.success{border-left-color:#167a55;background:#e9f6ef}footer{color:#62708a;text-align:center}li{margin:8px 0}@media(max-width:600px){section{padding:20px}header{padding:36px 20px}}
+</style>
+</head>
+<body>
+<header><div><a href="/kaggle/">Kaggle 학습 기록</a><p>전처리 연습 · 2026-11-07</p><h1>문자열에서 숫자로<br>단위 정제 연습</h1><p>빌딩 넓이와 전력량 100개를 정제하며 배운 정규표현식, 행 단위 변환, 원본 보존.</p></div></header>
+<main>
+<section><h2>1. 무엇을 정제했나?</h2><p>빌딩 ID, 넓이, 전력량을 가진 가상 데이터 100개를 사용했다. 넓이는 제곱미터와 제곱피트, 전력량은 킬로와트시와 메가와트시가 섞인 문자열이다. 쉼표, 소수, 단위 안팎의 공백도 섞여 있다.</p>
+<div class="table-wrap"><table><thead><tr><th>원본 예시</th><th>정제 목표</th></tr></thead><tbody><tr><td><code>68,745.17ft²</code></td><td>6,386.6352783168 m²</td></tr><tr><td><code>1083.068 MWh</code></td><td>1,083,068 kWh</td></tr></tbody></table></div>
+<p>결측치·중복 ID·음수·알 수 없는 단위는 넣지 않았다. 이번 목표는 단위와 문자열 처리다. 전력량은 동일한 가상 1년 기간의 사용량이며 순간 전력(kW, MW)과 다르다.</p><p class="note">변환 기준: 1 ft² = 0.09290304 m² · 1 MWh = 1000 kWh.</p></section>
+<section><h2>2. 정규표현식은 큰 덩어리부터 읽기</h2>
+<pre><code>parts = df["electricity"].str.extract(
+    r"^\s*([\d,]+(?:\.\d+)?)\s*(.+?)\s*$"
+)
+
+parts.columns = ["number", "unit"]</code></pre>
+<p>기억할 뼈대는 <strong>공백 → 숫자 → 공백 → 단위 → 공백</strong>이다. <code>r"..."</code>는 Python이 역슬래시를 먼저 해석하지 않도록 쓰는 문자열 표기다.</p>
+<div class="table-wrap"><table><thead><tr><th>패턴</th><th>읽는 법</th></tr></thead><tbody>
+<tr><td><code>^</code>, <code>$</code></td><td>문자열 시작과 끝을 기준으로 맞춘다.</td></tr>
+<tr><td><code>\s*</code></td><td>공백이 0번 이상 나온다.</td></tr>
+<tr><td><code>[\d,]+</code></td><td>숫자 또는 쉼표가 1개 이상 나온다.</td></tr>
+<tr><td><code>(?:\.\d+)?</code></td><td>소수점과 숫자로 이루어진 덩어리가 없어도 되고 한 번 있어도 된다.</td></tr>
+<tr><td><code>(.+?)</code></td><td>나머지 단위 문자열을 가능한 적게 잡고, 뒤 공백은 다음 패턴에 맡긴다.</td></tr>
+</tbody></table></div>
+<h3>괄호와 물음표가 헷갈렸던 이유</h3><p><code>(...)</code>와 <code>(?:...)</code>는 둘 다 그룹이다. 앞의 것은 결과를 따로 꺼내는 캡처 그룹, 뒤의 것은 규칙만 묶는 비캡처 그룹이다.</p>
+<pre><code>([\d,]+(?:\.\d+)?)
+ └ 정수부 └ 소수부 ┘
+
+(?:\.\d+)?
+└ 소수부 ┘↑ 없어도 됨</code></pre>
+<p><code>+</code>는 1번 이상, <code>*</code>는 0번 이상, <code>?</code>는 0번 또는 1번을 뜻한다. 다만 <code>+?</code>처럼 반복 기호 뒤에 붙는 물음표는 “가능한 적게 잡기”라는 다른 역할이다. <code>(?:</code>의 물음표도 비캡처 그룹을 여는 문법의 일부다.</p>
+<p class="note">이 패턴은 현재 연습 데이터에 맞춘 분리 규칙이다. 쉼표 위치나 단위의 유효성까지 검사하지 않는다. 실제 데이터에서는 허용 단위와 숫자 형식을 별도로 확인해야 한다. 숫자만 남기려고 문자를 먼저 지우면 <code>m2</code>의 2까지 숫자에 섞일 수 있다.</p></section>
+<section><h2>3. 숫자 변환 후 단위에 따라 계산하기</h2>
+<pre><code>parts["number"] = (
+    parts["number"]
+    .str.replace(",", "", regex=False)
+    .astype(float)
+)</code></pre>
+<p>소수도 유효한 정보이므로 <code>int</code> 대신 <code>float</code>로 유지했다. 숫자형으로 바꾼 뒤 같은 열에 <code>.str</code> 처리를 다시 적용하지 않도록 셀 실행 순서도 확인한다.</p>
+<pre><code>cleaned["electricity_kwh"] = parts.apply(
+    lambda row: (
+        row["number"] * 1000
+        if row["unit"] in ["MWh", "메가와트시", "메가 와트시"]
+        else row["number"]
+    ),
+    axis=1,
+)</code></pre>
+<p>이 예시는 열 이름을 <code>number</code>, <code>unit</code>으로 통일해 다시 적었다. 노트북에서는 전력량에 <code>elec</code>, <code>e_unit</code>을 사용해도 같은 의미다.</p>
+<ul><li><code>axis=1</code>은 행을 하나씩 함수에 전달한다. 생략하면 기본적으로 열 단위다.</li><li>한 행의 단위는 문자열 하나라 <code>in [...]</code>을 쓴다. Series 전체를 비교할 때는 <code>.isin([...])</code>을 쓴다.</li><li>조건에서는 숫자가 아니라 <strong>단위 열</strong>을 확인한다.</li><li><code>else</code>에서는 행 전체가 아니라 해당 숫자를 반환한다.</li></ul>
+<p>줄바꿈으로 조건과 두 결과를 나누니 읽기 쉬워졌다. 짧게 한 줄로 쓰는 것보다 전달되는 값과 반환값을 명확히 보는 것이 중요했다.</p></section>
+<section><h2>4. 원본과 정제 결과의 역할을 나누기</h2><p>처음에는 <code>df</code>와 <code>cleaned</code>를 번갈아 수정했다. 넓이 변환을 끝낸 뒤 <code>cleaned = df.copy()</code>를 다시 실행하면서 <code>area_m2</code>가 사라졌다.</p>
+<pre><code>cleaned = df.copy()  # 시작할 때 한 번
+
+# df["area"] → area_parts → cleaned["area_m2"]
+# df["electricity"] → elec_parts → cleaned["electricity_kwh"]</code></pre>
+<p><strong>원본은 읽고, 정제 결과에 새 열을 추가한다.</strong> 중간 결과도 <code>area_parts</code>, <code>elec_parts</code>로 구분했다. 원본 열은 삭제하지 않아 변환 전후를 비교할 수 있다.</p></section>
+<section><h2>5. 결과 확인과 작은 정리</h2><div class="note success">리뷰 당시 저장된 노트북을 처음부터 실행했다. 원본 CSV의 단위 접미사를 기준으로 별도 계산한 결과와 비교해 넓이 100/100행, 전력량 100/100행이 모두 일치했다. 원본 세 열과 고유 빌딩 ID 100개도 유지됐다.</div>
+<p>숫자형이고 결측치가 없다는 검사만으로 단위 변환까지 맞다고 볼 수는 없다. 앞선 오류에서는 전력량이 숫자로 바뀌었어도 MWh 49행에 1000을 곱하지 않았다. 알려진 예시와 전체 행의 계산값을 비교해 확인했다.</p>
+<pre><code>display(df.isna().sum())
+print("ID 중복 수:", df["building_id"].duplicated().sum())
+
+cleaned.to_csv(
+    data_path.with_name("building_energy_cleaned.csv"),
+    index=False,
+    encoding="utf-8-sig",
+)</code></pre>
+<p>셀 중간에 식만 적으면 결과가 표시되지 않으므로 <code>display()</code>나 <code>print()</code>를 사용한다. 직접 쓰지 않는 <code>import re</code>는 삭제할 수 있다. 저장 경로는 원본 파일 옆으로 지정하면 실행 위치가 바뀌어도 찾기 쉽다. 위 저장 코드는 리뷰에서 제안한 정리 방식이다.</p></section>
+<section><h2>실습 범위와 재현 정보</h2><ul><li>데이터 출처: 직접 생성한 가상 빌딩 100개. 실제 관측값이나 Kaggle 원본 데이터가 아니다.</li><li>생성 seed: 42. 숫자 문자열 생성 시 소수 자릿수가 반올림되어 있으므로 CSV 표시값을 기준으로 검증했다.</li><li>사용자 노트북 저장 출력: Python 3.12.9 / pandas 2.3.3. 별도 리뷰 실행: Python 3.12.9 / pandas 3.1.1.</li><li>실제 건물 소비량 분포나 예측 성능을 평가한 실험이 아니다. 알 수 없는 단위와 결측치 처리는 후속 과제다.</li></ul><p><a href="/kaggle/house-prices/">House Prices 학습 기록</a> · <a href="/kaggle/">학습 기록 목록</a></p></section>
+<footer>2026-11-07 · 문자열 단위 정제 연습</footer>
+</main></body></html>
