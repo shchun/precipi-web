@@ -66,7 +66,7 @@
     <div>
       <p class="eyebrow">Kaggle · House Prices</p>
       <h1>Lesson Learned</h1>
-      <p>검증 전략을 고정하고 Ridge, HistGradientBoostingRegressor와 CatBoostRegressor를 비교하며 배운 전처리와 범주형 인코딩의 핵심을 정리한다.</p>
+      <p>Ridge, Lasso, HistGradientBoostingRegressor와 CatBoostRegressor를 비교하며 배운 전처리, 규제 강도와 검증의 핵심을 정리한다.</p>
     </div>
   </header>
 
@@ -79,6 +79,13 @@
           <div class="metric">0.15208</div>
           <div class="label">OOF RMSE (log)</div>
           <p>선형 관계를 안정적으로 학습하는 기준 모델이다.</p>
+        </article>
+        <article class="card">
+          <h3>Lasso</h3>
+          <div class="metric">0.15096</div>
+          <div class="label">OOF RMSE (log) · alpha=0.001</div>
+          <p>alpha=10에서는 모든 계수가 0이 됐다. 규제를 낮추자 피처를 활용하며 오차가 줄었다.</p>
+          <a href="#lasso-regularization">규제 강도 비교 자세히 보기 →</a>
         </article>
         <article class="card">
           <h3>HistGradientBoosting</h3>
@@ -339,7 +346,7 @@ else:
     </section>
 
     <section>
-      <h2>Lasso: 모델보다 먼저 규제 강도를 확인하기</h2>
+      <h2 id="lasso-regularization">Lasso: 모델보다 먼저 규제 강도를 확인하기</h2>
       <p>2026-11-07 · Ridge의 설정을 참고해 <code>Lasso(alpha=10.0)</code>을 적용했더니 OOF RMSE가 0.399576으로 크게 나빠졌다. 원인을 확인하기 위해 기존과 같은 데이터, 피처, 전처리, 5-fold 분할(seed 42)을 유지하고 규제 강도만 비교했다.</p>
       <p>타깃은 <code>np.log(SalePrice)</code>이며 평가는 전체 OOF 예측의 로그 RMSE다. 수치형은 중앙값 대치와 표준화, 범주형은 결측 문자열 대치와 원핫 인코딩을 Pipeline 안에서 각 학습 fold에만 fit했다. 확인 실행에는 사용자 노트북과 같은 Python 3.12.9 / pandas 2.3.3 / scikit-learn 1.9.1 환경을 사용했다.</p>
       <div class="table-wrap">
