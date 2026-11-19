@@ -1,0 +1,320 @@
+<mujoco model="PickDoll">
+  <compiler angle="radian" autolimits="true" />
+  <option timestep="0.002" integrator="implicitfast" />
+  <visual>
+    <global fovy="40" azimuth="90" elevation="-32" />
+    <headlight ambient=".45 .45 .45" diffuse=".55 .55 .55" specular=".15 .15 .15" />
+  </visual>
+  <asset>
+    <mesh name="return_ramp" vertex="0.119 -0.19 -0.005  0.19 -0.19 -0.005  0.19 -0.19 0.058                   0.119 0.19 -0.005  0.19 0.19 -0.005  0.19 0.19 0.058" face="0 1 2  3 5 4  0 3 4  0 4 1  1 4 5  1 5 2  0 2 5  0 5 3" />
+    <mesh name="west_short" vertex="-.19 -.058 -.005 -.119 -.058 -.005 -.19 -.058 .058 -.19 .19 -.005 -.119 .19 -.005 -.19 .19 .058" face="0 1 2 3 5 4 0 3 4 0 4 1 1 4 5 1 5 2 0 2 5 0 5 3" />
+    <mesh name="south_short" vertex="-.058 -.19 -.005 -.058 -.119 -.005 -.058 -.19 .058 .19 -.19 -.005 .19 -.119 -.005 .19 -.19 .058" face="0 1 2 3 5 4 0 3 4 0 4 1 1 4 5 1 5 2 0 2 5 0 5 3" />
+    <texture name="studio_sky" type="skybox" builtin="gradient" rgb1=".15 .20 .23" rgb2=".32 .40 .42" width="256" height="512" />
+    <material name="led_glow" emission="1" specular=".2" shininess=".3" />
+  </asset>
+  <default>
+    <geom friction="1.1 0.01 0.001" />
+    <default class="trim">
+      <geom contype="0" conaffinity="0" rgba="0.16 0.35 0.31 1" />
+    </default>
+    <default class="prize_body">
+      <geom type="sphere" size="0.033" mass="0.1" condim="6" friction="1.1 0.01 0.004" />
+    </default>
+    <default class="finger">
+      <joint type="hinge" axis="0 1 0" range="0 0.95" damping="0.004" />
+      <geom type="capsule" size="0.006" density="650" rgba="0.94 0.62 0.25 1" />
+      <default class="grip_pad">
+        <geom friction="1.35 0.01 0.001" rgba="0.24 0.30 0.28 1" />
+      </default>
+    </default>
+  </default>
+  <worldbody>
+    <light pos="0 -0.25 0.65" dir="0 0.35 -1" directional="true" />
+    <body name="camera_target" pos="0 0 .105" />
+    <camera name="play" mode="targetbody" target="camera_target" pos="0 -.94 .57" />
+    <camera name="overhead" pos="0 0 0.76" xyaxes="1 0 0 0 1 0" />
+    <camera name="left_side" mode="targetbody" target="camera_target" pos="-.94 0 .57" />
+    <camera name="right_side" mode="targetbody" target="camera_target" pos=".94 0 .57" />
+    <camera name="rear" mode="targetbody" target="camera_target" pos="0 .94 .57" />
+    <geom type="box" pos="-0.195 0 0.025" size="0.005 0.2 0.025" rgba=".65 .31 .47 1" />
+    <geom type="box" pos="0.195 0 0.025" size="0.005 0.2 0.025" rgba=".65 .31 .47 1" />
+    <geom type="box" pos="0 0.195 0.025" size="0.19 0.005 0.025" rgba=".65 .31 .47 1" />
+    <geom type="box" pos="0 -0.195 0.012" size="0.19 0.005 0.012" rgba=".65 .31 .47 1" />
+    <geom type="mesh" mesh="return_ramp" rgba=".65 .31 .47 1" />
+    <geom type="mesh" mesh="return_ramp" euler="0 0 1.5707963" rgba=".65 .31 .47 1" />
+    <geom class="trim" type="box" pos="-0.194 0 0.393" size="0.006 0.2 0.007" />
+    <geom class="trim" type="box" pos="0.194 0 0.393" size="0.006 0.2 0.007" />
+    <body name="gantry" pos="0 0 0.38">
+      <joint name="y" type="slide" axis="0 1 0" range="-0.128 0.128" damping="1" />
+      <inertial pos="0 0 0" mass="0.15" diaginertia="0.0001 0.002 0.002" />
+      <geom class="trim" type="box" size="0.19 0.008 0.008" group="3" />
+      <body name="carriage">
+        <joint name="x" type="slide" axis="1 0 0" range="-0.128 0.128" damping="1" />
+        <inertial pos="0 0 0" mass="0.1" diaginertia="0.0001 0.0001 0.0001" />
+        <geom class="trim" type="box" size="0.019 0.014 0.012" group="3" />
+        <body name="claw" pos="0 0 -0.05">
+          <joint name="z" type="slide" axis="0 0 1" range="-0.255 0" damping="1" />
+          <geom type="cylinder" size="0.049 0.008" mass="0.075" rgba="0.88 0.54 0.20 1" group="3" />
+          <body name="finger_a_mount">
+            <body name="finger_a" pos="0.047 0 -0.007" childclass="finger">
+              <joint name="finger_a" />
+              <geom fromto="0 0 0 0.008 0 -0.039" group="3" />
+              <geom class="grip_pad" fromto="0.008 0 -0.039 -0.001 0 -0.057" group="3" />
+            </body>
+          </body>
+          <body name="finger_b_mount" euler="0 0 2.0943951">
+            <body name="finger_b" pos="0.047 0 -0.007" childclass="finger">
+              <joint name="finger_b" />
+              <geom fromto="0 0 0 0.008 0 -0.039" group="3" />
+              <geom class="grip_pad" fromto="0.008 0 -0.039 -0.001 0 -0.057" group="3" />
+            </body>
+          </body>
+          <body name="finger_c_mount" euler="0 0 4.1887902">
+            <body name="finger_c" pos="0.047 0 -0.007" childclass="finger">
+              <joint name="finger_c" />
+              <geom fromto="0 0 0 0.008 0 -0.039" group="3" />
+              <geom class="grip_pad" fromto="0.008 0 -0.039 -0.001 0 -0.057" group="3" />
+            </body>
+          </body>
+          <site name="cable_bottom" pos="0 0 .009" size=".001" rgba="0 0 0 0" />
+          <joint name="yaw" type="hinge" axis="0 0 1" range="-3.14159 3.14159" damping=".025" armature=".0001" />
+        </body>
+        <site name="cable_top" pos="0 0 -.014" size=".001" rgba="0 0 0 0" />
+      </body>
+    </body>
+    <geom type="box" pos="0.071 0 -0.01" size="0.129 0.2 0.01" rgba=".86 .62 .72 1" />
+    <geom type="box" pos="-.129 .071 -.01" size=".071 .129 .01" rgba=".86 .62 .72 1" />
+    <geom type="mesh" mesh="west_short" rgba=".65 .31 .47 1" />
+    <geom type="mesh" mesh="south_short" rgba=".65 .31 .47 1" />
+    <body name="cabinet">
+      <geom name="pillar_-0.206_-0.206" type="box" pos="-0.206 -0.206 .205" size=".006 .006 .205" rgba="1 .82 .88 1" contype="0" conaffinity="0" />
+      <geom name="pillar_-0.206_0.206" type="box" pos="-0.206 0.206 .205" size=".006 .006 .205" rgba="1 .82 .88 1" contype="0" conaffinity="0" />
+      <geom name="pillar_0.206_-0.206" type="box" pos="0.206 -0.206 .205" size=".006 .006 .205" rgba="1 .82 .88 1" contype="0" conaffinity="0" />
+      <geom name="pillar_0.206_0.206" type="box" pos="0.206 0.206 .205" size=".006 .006 .205" rgba="1 .82 .88 1" contype="0" conaffinity="0" />
+      <geom name="top_side_-0.206" type="box" pos="-0.206 0 .424" size=".014 .220 .020" rgba="1 .82 .88 1" contype="0" conaffinity="0" />
+      <geom name="top_side_0.206" type="box" pos="0.206 0 .424" size=".014 .220 .020" rgba="1 .82 .88 1" contype="0" conaffinity="0" />
+      <geom name="top_front" type="box" pos="0 -.206 .424" size=".192 .014 .020" rgba=".78 .25 .46 1" contype="0" conaffinity="0" />
+      <geom name="top_rear" type="box" pos="0 .206 .424" size=".192 .014 .020" rgba=".78 .25 .46 1" contype="0" conaffinity="0" />
+      <geom name="header_light" type="box" pos="0 -.221 .416" size=".158 .001 .002" rgba="1 .62 .76 1" contype="0" conaffinity="0" />
+      <geom name="cabinet_right" type="box" pos=".208 0 -.099" size=".008 .216 .099" rgba=".78 .25 .46 1" contype="0" conaffinity="0" />
+      <geom name="cabinet_left" type="box" pos="-.208 0 -.099" size=".008 .216 .099" rgba=".78 .25 .46 1" contype="0" conaffinity="0" />
+      <geom name="cabinet_back" type="box" pos="0 .208 -.099" size=".20 .008 .099" rgba=".78 .25 .46 1" contype="0" conaffinity="0" />
+      <geom name="cabinet_base" type="box" pos="0 0 -.194" size=".216 .216 .008" rgba="1 .82 .88 1" contype="0" conaffinity="0" />
+      <geom name="front_bottom" type="box" pos="0 -.208 -.184" size=".20 .008 .010" rgba="1 .82 .88 1" contype="0" conaffinity="0" />
+      <geom name="front_top" type="box" pos="0 -.208 -.026" size=".20 .008 .026" rgba=".78 .25 .46 1" contype="0" conaffinity="0" />
+      <geom name="front_right" type="box" pos=".075 -.208 -.113" size=".125 .008 .061" rgba=".78 .25 .46 1" contype="0" conaffinity="0" />
+      <geom name="front_left" type="box" pos="-.199 -.208 -.113" size=".001 .008 .061" rgba=".78 .25 .46 1" contype="0" conaffinity="0" />
+      <geom name="outlet_sill" type="box" pos="-.126 -.218 -.171" size=".074 .016 .004" rgba="1 .62 .76 1" contype="0" conaffinity="0" />
+      <geom name="outlet_header" type="box" pos="-.126 -.218 -.057" size=".074 .004 .004" rgba="1 .62 .76 1" contype="0" conaffinity="0" />
+      <geom name="control_panel" type="box" pos=".07 -.234 .003" size=".132 .037 .009" rgba="1 .82 .88 1" contype="0" conaffinity="0" />
+      <geom type="sphere" pos="-0.14 -.222 .431" size=".004" rgba="1 .82 .88 1" contype="0" conaffinity="0" />
+      <geom type="sphere" pos="-0.1 -.222 .431" size=".004" rgba="1 .82 .88 1" contype="0" conaffinity="0" />
+      <geom type="sphere" pos="-0.06 -.222 .431" size=".004" rgba="1 .82 .88 1" contype="0" conaffinity="0" />
+      <geom type="sphere" pos="0.06 -.222 .431" size=".004" rgba="1 .82 .88 1" contype="0" conaffinity="0" />
+      <geom type="sphere" pos="0.1 -.222 .431" size=".004" rgba="1 .82 .88 1" contype="0" conaffinity="0" />
+      <geom type="sphere" pos="0.14 -.222 .431" size=".004" rgba="1 .82 .88 1" contype="0" conaffinity="0" />
+    </body>
+    <geom type="plane" pos="0 0 -.245" size="2 2 .01" rgba=".22 .28 .29 1" contype="0" conaffinity="0" />
+    <light pos=".4 -.3 .6" dir="-.4 .3 -.6" diffuse=".35 .33 .29" castshadow="false" />
+    <body name="chute_guard" pos="-.128 -.128 0">
+      <geom type="box" pos="-.070 0 .035" size=".002 .072 .035" rgba=".55 .85 .83 .32" />
+      <geom type="box" pos=".070 0 .035" size=".002 .072 .035" rgba=".55 .85 .83 .32" />
+      <geom type="box" pos="0 -.070 .035" size=".068 .002 .035" rgba=".55 .85 .83 .32" />
+      <geom type="box" pos="0 .070 .035" size=".068 .002 .035" rgba=".55 .85 .83 .32" />
+    </body>
+    <body name="collection_tray">
+      <geom type="box" pos="-.128 -.191 -.174" size=".067 .137 .005" euler=".255 0 0" friction=".35 .005 .0001" rgba=".93 .57 .72 1" />
+      <geom type="box" pos="-.198 -.191 -.137" size=".003 .145 .069" euler="0 0 0" friction=".35 .005 .0001" rgba=".93 .57 .72 1" />
+      <geom type="box" pos="-.058 -.191 -.137" size=".003 .145 .069" euler="0 0 0" friction=".35 .005 .0001" rgba=".93 .57 .72 1" />
+      <geom type="box" pos="-.128 -.054 -.115" size=".067 .003 .050" euler="0 0 0" friction=".35 .005 .0001" rgba=".93 .57 .72 1" />
+      <geom type="box" pos="-.128 -.350 -.213" size=".073 .034 .005" euler="0 0 0" friction=".35 .005 .0001" rgba=".93 .57 .72 1" />
+      <geom type="box" pos="-.128 -.384 -.193" size=".073 .003 .025" euler="0 0 0" friction=".35 .005 .0001" rgba=".93 .57 .72 1" />
+      <geom type="box" pos="-.201 -.350 -.193" size=".003 .034 .025" euler="0 0 0" friction=".35 .005 .0001" rgba=".93 .57 .72 1" />
+      <geom type="box" pos="-.055 -.350 -.193" size=".003 .034 .025" euler="0 0 0" friction=".35 .005 .0001" rgba=".93 .57 .72 1" />
+    </body>
+    <body name="prize" pos="0.0 0.0 0.035">
+      <freejoint />
+      <geom class="prize_body" rgba=".42 .64 .94 1" />
+      <geom type="sphere" pos="-0.021 0 .029" size=".013" mass="0" contype="0" conaffinity="0" rgba=".42 .64 .94 1" />
+      <geom type="sphere" pos="0.021 0 .029" size=".013" mass="0" contype="0" conaffinity="0" rgba=".42 .64 .94 1" />
+      <geom type="sphere" pos="-0.011 -.029 .008" size=".0045" mass="0" contype="0" conaffinity="0" rgba=".08 .12 .15 1" />
+      <geom type="sphere" pos="0.011 -.029 .008" size=".0045" mass="0" contype="0" conaffinity="0" rgba=".08 .12 .15 1" />
+      <geom type="ellipsoid" pos="0 -.032 -.003" size=".006 .003 .004" mass="0" contype="0" conaffinity="0" rgba=".94 .86 .71 1" />
+    </body>
+    <body name="prize_left" pos="-0.105 0.05 0.035">
+      <freejoint />
+      <geom class="prize_body" rgba=".93 .42 .55 1" />
+      <geom type="sphere" pos="-0.021 0 .029" size=".013" mass="0" contype="0" conaffinity="0" rgba=".93 .42 .55 1" />
+      <geom type="sphere" pos="0.021 0 .029" size=".013" mass="0" contype="0" conaffinity="0" rgba=".93 .42 .55 1" />
+      <geom type="sphere" pos="-0.011 -.029 .008" size=".0045" mass="0" contype="0" conaffinity="0" rgba=".08 .12 .15 1" />
+      <geom type="sphere" pos="0.011 -.029 .008" size=".0045" mass="0" contype="0" conaffinity="0" rgba=".08 .12 .15 1" />
+      <geom type="ellipsoid" pos="0 -.032 -.003" size=".006 .003 .004" mass="0" contype="0" conaffinity="0" rgba=".94 .86 .71 1" />
+    </body>
+    <body name="prize_right" pos="0.105 -0.025 0.035">
+      <freejoint />
+      <geom class="prize_body" rgba=".72 .52 .90 1" />
+      <geom type="sphere" pos="-0.021 0 .029" size=".013" mass="0" contype="0" conaffinity="0" rgba=".72 .52 .90 1" />
+      <geom type="sphere" pos="0.021 0 .029" size=".013" mass="0" contype="0" conaffinity="0" rgba=".72 .52 .90 1" />
+      <geom type="sphere" pos="-0.011 -.029 .008" size=".0045" mass="0" contype="0" conaffinity="0" rgba=".08 .12 .15 1" />
+      <geom type="sphere" pos="0.011 -.029 .008" size=".0045" mass="0" contype="0" conaffinity="0" rgba=".08 .12 .15 1" />
+      <geom type="ellipsoid" pos="0 -.032 -.003" size=".006 .003 .004" mass="0" contype="0" conaffinity="0" rgba=".94 .86 .71 1" />
+    </body>
+    <body name="prize_4" pos="-0.105 0.125 0.035">
+      <freejoint />
+      <geom class="prize_body" rgba=".95 .69 .32 1" />
+      <geom type="sphere" pos="-0.021 0 .029" size=".013" mass="0" contype="0" conaffinity="0" rgba=".95 .69 .32 1" />
+      <geom type="sphere" pos="0.021 0 .029" size=".013" mass="0" contype="0" conaffinity="0" rgba=".95 .69 .32 1" />
+      <geom type="sphere" pos="-0.011 -.029 .008" size=".0045" mass="0" contype="0" conaffinity="0" rgba=".08 .12 .15 1" />
+      <geom type="sphere" pos="0.011 -.029 .008" size=".0045" mass="0" contype="0" conaffinity="0" rgba=".08 .12 .15 1" />
+      <geom type="ellipsoid" pos="0 -.032 -.003" size=".006 .003 .004" mass="0" contype="0" conaffinity="0" rgba=".94 .86 .71 1" />
+    </body>
+    <body name="prize_5" pos="0.0 0.125 0.035">
+      <freejoint />
+      <geom class="prize_body" rgba=".42 .79 .60 1" />
+      <geom type="sphere" pos="-0.021 0 .029" size=".013" mass="0" contype="0" conaffinity="0" rgba=".42 .79 .60 1" />
+      <geom type="sphere" pos="0.021 0 .029" size=".013" mass="0" contype="0" conaffinity="0" rgba=".42 .79 .60 1" />
+      <geom type="sphere" pos="-0.011 -.029 .008" size=".0045" mass="0" contype="0" conaffinity="0" rgba=".08 .12 .15 1" />
+      <geom type="sphere" pos="0.011 -.029 .008" size=".0045" mass="0" contype="0" conaffinity="0" rgba=".08 .12 .15 1" />
+      <geom type="ellipsoid" pos="0 -.032 -.003" size=".006 .003 .004" mass="0" contype="0" conaffinity="0" rgba=".94 .86 .71 1" />
+    </body>
+    <body name="prize_6" pos="0.105 0.125 0.035">
+      <freejoint />
+      <geom class="prize_body" rgba=".95 .53 .34 1" />
+      <geom type="sphere" pos="-0.021 0 .029" size=".013" mass="0" contype="0" conaffinity="0" rgba=".95 .53 .34 1" />
+      <geom type="sphere" pos="0.021 0 .029" size=".013" mass="0" contype="0" conaffinity="0" rgba=".95 .53 .34 1" />
+      <geom type="sphere" pos="-0.011 -.029 .008" size=".0045" mass="0" contype="0" conaffinity="0" rgba=".08 .12 .15 1" />
+      <geom type="sphere" pos="0.011 -.029 .008" size=".0045" mass="0" contype="0" conaffinity="0" rgba=".08 .12 .15 1" />
+      <geom type="ellipsoid" pos="0 -.032 -.003" size=".006 .003 .004" mass="0" contype="0" conaffinity="0" rgba=".94 .86 .71 1" />
+    </body>
+    <body name="prize_7" pos="-0.105 -0.025 0.035">
+      <freejoint />
+      <geom class="prize_body" rgba=".49 .78 .85 1" />
+      <geom type="sphere" pos="-0.021 0 .029" size=".013" mass="0" contype="0" conaffinity="0" rgba=".49 .78 .85 1" />
+      <geom type="sphere" pos="0.021 0 .029" size=".013" mass="0" contype="0" conaffinity="0" rgba=".49 .78 .85 1" />
+      <geom type="sphere" pos="-0.011 -.029 .008" size=".0045" mass="0" contype="0" conaffinity="0" rgba=".08 .12 .15 1" />
+      <geom type="sphere" pos="0.011 -.029 .008" size=".0045" mass="0" contype="0" conaffinity="0" rgba=".08 .12 .15 1" />
+      <geom type="ellipsoid" pos="0 -.032 -.003" size=".006 .003 .004" mass="0" contype="0" conaffinity="0" rgba=".94 .86 .71 1" />
+    </body>
+    <body name="panel_joystick" mocap="true" pos=".015 -.24 .013">
+      <geom type="capsule" fromto="0 0 0 0 0 .030" size=".003" rgba=".7 .65 .7 1" contype="0" conaffinity="0" />
+      <geom type="sphere" pos="0 0 .032" size=".011" rgba=".78 .25 .46 1" contype="0" conaffinity="0" />
+    </body>
+    <body name="panel_button" mocap="true" pos=".135 -.24 .019">
+      <geom type="cylinder" size=".018 .006" rgba=".98 .37 .61 1" contype="0" conaffinity="0" />
+    </body>
+    <body name="front_bunny" pos=".078 -.219 -.115" euler="0 0 0">
+      <geom type="ellipsoid" pos="-0.018 0 0.033" size="0.012 0.004 0.027" rgba="1 .93 .94 1" contype="0" conaffinity="0" />
+      <geom type="ellipsoid" pos="0.018 0 0.033" size="0.012 0.004 0.027" rgba="1 .93 .94 1" contype="0" conaffinity="0" />
+      <geom type="ellipsoid" pos="-0.018 -0.004 0.035" size="0.005 0.001 0.016" rgba="1 .62 .76 1" contype="0" conaffinity="0" />
+      <geom type="ellipsoid" pos="0.018 -0.004 0.035" size="0.005 0.001 0.016" rgba="1 .62 .76 1" contype="0" conaffinity="0" />
+      <geom type="ellipsoid" pos="0 -0.003 0" size="0.038 0.006 0.032" rgba="1 .93 .94 1" contype="0" conaffinity="0" />
+      <geom type="ellipsoid" pos="-0.012 -0.009 0.003" size="0.003 0.0015 0.004" rgba=".30 .12 .23 1" contype="0" conaffinity="0" />
+      <geom type="ellipsoid" pos="0.012 -0.009 0.003" size="0.003 0.0015 0.004" rgba=".30 .12 .23 1" contype="0" conaffinity="0" />
+      <geom type="ellipsoid" pos="-0.024 -0.009 -0.007" size="0.007 0.001 0.003" rgba="1 .62 .76 1" contype="0" conaffinity="0" />
+      <geom type="ellipsoid" pos="0.024 -0.009 -0.007" size="0.007 0.001 0.003" rgba="1 .62 .76 1" contype="0" conaffinity="0" />
+      <geom type="ellipsoid" pos="0 -0.01 -0.005" size="0.004 0.001 0.003" rgba=".78 .25 .46 1" contype="0" conaffinity="0" />
+      <geom type="ellipsoid" pos="0 -0.002 -0.035" size="0.024 0.004 0.012" rgba="1 .62 .76 1" contype="0" conaffinity="0" />
+    </body>
+    <body name="left_bunny" pos="-.218 .015 -.105" euler="0 0 -1.5707963">
+      <geom type="ellipsoid" pos="-0.0234 0.0 0.0429" size="0.015600000000000001 0.005200000000000001 0.0351" rgba="1 .93 .94 1" contype="0" conaffinity="0" />
+      <geom type="ellipsoid" pos="0.0234 0.0 0.0429" size="0.015600000000000001 0.005200000000000001 0.0351" rgba="1 .93 .94 1" contype="0" conaffinity="0" />
+      <geom type="ellipsoid" pos="-0.0234 -0.005200000000000001 0.045500000000000006" size="0.006500000000000001 0.0013000000000000002 0.020800000000000003" rgba="1 .62 .76 1" contype="0" conaffinity="0" />
+      <geom type="ellipsoid" pos="0.0234 -0.005200000000000001 0.045500000000000006" size="0.006500000000000001 0.0013000000000000002 0.020800000000000003" rgba="1 .62 .76 1" contype="0" conaffinity="0" />
+      <geom type="ellipsoid" pos="0.0 -0.0039000000000000003 0.0" size="0.0494 0.0078000000000000005 0.041600000000000005" rgba="1 .93 .94 1" contype="0" conaffinity="0" />
+      <geom type="ellipsoid" pos="-0.015600000000000001 -0.0117 0.0039000000000000003" size="0.0039000000000000003 0.0019500000000000001 0.005200000000000001" rgba=".30 .12 .23 1" contype="0" conaffinity="0" />
+      <geom type="ellipsoid" pos="0.015600000000000001 -0.0117 0.0039000000000000003" size="0.0039000000000000003 0.0019500000000000001 0.005200000000000001" rgba=".30 .12 .23 1" contype="0" conaffinity="0" />
+      <geom type="ellipsoid" pos="-0.031200000000000002 -0.0117 -0.0091" size="0.0091 0.0013000000000000002 0.0039000000000000003" rgba="1 .62 .76 1" contype="0" conaffinity="0" />
+      <geom type="ellipsoid" pos="0.031200000000000002 -0.0117 -0.0091" size="0.0091 0.0013000000000000002 0.0039000000000000003" rgba="1 .62 .76 1" contype="0" conaffinity="0" />
+      <geom type="ellipsoid" pos="0.0 -0.013000000000000001 -0.006500000000000001" size="0.005200000000000001 0.0013000000000000002 0.0039000000000000003" rgba=".78 .25 .46 1" contype="0" conaffinity="0" />
+      <geom type="ellipsoid" pos="0.0 -0.0026000000000000003 -0.045500000000000006" size="0.031200000000000002 0.005200000000000001 0.015600000000000001" rgba="1 .62 .76 1" contype="0" conaffinity="0" />
+    </body>
+    <body name="right_bunny" pos=".218 .015 -.105" euler="0 0 1.5707963">
+      <geom type="ellipsoid" pos="-0.0234 0.0 0.0429" size="0.015600000000000001 0.005200000000000001 0.0351" rgba="1 .93 .94 1" contype="0" conaffinity="0" />
+      <geom type="ellipsoid" pos="0.0234 0.0 0.0429" size="0.015600000000000001 0.005200000000000001 0.0351" rgba="1 .93 .94 1" contype="0" conaffinity="0" />
+      <geom type="ellipsoid" pos="-0.0234 -0.005200000000000001 0.045500000000000006" size="0.006500000000000001 0.0013000000000000002 0.020800000000000003" rgba="1 .62 .76 1" contype="0" conaffinity="0" />
+      <geom type="ellipsoid" pos="0.0234 -0.005200000000000001 0.045500000000000006" size="0.006500000000000001 0.0013000000000000002 0.020800000000000003" rgba="1 .62 .76 1" contype="0" conaffinity="0" />
+      <geom type="ellipsoid" pos="0.0 -0.0039000000000000003 0.0" size="0.0494 0.0078000000000000005 0.041600000000000005" rgba="1 .93 .94 1" contype="0" conaffinity="0" />
+      <geom type="ellipsoid" pos="-0.015600000000000001 -0.0117 0.0039000000000000003" size="0.0039000000000000003 0.0019500000000000001 0.005200000000000001" rgba=".30 .12 .23 1" contype="0" conaffinity="0" />
+      <geom type="ellipsoid" pos="0.015600000000000001 -0.0117 0.0039000000000000003" size="0.0039000000000000003 0.0019500000000000001 0.005200000000000001" rgba=".30 .12 .23 1" contype="0" conaffinity="0" />
+      <geom type="ellipsoid" pos="-0.031200000000000002 -0.0117 -0.0091" size="0.0091 0.0013000000000000002 0.0039000000000000003" rgba="1 .62 .76 1" contype="0" conaffinity="0" />
+      <geom type="ellipsoid" pos="0.031200000000000002 -0.0117 -0.0091" size="0.0091 0.0013000000000000002 0.0039000000000000003" rgba="1 .62 .76 1" contype="0" conaffinity="0" />
+      <geom type="ellipsoid" pos="0.0 -0.013000000000000001 -0.006500000000000001" size="0.005200000000000001 0.0013000000000000002 0.0039000000000000003" rgba=".78 .25 .46 1" contype="0" conaffinity="0" />
+      <geom type="ellipsoid" pos="0.0 -0.0026000000000000003 -0.045500000000000006" size="0.031200000000000002 0.005200000000000001 0.015600000000000001" rgba="1 .62 .76 1" contype="0" conaffinity="0" />
+    </body>
+    <body name="led_strips">
+      <geom name="led_0" type="box" pos="-0.213 -.213 0.035" size=".002 .002 .015" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
+      <geom name="led_1" type="box" pos="-0.213 -.213 0.075" size=".002 .002 .015" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
+      <geom name="led_2" type="box" pos="-0.213 -.213 0.115" size=".002 .002 .015" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
+      <geom name="led_3" type="box" pos="-0.213 -.213 0.155" size=".002 .002 .015" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
+      <geom name="led_4" type="box" pos="-0.213 -.213 0.195" size=".002 .002 .015" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
+      <geom name="led_5" type="box" pos="-0.213 -.213 0.235" size=".002 .002 .015" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
+      <geom name="led_6" type="box" pos="-0.213 -.213 0.275" size=".002 .002 .015" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
+      <geom name="led_7" type="box" pos="-0.213 -.213 0.315" size=".002 .002 .015" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
+      <geom name="led_8" type="box" pos="-0.213 -.213 0.355" size=".002 .002 .015" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
+      <geom name="led_9" type="box" pos="-0.213 -.213 0.395" size=".002 .002 .015" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
+      <geom name="led_10" type="box" pos="0.213 -.213 0.035" size=".002 .002 .015" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
+      <geom name="led_11" type="box" pos="0.213 -.213 0.075" size=".002 .002 .015" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
+      <geom name="led_12" type="box" pos="0.213 -.213 0.115" size=".002 .002 .015" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
+      <geom name="led_13" type="box" pos="0.213 -.213 0.155" size=".002 .002 .015" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
+      <geom name="led_14" type="box" pos="0.213 -.213 0.195" size=".002 .002 .015" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
+      <geom name="led_15" type="box" pos="0.213 -.213 0.235" size=".002 .002 .015" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
+      <geom name="led_16" type="box" pos="0.213 -.213 0.275" size=".002 .002 .015" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
+      <geom name="led_17" type="box" pos="0.213 -.213 0.315" size=".002 .002 .015" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
+      <geom name="led_18" type="box" pos="0.213 -.213 0.355" size=".002 .002 .015" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
+      <geom name="led_19" type="box" pos="0.213 -.213 0.395" size=".002 .002 .015" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
+      <geom name="led_20" type="box" pos="-0.175 -.223 .408" size=".013 .002 .0018" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
+      <geom name="led_21" type="box" pos="-0.14 -.223 .408" size=".013 .002 .0018" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
+      <geom name="led_22" type="box" pos="-0.105 -.223 .408" size=".013 .002 .0018" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
+      <geom name="led_23" type="box" pos="-0.07 -.223 .408" size=".013 .002 .0018" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
+      <geom name="led_24" type="box" pos="-0.035 -.223 .408" size=".013 .002 .0018" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
+      <geom name="led_25" type="box" pos="0 -.223 .408" size=".013 .002 .0018" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
+      <geom name="led_26" type="box" pos="0.035 -.223 .408" size=".013 .002 .0018" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
+      <geom name="led_27" type="box" pos="0.07 -.223 .408" size=".013 .002 .0018" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
+      <geom name="led_28" type="box" pos="0.105 -.223 .408" size=".013 .002 .0018" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
+      <geom name="led_29" type="box" pos="0.14 -.223 .408" size=".013 .002 .0018" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
+      <geom name="led_30" type="box" pos="0.175 -.223 .408" size=".013 .002 .0018" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
+      <geom name="led_31" type="box" pos="-0.213 -0.175 .405" size=".002 .019 .0018" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
+      <geom name="led_32" type="box" pos="-0.213 -0.125 .405" size=".002 .019 .0018" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
+      <geom name="led_33" type="box" pos="-0.213 -0.075 .405" size=".002 .019 .0018" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
+      <geom name="led_34" type="box" pos="-0.213 -0.025 .405" size=".002 .019 .0018" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
+      <geom name="led_35" type="box" pos="-0.213 0.025 .405" size=".002 .019 .0018" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
+      <geom name="led_36" type="box" pos="-0.213 0.075 .405" size=".002 .019 .0018" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
+      <geom name="led_37" type="box" pos="-0.213 0.125 .405" size=".002 .019 .0018" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
+      <geom name="led_38" type="box" pos="-0.213 0.175 .405" size=".002 .019 .0018" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
+      <geom name="led_39" type="box" pos="0.213 -0.175 .405" size=".002 .019 .0018" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
+      <geom name="led_40" type="box" pos="0.213 -0.125 .405" size=".002 .019 .0018" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
+      <geom name="led_41" type="box" pos="0.213 -0.075 .405" size=".002 .019 .0018" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
+      <geom name="led_42" type="box" pos="0.213 -0.025 .405" size=".002 .019 .0018" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
+      <geom name="led_43" type="box" pos="0.213 0.025 .405" size=".002 .019 .0018" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
+      <geom name="led_44" type="box" pos="0.213 0.075 .405" size=".002 .019 .0018" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
+      <geom name="led_45" type="box" pos="0.213 0.125 .405" size=".002 .019 .0018" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
+      <geom name="led_46" type="box" pos="0.213 0.175 .405" size=".002 .019 .0018" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
+    </body>
+    <body name="glass_enclosure">
+      <geom name="glass_left" type="box" pos="-.202 0 .205" size=".003 .202 .205" rgba=".73 .88 .96 .075" friction=".4 .005 .001" group="4" />
+      <geom name="glass_right" type="box" pos=".202 0 .205" size=".003 .202 .205" rgba=".73 .88 .96 .075" friction=".4 .005 .001" group="4" />
+      <geom name="glass_front" type="box" pos="0 -.202 .205" size=".199 .003 .205" rgba=".73 .88 .96 .075" friction=".4 .005 .001" group="4" />
+      <geom name="glass_back" type="box" pos="0 .202 .205" size=".199 .003 .205" rgba=".73 .88 .96 .075" friction=".4 .005 .001" group="4" />
+      <geom name="glass_roof" type="box" pos="0 0 .447" size=".205 .205 .003" rgba=".73 .88 .96 .075" friction=".4 .005 .001" group="4" />
+    </body>
+  </worldbody>
+  <actuator>
+    <position name="x" joint="x" kp="350" kv="12" ctrlrange="-0.128 0.128" />
+    <position name="y" joint="y" kp="350" kv="12" ctrlrange="-0.128 0.128" />
+    <position name="z" joint="z" kp="700" kv="15" ctrlrange="-0.255 0" />
+    <position name="finger_a" joint="finger_a" kp="0.55" kv="0.015" ctrlrange="0 0.95" forcerange="-0.065 0.065" />
+    <position name="finger_b" joint="finger_b" kp="0.55" kv="0.015" ctrlrange="0 0.95" forcerange="-0.065 0.065" />
+    <position name="finger_c" joint="finger_c" kp="0.55" kv="0.015" ctrlrange="0 0.95" forcerange="-0.065 0.065" />
+    <position name="yaw" joint="yaw" kp="1.2" kv=".06" ctrlrange="-3.14159 3.14159" forcerange="-.18 .18" />
+  </actuator>
+  <tendon>
+    <spatial name="suspension_cable" width=".0018" rgba=".25 .28 .28 1" group="3">
+      <site site="cable_top" />
+      <site site="cable_bottom" />
+    </spatial>
+  </tendon>
+  <equality>
+    <joint joint1="finger_b" joint2="finger_a" polycoef="0 1 0 0 0" solref=".004 1" solimp=".99 .999 .001" />
+    <joint joint1="finger_c" joint2="finger_a" polycoef="0 1 0 0 0" solref=".004 1" solimp=".99 .999 .001" />
+  </equality>
+</mujoco>

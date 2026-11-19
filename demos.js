@@ -3,6 +3,16 @@
 //       tags(필터용 카테고리 배열 — 아래 filters의 id와 일치)
 const demos = [
   {
+    icon: "🧸",
+    title: "PickDoll · 인형뽑기",
+    titleEn: "PickDoll · Claw Machine",
+    desc: "반짝이는 핑크 인형뽑기에서 집게를 움직이고 회전해 일곱 인형을 모아보세요. 키보드와 터치로 조작하는 MuJoCo 물리 게임입니다.",
+    descEn: "Aim, rotate, and grab seven plush toys in a sparkling pink claw machine. A MuJoCo physics game with keyboard and touch controls.",
+    href: "pickdoll/",
+    tags: ["sim"],
+  },
+
+  {
     icon: "🪐",
     title: "태양계 N-body 시뮬레이션",
     titleEn: "Solar System N-body Sim",

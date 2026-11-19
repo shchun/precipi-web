@@ -1,0 +1,391 @@
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@500;600;700&display=swap");
+:root {
+  color-scheme: dark;
+  font-family: "DM Sans", "Malgun Gothic", sans-serif;
+  background: #251b31;
+  color: #fff1f7;
+  font-synthesis: none;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  overflow: hidden;
+}
+button,
+select {
+  font: inherit;
+  font-size: 14px;
+  color: inherit;
+  cursor: pointer;
+  border: 1px solid #ffffff24;
+  background: #3a2b46;
+  border-radius: 12px;
+  min-height: 42px;
+  padding: 8px 14px;
+  touch-action: manipulation;
+}
+button:hover {
+  background: #57405d;
+}
+button:focus-visible,
+select:focus-visible {
+  outline: 3px solid #ffb4d6;
+  outline-offset: 3px;
+}
+button:active,
+button.active {
+  background: #875271;
+  transform: translateY(2px);
+}
+button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+button[aria-pressed="true"] {
+  border-color: #ef8dba;
+  background: #65405c;
+}
+[hidden] {
+  display: none !important;
+}
+#game {
+  height: 100dvh;
+  min-height: 420px;
+  position: relative;
+  max-width: 1400px;
+  margin: auto;
+  overflow: hidden;
+}
+header {
+  position: absolute;
+  top: max(16px, env(safe-area-inset-top));
+  left: 24px;
+  right: 24px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  z-index: 2;
+  pointer-events: none;
+}
+header a {
+  pointer-events: auto;
+  color: #cdb6cf;
+  font-size: 14px;
+  text-decoration: none;
+}
+h1 {
+  font-size: 24px;
+  margin: 0;
+  letter-spacing: -1px;
+}
+#score {
+  margin-left: auto;
+  font-size: 21px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  background: #38263ebd;
+  border: 1px solid #f8b1d62d;
+  padding: 8px 18px;
+  border-radius: 25px;
+}
+#viewport {
+  position: absolute;
+  inset: 0 0 150px;
+}
+canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+}
+.top-controls {
+  position: absolute;
+  left: 24px;
+  top: 77px;
+  display: flex;
+  gap: 8px;
+  z-index: 2;
+  flex-wrap: wrap;
+}
+#help {
+  width: 42px;
+  padding: 8px;
+}
+#status {
+  position: absolute;
+  bottom: 145px;
+  left: 16px;
+  right: 16px;
+  margin: 0;
+  text-align: center;
+  font-size: 15px;
+  font-weight: 600;
+  color: #ffd0e3;
+  pointer-events: none;
+  min-height: 24px;
+  text-shadow: 0 2px 8px #251b31;
+}
+#instructions {
+  position: absolute;
+  z-index: 3;
+  left: 24px;
+  top: 130px;
+  max-width: 440px;
+  right: 24px;
+  padding: 20px;
+  background: #302137f5;
+  border: 1px solid #d287ae69;
+  border-radius: 16px;
+  line-height: 1.9;
+  font-size: 14px;
+  box-shadow: 0 10px 35px #120d2190;
+}
+#controls {
+  position: absolute;
+  bottom: max(15px, env(safe-area-inset-bottom));
+  left: 24px;
+  right: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 20px;
+  max-width: 820px;
+  margin: 0 auto;
+}
+.movement {
+  display: flex;
+  align-items: end;
+  gap: 14px;
+}
+.dpad {
+  display: grid;
+  grid-template-columns: repeat(3, 48px);
+  grid-template-rows: repeat(2, 44px);
+  gap: 5px;
+}
+.dpad button {
+  font-size: 22px;
+  padding: 0;
+  border-radius: 12px;
+  touch-action: none;
+  user-select: none;
+}
+.dpad button:nth-child(1) {
+  grid-column: 2;
+}
+.dpad button:nth-child(2) {
+  grid-row: 2;
+  grid-column: 1;
+}
+.dpad button:nth-child(3) {
+  grid-row: 2;
+  grid-column: 2;
+}
+.dpad button:nth-child(4) {
+  grid-row: 2;
+  grid-column: 3;
+}
+.actions {
+  display: flex;
+  gap: 14px;
+  align-items: end;
+}
+.rotation {
+  display: flex;
+  gap: 6px;
+}
+.rotation button {
+  touch-action: none;
+  user-select: none;
+}
+#pick {
+  background: #f28cbb;
+  color: #381c36;
+  border: 0;
+  font-size: 20px;
+  font-weight: 700;
+  min-width: 120px;
+  height: 92px;
+  border-radius: 24px;
+  box-shadow:
+    0 5px 0 #a44f81,
+    0 6px 28px #e984b02b;
+}
+#pick:active {
+  box-shadow: 0 1px 0 #a44f81;
+}
+#pick:disabled {
+  background: #79506e;
+  color: #dbc5d4;
+  box-shadow: none;
+}
+.veil {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  background: #2116299e;
+  backdrop-filter: blur(7px);
+  display: grid;
+  place-items: center;
+  padding: 20px;
+}
+.welcome-card {
+  text-align: center;
+  max-width: 420px;
+  padding: 38px 28px;
+  border-radius: 28px;
+  background: linear-gradient(150deg, #51324b, #2d2238);
+  border: 1px solid #e3a0c05c;
+  box-shadow: 0 30px 100px #100b2055;
+}
+.toy {
+  font-size: 44px;
+  color: #ffb0d5;
+}
+h2 {
+  font-size: 32px;
+  line-height: 1.3;
+  letter-spacing: -1.2px;
+  margin: 15px 0;
+}
+.welcome-card p {
+  line-height: 1.6;
+  color: #dcc6d9;
+  font-size: 15px;
+}
+.welcome-card button {
+  width: 100%;
+  background: #f6a4cb;
+  color: #3b203a;
+  border: 0;
+  font-weight: 700;
+  font-size: 18px;
+  margin: 12px 0;
+  padding: 15px;
+}
+.welcome-card .small {
+  font-size: 13px;
+  margin-bottom: 0;
+  color: #c8aec6;
+}
+@media (max-width: 650px) {
+  header {
+    left: 15px;
+    right: 15px;
+    gap: 12px;
+  }
+  header a {
+    font-size: 12px;
+  }
+  h1 {
+    font-size: 22px;
+  }
+  .top-controls {
+    left: 15px;
+    right: 15px;
+    top: 75px;
+    gap: 6px;
+  }
+  .top-controls button,
+  .top-controls select {
+    padding: 7px 10px;
+    min-height: 38px;
+    font-size: 13px;
+  }
+  #viewport {
+    bottom: 190px;
+    top: 30px;
+  }
+  #controls {
+    left: 15px;
+    right: 15px;
+    gap: 12px;
+    bottom: max(18px, env(safe-area-inset-bottom));
+  }
+  .movement {
+    flex-direction: column-reverse;
+    gap: 9px;
+    align-items: start;
+  }
+  .actions {
+    flex-direction: column;
+    gap: 9px;
+    align-items: stretch;
+  }
+  .rotation button {
+    font-size: 13px;
+    padding: 6px 10px;
+    min-height: 35px;
+  }
+  #pick {
+    height: 80px;
+    min-width: 130px;
+  }
+  #fine {
+    font-size: 13px;
+    min-height: 35px;
+    padding: 6px 12px;
+  }
+  .dpad {
+    grid-template-columns: repeat(3, 44px);
+    grid-template-rows: repeat(2, 40px);
+  }
+  #status {
+    bottom: 172px;
+    font-size: 13px;
+  }
+  #score {
+    font-size: 18px;
+    padding: 7px 14px;
+  }
+}
+@media (max-height: 520px) {
+  .top-controls {
+    top: 63px;
+  }
+  #viewport {
+    inset: 0 130px 12px;
+  }
+  #controls {
+    inset: 120px 15px 18px;
+    max-width: none;
+    pointer-events: none;
+  }
+  .movement,
+  .actions {
+    pointer-events: auto;
+    align-self: end;
+    flex-direction: column;
+    gap: 7px;
+  }
+  .movement {
+    align-items: start;
+  }
+  .actions {
+    align-items: stretch;
+  }
+  #pick {
+    height: 65px;
+    min-width: 110px;
+  }
+  #status {
+    bottom: 4px;
+    font-size: 12px;
+  }
+  .dpad {
+    grid-template-columns: repeat(3, 36px);
+    grid-template-rows: repeat(2, 36px);
+  }
+  .welcome-card {
+    padding: 15px 30px;
+  }
+  h2 {
+    font-size: 24px;
+    margin: 7px;
+  }
+  .toy {
+    font-size: 28px;
+  }
+}
