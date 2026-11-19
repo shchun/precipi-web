@@ -1,4 +1,4 @@
-import { Claw, PRIZES } from "./physics.js?v=fixed-6";
+import { Claw, PRIZES } from "./physics.js?v=aim-7";
 
 const $ = (id) => document.getElementById(id);
 const CDN = "https://cdn.jsdelivr.net/npm/";
@@ -422,8 +422,8 @@ function draw() {
   points.setXYZ(1, bottom[0], bottom[1], bottom[2] + 0.009);
   points.needsUpdate = true;
   cable.visible = !overhead;
-  marker.position.x = bottom[0];
-  marker.position.y = bottom[1];
+  marker.position.x = top[0];
+  marker.position.y = top[1];
   const remaining = claw.celebrationUntil - data.time;
   particles.visible = remaining > 0;
   if (remaining > 0) {
@@ -616,7 +616,7 @@ async function boot() {
     const [graphics, physics, xml] = await Promise.all([
       import(CDN + "three@0.187.0/build/three.module.js"),
       import(CDN + "@mujoco/mujoco@4.0.1/mujoco.js"),
-      fetch("./claw.xml?v=fixed-6").then((response) => {
+      fetch("./claw.xml?v=aim-7").then((response) => {
         if (!response.ok) throw new Error("모델을 불러오지 못했어요");
         return response.text();
       }),
