@@ -1,4 +1,4 @@
-import { Claw, PRIZES, aimDirection } from "./physics.js?v=plush-2";
+import { Claw, PRIZES, aimDirection } from "./physics.js?v=grip-3";
 
 const $ = (id) => document.getElementById(id);
 const CDN = "https://cdn.jsdelivr.net/npm/";
@@ -519,7 +519,7 @@ async function boot() {
     const [graphics, physics, xml] = await Promise.all([
       import(CDN + "three@0.187.0/build/three.module.js"),
       import(CDN + "@mujoco/mujoco@4.0.1/mujoco.js"),
-      fetch("./claw.xml?v=plush-2").then((response) => {
+      fetch("./claw.xml?v=grip-3").then((response) => {
         if (!response.ok) throw new Error("모델을 불러오지 못했어요");
         return response.text();
       }),

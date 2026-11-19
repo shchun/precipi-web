@@ -118,7 +118,7 @@ export class Claw {
     if (this.phase !== "ready" || this.collected.size === 7) return;
     const [cx, cy] = this.position("claw");
     let best = null,
-      distance = 0.025;
+      distance = 0.030;
     for (const name of PRIZES) {
       if (this.collected.has(name)) continue;
       const [x, y, z] = this.position(name);
@@ -131,9 +131,9 @@ export class Claw {
     this.pickup = best;
     // Sample motor strength once per attempt. Contacts decide whether a toy slips.
     this.holdForce =
-      Math.random() < 0.28
-        ? 0.004 + Math.random() * 0.008
-        : 0.045 + Math.random() * 0.03;
+      Math.random() < 0.12
+        ? 0.020 + Math.random() * 0.015
+        : 0.065 + Math.random() * 0.015;
     this.gripForce = 0.065;
     this.holdBlend = 0;
     this.returnSpeed = 0;
@@ -201,7 +201,7 @@ export class Claw {
             z = 0;
             this.setTarget("z", height);
             this.closed = true;
-            this.timer = 0.48;
+            this.timer = 0.60;
             this.phase = "gripping";
             this.events.push("grip");
           }
@@ -288,7 +288,7 @@ export class Claw {
       this.setTarget(name, this.target(name) + velocity * this.dt);
     }
     if (["raising", "settling", "delivering"].includes(this.phase)) {
-      this.holdBlend = Math.min(1, this.holdBlend + this.dt / 0.35);
+      this.holdBlend = Math.min(1, this.holdBlend + this.dt / 0.55);
       this.gripForce = 0.065 + (this.holdForce - 0.065) * this.holdBlend;
       this.applyGripForce(this.gripForce);
     }
