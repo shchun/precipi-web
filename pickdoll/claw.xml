@@ -134,66 +134,146 @@
     </body>
     <body name="prize" pos="0.0 0.0 0.035">
       <freejoint />
-      <geom class="prize_body" rgba=".42 .64 .94 1" />
-      <geom type="sphere" pos="-0.021 0 .029" size=".013" mass="0" contype="0" conaffinity="0" rgba=".42 .64 .94 1" />
-      <geom type="sphere" pos="0.021 0 .029" size=".013" mass="0" contype="0" conaffinity="0" rgba=".42 .64 .94 1" />
-      <geom type="sphere" pos="-0.011 -.029 .008" size=".0045" mass="0" contype="0" conaffinity="0" rgba=".08 .12 .15 1" />
-      <geom type="sphere" pos="0.011 -.029 .008" size=".0045" mass="0" contype="0" conaffinity="0" rgba=".08 .12 .15 1" />
-      <geom type="ellipsoid" pos="0 -.032 -.003" size=".006 .003 .004" mass="0" contype="0" conaffinity="0" rgba=".94 .86 .71 1" />
+      <geom name="prize_torso" type="ellipsoid" pos="0 0 0" size=".025 .021 .030" rgba=".95 .64 .78 1" mass="0.058" friction="1.15 .01 .003" condim="6" solref=".025 1" solimp=".85 .95 .004" />
+      <geom name="prize_head" type="sphere" pos="0 0 .035" size=".022" rgba=".95 .64 .78 1" mass="0.034" friction="1.15 .01 .003" condim="6" solref=".025 1" solimp=".85 .95 .004" />
+      <geom name="prize_belly" type="ellipsoid" pos="0 -.019 -.002" size=".017 .004 .020" rgba="1 .94 .87 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_foot0" type="ellipsoid" pos="-0.015 -.005 -.024" size=".010 .014 .008" rgba=".95 .64 .78 1" mass="0.004" friction="1.15 .01 .003" condim="6" solref=".025 1" solimp=".85 .95 .004" />
+      <geom name="prize_arm0" type="ellipsoid" pos="-0.02775 0 .002" size=".009 .010 .018" rgba=".95 .64 .78 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_foot1" type="ellipsoid" pos="0.015 -.005 -.024" size=".010 .014 .008" rgba=".95 .64 .78 1" mass="0.004" friction="1.15 .01 .003" condim="6" solref=".025 1" solimp=".85 .95 .004" />
+      <geom name="prize_arm1" type="ellipsoid" pos="0.02775 0 .002" size=".009 .010 .018" rgba=".95 .64 .78 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_ear0" type="ellipsoid" pos="-0.012 0 .067" size=".008 .007 .025" rgba=".95 .64 .78 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_ear_inner0" type="ellipsoid" pos="-0.012 -.006 .069" size=".0035 .0015 .015" rgba=".98 .48 .64 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_ear1" type="ellipsoid" pos="0.012 0 .067" size=".008 .007 .025" rgba=".95 .64 .78 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_ear_inner1" type="ellipsoid" pos="0.012 -.006 .069" size=".0035 .0015 .015" rgba=".98 .48 .64 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_eye0" type="sphere" pos="-0.008 -.021 .040" size=".003" rgba=".12 .10 .16 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_eye_glint0" type="sphere" pos="-0.0087 -.0234 .041" size=".001" rgba="1 .94 .87 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_eye1" type="sphere" pos="0.008 -.021 .040" size=".003" rgba=".12 .10 .16 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_eye_glint1" type="sphere" pos="0.0073 -.0234 .041" size=".001" rgba="1 .94 .87 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_muzzle" type="ellipsoid" pos="0 -.021 .029" size=".010 .004 .007" rgba="1 .94 .87 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_nose" type="sphere" pos="0 -.025 .032" size=".003" rgba=".12 .10 .16 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_cheek0" type="ellipsoid" pos="-0.014 -.019 .031" size=".004 .002 .002" rgba=".98 .48 .64 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_cheek1" type="ellipsoid" pos="0.014 -.019 .031" size=".004 .002 .002" rgba=".98 .48 .64 1" mass="0" contype="0" conaffinity="0" />
     </body>
     <body name="prize_left" pos="-0.105 0.05 0.035">
       <freejoint />
-      <geom class="prize_body" rgba=".93 .42 .55 1" />
-      <geom type="sphere" pos="-0.021 0 .029" size=".013" mass="0" contype="0" conaffinity="0" rgba=".93 .42 .55 1" />
-      <geom type="sphere" pos="0.021 0 .029" size=".013" mass="0" contype="0" conaffinity="0" rgba=".93 .42 .55 1" />
-      <geom type="sphere" pos="-0.011 -.029 .008" size=".0045" mass="0" contype="0" conaffinity="0" rgba=".08 .12 .15 1" />
-      <geom type="sphere" pos="0.011 -.029 .008" size=".0045" mass="0" contype="0" conaffinity="0" rgba=".08 .12 .15 1" />
-      <geom type="ellipsoid" pos="0 -.032 -.003" size=".006 .003 .004" mass="0" contype="0" conaffinity="0" rgba=".94 .86 .71 1" />
+      <geom name="prize_left_torso" type="ellipsoid" pos="0 0 0" size=".025 .021 .030" rgba=".72 .48 .32 1" mass="0.058" friction="1.15 .01 .003" condim="6" solref=".025 1" solimp=".85 .95 .004" />
+      <geom name="prize_left_head" type="sphere" pos="0 0 .035" size=".022" rgba=".72 .48 .32 1" mass="0.034" friction="1.15 .01 .003" condim="6" solref=".025 1" solimp=".85 .95 .004" />
+      <geom name="prize_left_belly" type="ellipsoid" pos="0 -.019 -.002" size=".017 .004 .020" rgba="1 .94 .87 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_left_foot0" type="ellipsoid" pos="-0.015 -.005 -.024" size=".010 .014 .008" rgba=".72 .48 .32 1" mass="0.004" friction="1.15 .01 .003" condim="6" solref=".025 1" solimp=".85 .95 .004" />
+      <geom name="prize_left_arm0" type="ellipsoid" pos="-0.02775 0 .002" size=".009 .010 .018" rgba=".72 .48 .32 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_left_foot1" type="ellipsoid" pos="0.015 -.005 -.024" size=".010 .014 .008" rgba=".72 .48 .32 1" mass="0.004" friction="1.15 .01 .003" condim="6" solref=".025 1" solimp=".85 .95 .004" />
+      <geom name="prize_left_arm1" type="ellipsoid" pos="0.02775 0 .002" size=".009 .010 .018" rgba=".72 .48 .32 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_left_ear0" type="sphere" pos="-0.016 0 .055" size=".010" rgba=".72 .48 .32 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_left_ear1" type="sphere" pos="0.016 0 .055" size=".010" rgba=".72 .48 .32 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_left_eye0" type="sphere" pos="-0.008 -.021 .040" size=".003" rgba=".12 .10 .16 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_left_eye_glint0" type="sphere" pos="-0.0087 -.0234 .041" size=".001" rgba="1 .94 .87 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_left_eye1" type="sphere" pos="0.008 -.021 .040" size=".003" rgba=".12 .10 .16 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_left_eye_glint1" type="sphere" pos="0.0073 -.0234 .041" size=".001" rgba="1 .94 .87 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_left_muzzle" type="ellipsoid" pos="0 -.021 .029" size=".010 .004 .007" rgba="1 .94 .87 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_left_nose" type="sphere" pos="0 -.025 .032" size=".003" rgba=".12 .10 .16 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_left_cheek0" type="ellipsoid" pos="-0.014 -.019 .031" size=".004 .002 .002" rgba=".98 .48 .64 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_left_cheek1" type="ellipsoid" pos="0.014 -.019 .031" size=".004 .002 .002" rgba=".98 .48 .64 1" mass="0" contype="0" conaffinity="0" />
     </body>
     <body name="prize_right" pos="0.105 -0.025 0.035">
       <freejoint />
-      <geom class="prize_body" rgba=".72 .52 .90 1" />
-      <geom type="sphere" pos="-0.021 0 .029" size=".013" mass="0" contype="0" conaffinity="0" rgba=".72 .52 .90 1" />
-      <geom type="sphere" pos="0.021 0 .029" size=".013" mass="0" contype="0" conaffinity="0" rgba=".72 .52 .90 1" />
-      <geom type="sphere" pos="-0.011 -.029 .008" size=".0045" mass="0" contype="0" conaffinity="0" rgba=".08 .12 .15 1" />
-      <geom type="sphere" pos="0.011 -.029 .008" size=".0045" mass="0" contype="0" conaffinity="0" rgba=".08 .12 .15 1" />
-      <geom type="ellipsoid" pos="0 -.032 -.003" size=".006 .003 .004" mass="0" contype="0" conaffinity="0" rgba=".94 .86 .71 1" />
+      <geom name="prize_right_torso" type="ellipsoid" pos="0 0 0" size=".025 .021 .030" rgba=".66 .62 .85 1" mass="0.058" friction="1.15 .01 .003" condim="6" solref=".025 1" solimp=".85 .95 .004" />
+      <geom name="prize_right_head" type="sphere" pos="0 0 .035" size=".022" rgba=".66 .62 .85 1" mass="0.034" friction="1.15 .01 .003" condim="6" solref=".025 1" solimp=".85 .95 .004" />
+      <geom name="prize_right_belly" type="ellipsoid" pos="0 -.019 -.002" size=".017 .004 .020" rgba="1 .94 .87 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_right_foot0" type="ellipsoid" pos="-0.015 -.005 -.024" size=".010 .014 .008" rgba=".66 .62 .85 1" mass="0.004" friction="1.15 .01 .003" condim="6" solref=".025 1" solimp=".85 .95 .004" />
+      <geom name="prize_right_arm0" type="ellipsoid" pos="-0.02775 0 .002" size=".009 .010 .018" rgba=".66 .62 .85 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_right_foot1" type="ellipsoid" pos="0.015 -.005 -.024" size=".010 .014 .008" rgba=".66 .62 .85 1" mass="0.004" friction="1.15 .01 .003" condim="6" solref=".025 1" solimp=".85 .95 .004" />
+      <geom name="prize_right_arm1" type="ellipsoid" pos="0.02775 0 .002" size=".009 .010 .018" rgba=".66 .62 .85 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_right_ear0" type="ellipsoid" pos="-0.016 0 .058" size=".009 .007 .014" rgba=".66 .62 .85 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_right_ear_inner0" type="ellipsoid" pos="-0.016 -.005 .059" size=".004 .002 .008" rgba=".98 .48 .64 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_right_ear1" type="ellipsoid" pos="0.016 0 .058" size=".009 .007 .014" rgba=".66 .62 .85 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_right_ear_inner1" type="ellipsoid" pos="0.016 -.005 .059" size=".004 .002 .008" rgba=".98 .48 .64 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_right_eye0" type="sphere" pos="-0.008 -.021 .040" size=".003" rgba=".12 .10 .16 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_right_eye_glint0" type="sphere" pos="-0.0087 -.0234 .041" size=".001" rgba="1 .94 .87 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_right_eye1" type="sphere" pos="0.008 -.021 .040" size=".003" rgba=".12 .10 .16 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_right_eye_glint1" type="sphere" pos="0.0073 -.0234 .041" size=".001" rgba="1 .94 .87 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_right_muzzle" type="ellipsoid" pos="0 -.021 .029" size=".010 .004 .007" rgba="1 .94 .87 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_right_nose" type="sphere" pos="0 -.025 .032" size=".003" rgba=".12 .10 .16 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_right_cheek0" type="ellipsoid" pos="-0.014 -.019 .031" size=".004 .002 .002" rgba=".98 .48 .64 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_right_cheek1" type="ellipsoid" pos="0.014 -.019 .031" size=".004 .002 .002" rgba=".98 .48 .64 1" mass="0" contype="0" conaffinity="0" />
     </body>
     <body name="prize_4" pos="-0.105 0.125 0.035">
       <freejoint />
-      <geom class="prize_body" rgba=".95 .69 .32 1" />
-      <geom type="sphere" pos="-0.021 0 .029" size=".013" mass="0" contype="0" conaffinity="0" rgba=".95 .69 .32 1" />
-      <geom type="sphere" pos="0.021 0 .029" size=".013" mass="0" contype="0" conaffinity="0" rgba=".95 .69 .32 1" />
-      <geom type="sphere" pos="-0.011 -.029 .008" size=".0045" mass="0" contype="0" conaffinity="0" rgba=".08 .12 .15 1" />
-      <geom type="sphere" pos="0.011 -.029 .008" size=".0045" mass="0" contype="0" conaffinity="0" rgba=".08 .12 .15 1" />
-      <geom type="ellipsoid" pos="0 -.032 -.003" size=".006 .003 .004" mass="0" contype="0" conaffinity="0" rgba=".94 .86 .71 1" />
+      <geom name="prize_4_torso" type="ellipsoid" pos="0 0 0" size=".025 .021 .030" rgba=".94 .92 .88 1" mass="0.058" friction="1.15 .01 .003" condim="6" solref=".025 1" solimp=".85 .95 .004" />
+      <geom name="prize_4_head" type="sphere" pos="0 0 .035" size=".022" rgba=".94 .92 .88 1" mass="0.034" friction="1.15 .01 .003" condim="6" solref=".025 1" solimp=".85 .95 .004" />
+      <geom name="prize_4_belly" type="ellipsoid" pos="0 -.019 -.002" size=".017 .004 .020" rgba="1 .94 .87 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_4_foot0" type="ellipsoid" pos="-0.015 -.005 -.024" size=".010 .014 .008" rgba=".12 .10 .16 1" mass="0.004" friction="1.15 .01 .003" condim="6" solref=".025 1" solimp=".85 .95 .004" />
+      <geom name="prize_4_arm0" type="ellipsoid" pos="-0.02775 0 .002" size=".009 .010 .018" rgba=".12 .10 .16 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_4_foot1" type="ellipsoid" pos="0.015 -.005 -.024" size=".010 .014 .008" rgba=".12 .10 .16 1" mass="0.004" friction="1.15 .01 .003" condim="6" solref=".025 1" solimp=".85 .95 .004" />
+      <geom name="prize_4_arm1" type="ellipsoid" pos="0.02775 0 .002" size=".009 .010 .018" rgba=".12 .10 .16 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_4_ear0" type="sphere" pos="-0.016 0 .055" size=".010" rgba=".12 .10 .16 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_4_ear1" type="sphere" pos="0.016 0 .055" size=".010" rgba=".12 .10 .16 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_4_patch0" type="ellipsoid" pos="-0.008 -.019 .039" size=".007 .003 .009" rgba=".12 .10 .16 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_4_eye0" type="sphere" pos="-0.008 -.021 .040" size=".003" rgba="1 .94 .87 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_4_eye_glint0" type="sphere" pos="-0.0087 -.0234 .041" size=".001" rgba="1 .94 .87 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_4_patch1" type="ellipsoid" pos="0.008 -.019 .039" size=".007 .003 .009" rgba=".12 .10 .16 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_4_eye1" type="sphere" pos="0.008 -.021 .040" size=".003" rgba="1 .94 .87 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_4_eye_glint1" type="sphere" pos="0.0073 -.0234 .041" size=".001" rgba="1 .94 .87 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_4_muzzle" type="ellipsoid" pos="0 -.021 .029" size=".010 .004 .007" rgba="1 .94 .87 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_4_nose" type="sphere" pos="0 -.025 .032" size=".003" rgba=".12 .10 .16 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_4_cheek0" type="ellipsoid" pos="-0.014 -.019 .031" size=".004 .002 .002" rgba=".98 .48 .64 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_4_cheek1" type="ellipsoid" pos="0.014 -.019 .031" size=".004 .002 .002" rgba=".98 .48 .64 1" mass="0" contype="0" conaffinity="0" />
     </body>
     <body name="prize_5" pos="0.0 0.125 0.035">
       <freejoint />
-      <geom class="prize_body" rgba=".42 .79 .60 1" />
-      <geom type="sphere" pos="-0.021 0 .029" size=".013" mass="0" contype="0" conaffinity="0" rgba=".42 .79 .60 1" />
-      <geom type="sphere" pos="0.021 0 .029" size=".013" mass="0" contype="0" conaffinity="0" rgba=".42 .79 .60 1" />
-      <geom type="sphere" pos="-0.011 -.029 .008" size=".0045" mass="0" contype="0" conaffinity="0" rgba=".08 .12 .15 1" />
-      <geom type="sphere" pos="0.011 -.029 .008" size=".0045" mass="0" contype="0" conaffinity="0" rgba=".08 .12 .15 1" />
-      <geom type="ellipsoid" pos="0 -.032 -.003" size=".006 .003 .004" mass="0" contype="0" conaffinity="0" rgba=".94 .86 .71 1" />
+      <geom name="prize_5_torso" type="ellipsoid" pos="0 0 0" size=".025 .021 .030" rgba=".96 .51 .23 1" mass="0.058" friction="1.15 .01 .003" condim="6" solref=".025 1" solimp=".85 .95 .004" />
+      <geom name="prize_5_head" type="sphere" pos="0 0 .035" size=".022" rgba=".96 .51 .23 1" mass="0.034" friction="1.15 .01 .003" condim="6" solref=".025 1" solimp=".85 .95 .004" />
+      <geom name="prize_5_belly" type="ellipsoid" pos="0 -.019 -.002" size=".017 .004 .020" rgba="1 .94 .87 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_5_foot0" type="ellipsoid" pos="-0.015 -.005 -.024" size=".010 .014 .008" rgba=".96 .51 .23 1" mass="0.004" friction="1.15 .01 .003" condim="6" solref=".025 1" solimp=".85 .95 .004" />
+      <geom name="prize_5_arm0" type="ellipsoid" pos="-0.02775 0 .002" size=".009 .010 .018" rgba=".96 .51 .23 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_5_foot1" type="ellipsoid" pos="0.015 -.005 -.024" size=".010 .014 .008" rgba=".96 .51 .23 1" mass="0.004" friction="1.15 .01 .003" condim="6" solref=".025 1" solimp=".85 .95 .004" />
+      <geom name="prize_5_arm1" type="ellipsoid" pos="0.02775 0 .002" size=".009 .010 .018" rgba=".96 .51 .23 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_5_ear0" type="ellipsoid" pos="-0.016 0 .058" size=".009 .007 .014" rgba=".96 .51 .23 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_5_ear_inner0" type="ellipsoid" pos="-0.016 -.005 .059" size=".004 .002 .008" rgba=".12 .10 .16 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_5_ear1" type="ellipsoid" pos="0.016 0 .058" size=".009 .007 .014" rgba=".96 .51 .23 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_5_ear_inner1" type="ellipsoid" pos="0.016 -.005 .059" size=".004 .002 .008" rgba=".12 .10 .16 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_5_eye0" type="sphere" pos="-0.008 -.021 .040" size=".003" rgba=".12 .10 .16 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_5_eye_glint0" type="sphere" pos="-0.0087 -.0234 .041" size=".001" rgba="1 .94 .87 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_5_eye1" type="sphere" pos="0.008 -.021 .040" size=".003" rgba=".12 .10 .16 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_5_eye_glint1" type="sphere" pos="0.0073 -.0234 .041" size=".001" rgba="1 .94 .87 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_5_muzzle" type="ellipsoid" pos="0 -.021 .029" size=".010 .004 .007" rgba="1 .94 .87 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_5_nose" type="sphere" pos="0 -.025 .032" size=".003" rgba=".12 .10 .16 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_5_cheek0" type="ellipsoid" pos="-0.014 -.019 .031" size=".004 .002 .002" rgba=".98 .48 .64 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_5_cheek1" type="ellipsoid" pos="0.014 -.019 .031" size=".004 .002 .002" rgba=".98 .48 .64 1" mass="0" contype="0" conaffinity="0" />
     </body>
     <body name="prize_6" pos="0.105 0.125 0.035">
       <freejoint />
-      <geom class="prize_body" rgba=".95 .53 .34 1" />
-      <geom type="sphere" pos="-0.021 0 .029" size=".013" mass="0" contype="0" conaffinity="0" rgba=".95 .53 .34 1" />
-      <geom type="sphere" pos="0.021 0 .029" size=".013" mass="0" contype="0" conaffinity="0" rgba=".95 .53 .34 1" />
-      <geom type="sphere" pos="-0.011 -.029 .008" size=".0045" mass="0" contype="0" conaffinity="0" rgba=".08 .12 .15 1" />
-      <geom type="sphere" pos="0.011 -.029 .008" size=".0045" mass="0" contype="0" conaffinity="0" rgba=".08 .12 .15 1" />
-      <geom type="ellipsoid" pos="0 -.032 -.003" size=".006 .003 .004" mass="0" contype="0" conaffinity="0" rgba=".94 .86 .71 1" />
+      <geom name="prize_6_torso" type="ellipsoid" pos="0 0 0" size=".025 .021 .030" rgba=".90 .74 .52 1" mass="0.058" friction="1.15 .01 .003" condim="6" solref=".025 1" solimp=".85 .95 .004" />
+      <geom name="prize_6_head" type="sphere" pos="0 0 .035" size=".022" rgba=".90 .74 .52 1" mass="0.034" friction="1.15 .01 .003" condim="6" solref=".025 1" solimp=".85 .95 .004" />
+      <geom name="prize_6_belly" type="ellipsoid" pos="0 -.019 -.002" size=".017 .004 .020" rgba="1 .94 .87 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_6_foot0" type="ellipsoid" pos="-0.015 -.005 -.024" size=".010 .014 .008" rgba=".90 .74 .52 1" mass="0.004" friction="1.15 .01 .003" condim="6" solref=".025 1" solimp=".85 .95 .004" />
+      <geom name="prize_6_arm0" type="ellipsoid" pos="-0.02775 0 .002" size=".009 .010 .018" rgba=".90 .74 .52 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_6_foot1" type="ellipsoid" pos="0.015 -.005 -.024" size=".010 .014 .008" rgba=".90 .74 .52 1" mass="0.004" friction="1.15 .01 .003" condim="6" solref=".025 1" solimp=".85 .95 .004" />
+      <geom name="prize_6_arm1" type="ellipsoid" pos="0.02775 0 .002" size=".009 .010 .018" rgba=".90 .74 .52 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_6_ear0" type="ellipsoid" pos="-0.023 .001 .040" size=".008 .008 .022" rgba=".50 .28 .18 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_6_ear1" type="ellipsoid" pos="0.023 .001 .040" size=".008 .008 .022" rgba=".50 .28 .18 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_6_eye0" type="sphere" pos="-0.008 -.021 .040" size=".003" rgba=".12 .10 .16 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_6_eye_glint0" type="sphere" pos="-0.0087 -.0234 .041" size=".001" rgba="1 .94 .87 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_6_eye1" type="sphere" pos="0.008 -.021 .040" size=".003" rgba=".12 .10 .16 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_6_eye_glint1" type="sphere" pos="0.0073 -.0234 .041" size=".001" rgba="1 .94 .87 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_6_muzzle" type="ellipsoid" pos="0 -.021 .029" size=".010 .004 .007" rgba="1 .94 .87 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_6_nose" type="sphere" pos="0 -.025 .032" size=".003" rgba=".12 .10 .16 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_6_cheek0" type="ellipsoid" pos="-0.014 -.019 .031" size=".004 .002 .002" rgba=".98 .48 .64 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_6_cheek1" type="ellipsoid" pos="0.014 -.019 .031" size=".004 .002 .002" rgba=".98 .48 .64 1" mass="0" contype="0" conaffinity="0" />
     </body>
     <body name="prize_7" pos="-0.105 -0.025 0.035">
       <freejoint />
-      <geom class="prize_body" rgba=".49 .78 .85 1" />
-      <geom type="sphere" pos="-0.021 0 .029" size=".013" mass="0" contype="0" conaffinity="0" rgba=".49 .78 .85 1" />
-      <geom type="sphere" pos="0.021 0 .029" size=".013" mass="0" contype="0" conaffinity="0" rgba=".49 .78 .85 1" />
-      <geom type="sphere" pos="-0.011 -.029 .008" size=".0045" mass="0" contype="0" conaffinity="0" rgba=".08 .12 .15 1" />
-      <geom type="sphere" pos="0.011 -.029 .008" size=".0045" mass="0" contype="0" conaffinity="0" rgba=".08 .12 .15 1" />
-      <geom type="ellipsoid" pos="0 -.032 -.003" size=".006 .003 .004" mass="0" contype="0" conaffinity="0" rgba=".94 .86 .71 1" />
+      <geom name="prize_7_torso" type="ellipsoid" pos="0 0 0" size=".025 .021 .030" rgba=".24 .35 .48 1" mass="0.058" friction="1.15 .01 .003" condim="6" solref=".025 1" solimp=".85 .95 .004" />
+      <geom name="prize_7_head" type="sphere" pos="0 0 .035" size=".022" rgba=".24 .35 .48 1" mass="0.034" friction="1.15 .01 .003" condim="6" solref=".025 1" solimp=".85 .95 .004" />
+      <geom name="prize_7_belly" type="ellipsoid" pos="0 -.019 -.002" size=".017 .004 .020" rgba="1 .94 .87 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_7_foot0" type="ellipsoid" pos="-0.015 -.005 -.024" size=".010 .014 .008" rgba=".12 .10 .16 1" mass="0.004" friction="1.15 .01 .003" condim="6" solref=".025 1" solimp=".85 .95 .004" />
+      <geom name="prize_7_arm0" type="ellipsoid" pos="-0.02775 0 .002" size=".009 .010 .018" rgba=".12 .10 .16 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_7_foot1" type="ellipsoid" pos="0.015 -.005 -.024" size=".010 .014 .008" rgba=".12 .10 .16 1" mass="0.004" friction="1.15 .01 .003" condim="6" solref=".025 1" solimp=".85 .95 .004" />
+      <geom name="prize_7_arm1" type="ellipsoid" pos="0.02775 0 .002" size=".009 .010 .018" rgba=".12 .10 .16 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_7_eye0" type="sphere" pos="-0.008 -.021 .040" size=".003" rgba=".12 .10 .16 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_7_eye_glint0" type="sphere" pos="-0.0087 -.0234 .041" size=".001" rgba="1 .94 .87 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_7_eye1" type="sphere" pos="0.008 -.021 .040" size=".003" rgba=".12 .10 .16 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_7_eye_glint1" type="sphere" pos="0.0073 -.0234 .041" size=".001" rgba="1 .94 .87 1" mass="0" contype="0" conaffinity="0" />
+      <geom name="prize_7_beak" type="ellipsoid" pos="0 -.023 .031" size=".006 .006 .004" rgba=".99 .64 .18 1" mass="0" contype="0" conaffinity="0" />
     </body>
     <body name="panel_joystick" mocap="true" pos=".015 -.24 .013">
       <geom type="capsule" fromto="0 0 0 0 0 .030" size=".003" rgba=".7 .65 .7 1" contype="0" conaffinity="0" />

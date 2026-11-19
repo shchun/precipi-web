@@ -94,6 +94,11 @@ export class Claw {
         address,
       );
     });
+    this.gripForce = 0.065;
+    this.holdForce = 0.065;
+    this.holdBlend = 0;
+    this.returnSpeed = 0;
+    this.applyGripForce(this.gripForce);
     this.collected = new Set();
     this.events = [];
     this.phase = "ready";
@@ -124,12 +129,28 @@ export class Claw {
       }
     }
     this.pickup = best;
+    // Sample motor strength once per attempt. Contacts decide whether a toy slips.
+    this.holdForce =
+      Math.random() < 0.28
+        ? 0.004 + Math.random() * 0.008
+        : 0.045 + Math.random() * 0.03;
+    this.gripForce = 0.065;
+    this.holdBlend = 0;
+    this.returnSpeed = 0;
+    this.applyGripForce(this.gripForce);
     this.phase = best ? "aligning" : "lowering";
     this.closed = false;
     this.elapsed = 0;
     this.stall = 0;
     this.previousHeight = this.joint("z");
     this.events.push("button");
+  }
+  applyGripForce(force) {
+    for (const name of ["finger_a", "finger_b", "finger_c"]) {
+      const id = this.actuators[name];
+      this.model.actuator_forcerange[id * 2] = -force;
+      this.model.actuator_forcerange[id * 2 + 1] = force;
+    }
   }
   nudge(x, y) {
     if (this.phase !== "ready") return;
@@ -158,8 +179,8 @@ export class Claw {
               this.target(axis) +
                 clamp(
                   target[i] - this.target(axis),
-                  -0.04 * this.dt,
-                  0.04 * this.dt,
+                  -0.075 * this.dt,
+                  0.075 * this.dt,
                 ),
             ),
           );
@@ -180,7 +201,7 @@ export class Claw {
             z = 0;
             this.setTarget("z", height);
             this.closed = true;
-            this.timer = 0.65;
+            this.timer = 0.48;
             this.phase = "gripping";
             this.events.push("grip");
           }
@@ -202,14 +223,15 @@ export class Claw {
           if (this.timer <= 0) this.phase = "delivering";
           break;
         case "delivering":
+          this.returnSpeed = Math.min(0.18, this.returnSpeed + 0.65 * this.dt);
           for (const axis of ["x", "y"])
             this.setTarget(
               axis,
               this.target(axis) +
                 clamp(
                   -0.128 - this.target(axis),
-                  -0.055 * this.dt,
-                  0.055 * this.dt,
+                  -this.returnSpeed * this.dt,
+                  this.returnSpeed * this.dt,
                 ),
             );
           if (
@@ -252,14 +274,23 @@ export class Claw {
           break;
       }
     }
-    const speed = (fine ? 0.008 : 0.075) / Math.max(1, Math.hypot(x, y));
+    const speed = (fine ? 0.008 : 0.12) / Math.max(1, Math.hypot(x, y));
     for (const [name, velocity] of [
       ["x", x * speed],
       ["y", y * speed],
-      ["z", z * 0.085],
+      [
+        "z",
+        z *
+          (this.phase === "raising" || this.phase === "aligning" ? 0.18 : 0.12),
+      ],
       ["yaw", rotation * (fine ? 0.2 : 0.85)],
     ]) {
       this.setTarget(name, this.target(name) + velocity * this.dt);
+    }
+    if (["raising", "settling", "delivering"].includes(this.phase)) {
+      this.holdBlend = Math.min(1, this.holdBlend + this.dt / 0.35);
+      this.gripForce = 0.065 + (this.holdForce - 0.065) * this.holdBlend;
+      this.applyGripForce(this.gripForce);
     }
     for (const name of ["finger_a", "finger_b", "finger_c"])
       this.setTarget(name, this.closed ? 0.95 : 0);

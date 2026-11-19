@@ -1,4 +1,4 @@
-import { Claw, PRIZES, aimDirection } from "./physics.js";
+import { Claw, PRIZES, aimDirection } from "./physics.js?v=plush-2";
 
 const $ = (id) => document.getElementById(id);
 const CDN = "https://cdn.jsdelivr.net/npm/";
@@ -14,6 +14,7 @@ let previous = performance.now(),
 const meshes = [];
 const geometries = new Map();
 const sounds = {};
+const plushCompression = new Map();
 let music;
 const labels = {
   aligning: "중심을 맞추고 있어요",
@@ -121,6 +122,23 @@ function geometryFor(id) {
   return geometry;
 }
 let cable, marker, particles, matrix;
+function createFabricTexture() {
+  const canvas = document.createElement("canvas");
+  canvas.width = canvas.height = 128;
+  const context = canvas.getContext("2d");
+  const pixels = context.createImageData(128, 128);
+  let noise = 731;
+  for (let i = 0; i < pixels.data.length; i += 4) {
+    noise = (Math.imul(noise, 1664525) + 1013904223) >>> 0;
+    const value = 160 + (noise % 75);
+    pixels.data.set([value, value, value, 255], i);
+  }
+  context.putImageData(pixels, 0, 0);
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+  texture.repeat.set(4, 4);
+  return texture;
+}
 function initializeScene() {
   scene = new THREE.Scene();
   scene.background = new THREE.Color("#251b31");
@@ -157,10 +175,19 @@ function initializeScene() {
   fill.position.set(0.6, 0.5, 0.7);
   scene.add(fill);
   const m = claw.model;
+  const fabric = createFabricTexture();
+  const prizeBodies = new Set(PRIZES.map((name) => claw.bodies[name]));
   for (let id = 0; id < m.ngeom; id++) {
     const rgba = m.geom_rgba.slice(id * 4, id * 4 + 4);
     const led = claw.leds.includes(id);
-    const material = new THREE.MeshStandardMaterial({
+    const bodyId = m.geom_bodyid[id];
+    const toy = prizeBodies.has(bodyId);
+    const name = claw.mj.mj_id2name(m, 5, id) || "";
+    const fabricPart = toy && !/eye|nose|beak|patch|cheek/.test(name);
+    const Material = fabricPart
+      ? THREE.MeshPhysicalMaterial
+      : THREE.MeshStandardMaterial;
+    const material = new Material({
       color: new THREE.Color().setRGB(rgba[0], rgba[1], rgba[2]),
       roughness: 0.48,
       metalness: 0.06,
@@ -169,6 +196,14 @@ function initializeScene() {
       depthWrite: rgba[3] >= 1,
       side: THREE.DoubleSide,
     });
+    if (fabricPart) {
+      material.roughness = 0.96;
+      material.metalness = 0;
+      material.sheen = 0.85;
+      material.sheenColor.set("#ffe8ef");
+      material.bumpMap = fabric;
+      material.bumpScale = 0.00055;
+    }
     if (led) {
       material.emissive.copy(material.color);
       material.emissiveIntensity = 1.7;
@@ -176,7 +211,7 @@ function initializeScene() {
     const mesh = new THREE.Mesh(geometryFor(id), material);
     mesh.castShadow = !led && rgba[3] > 0.9 && m.geom_type[id] !== 0;
     mesh.receiveShadow = rgba[3] > 0.9;
-    mesh.userData = { id, led, upper: m.geom_group[id] === 3 };
+    mesh.userData = { id, led, toy, bodyId, upper: m.geom_group[id] === 3 };
     if (rgba[3] < 1) mesh.renderOrder = 2;
     scene.add(mesh);
     meshes.push(mesh);
@@ -227,8 +262,23 @@ function resize() {
 }
 function draw() {
   const data = claw.data;
+  const clawPosition = claw.position("claw");
+  for (const name of PRIZES) {
+    const body = claw.bodies[name];
+    const position = claw.position(name);
+    const near =
+      Math.hypot(position[0] - clawPosition[0], position[1] - clawPosition[1]) <
+      0.052;
+    const height = clawPosition[2] - position[2];
+    const squeezed = claw.closed && near && height > 0.015 && height < 0.115;
+    const previous = plushCompression.get(body) || 0;
+    plushCompression.set(
+      body,
+      previous + ((squeezed ? 1 : 0) - previous) * 0.15,
+    );
+  }
   for (const mesh of meshes) {
-    const { id, led, upper } = mesh.userData;
+    const { id, led, upper, toy, bodyId } = mesh.userData;
     mesh.visible = !(view === 1 && upper);
     mesh.position.fromArray(data.geom_xpos, id * 3);
     const a = data.geom_xmat.slice(id * 9, id * 9 + 9);
@@ -251,6 +301,18 @@ function draw() {
       1,
     );
     mesh.quaternion.setFromRotationMatrix(matrix);
+    if (toy) {
+      const amount = plushCompression.get(bodyId) || 0;
+      const origin = data.xpos.slice(bodyId * 3, bodyId * 3 + 3);
+      const lateral = 1 - amount * 0.07;
+      const vertical = 1 + amount * 0.035;
+      mesh.scale.set(lateral, lateral, vertical);
+      mesh.position.set(
+        origin[0] + (mesh.position.x - origin[0]) * lateral,
+        origin[1] + (mesh.position.y - origin[1]) * lateral,
+        origin[2] + (mesh.position.z - origin[2]) * vertical,
+      );
+    }
     if (led) {
       const colors = claw.model.geom_rgba.slice(id * 4, id * 4 + 3);
       mesh.material.color.setRGB(...colors);
@@ -334,6 +396,7 @@ function reset() {
   keys.clear();
   touches.clear();
   claw.reset();
+  plushCompression.clear();
   lag = 0;
   previous = performance.now();
 }
@@ -456,7 +519,7 @@ async function boot() {
     const [graphics, physics, xml] = await Promise.all([
       import(CDN + "three@0.187.0/build/three.module.js"),
       import(CDN + "@mujoco/mujoco@4.0.1/mujoco.js"),
-      fetch("./claw.xml").then((response) => {
+      fetch("./claw.xml?v=plush-2").then((response) => {
         if (!response.ok) throw new Error("모델을 불러오지 못했어요");
         return response.text();
       }),
@@ -471,7 +534,7 @@ async function boot() {
     initializeAudio();
     bindControls();
     $("loading").textContent =
-      "일곱 인형을 모아보세요. 소리는 시작 후 재생돼요.";
+      "일곱 동물 인형을 모아보세요. 집게 힘은 매번 조금씩 달라요.";
     $("start").disabled = false;
     $("start").textContent = "게임 시작";
     requestAnimationFrame(loop);
