@@ -389,3 +389,6 @@ h2 {
     font-size: 28px;
   }
 }
+
+#viewport canvas { cursor: grab; }
+#viewport canvas.orbit-dragging { cursor: grabbing; }

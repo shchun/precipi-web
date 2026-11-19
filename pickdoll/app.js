@@ -1,4 +1,4 @@
-import { Claw, PRIZES, aimDirection } from "./physics.js?v=studio-4";
+import { Claw, PRIZES, aimDirection } from "./physics.js?v=orbit-5";
 
 const $ = (id) => document.getElementById(id);
 const CDN = "https://cdn.jsdelivr.net/npm/";
@@ -16,6 +16,8 @@ const geometries = new Map();
 const sounds = {};
 const plushCompression = new Map();
 let music;
+const orbit = { azimuth: 0, elevation: 0.46, distance: 1.16, targetZ: 0.075 };
+let cameraDrag = null;
 const labels = {
   aligning: "중심을 맞추고 있어요",
   lowering: "집게가 내려가요",
@@ -55,7 +57,9 @@ function toggleSound() {
   }
 }
 function setCamera(index) {
+  stopCameraDrag();
   view = index;
+  if (index === 5) return;
   $("camera").value = String(index);
   const positions = [
     [0, -1.04, 0.59],
@@ -66,7 +70,71 @@ function setCamera(index) {
   ];
   camera.position.fromArray(positions[index]);
   camera.up.set(0, index === 1 ? 1 : 0, index === 1 ? 0 : 1);
-  camera.lookAt(0, 0, index === 1 ? 0 : 0.075);
+  orbit.targetZ = index === 1 ? 0 : 0.075;
+  orbit.azimuth = [0, 0, -Math.PI / 2, Math.PI / 2, Math.PI][index];
+  const vertical = camera.position.z - orbit.targetZ;
+  orbit.distance = Math.hypot(camera.position.x, camera.position.y, vertical);
+  orbit.elevation = Math.asin(vertical / orbit.distance);
+  camera.lookAt(0, 0, orbit.targetZ);
+}
+function updateOrbitCamera() {
+  const horizontal = orbit.distance * Math.cos(orbit.elevation);
+  camera.position.set(
+    horizontal * Math.sin(orbit.azimuth),
+    -horizontal * Math.cos(orbit.azimuth),
+    orbit.targetZ + orbit.distance * Math.sin(orbit.elevation),
+  );
+  camera.up.set(0, 0, 1);
+  camera.lookAt(0, 0, orbit.targetZ);
+}
+function stopCameraDrag() {
+  if (!cameraDrag) return;
+  const pointer = cameraDrag.pointerId;
+  cameraDrag = null;
+  const canvas = renderer.domElement;
+  if (canvas.hasPointerCapture(pointer)) canvas.releasePointerCapture(pointer);
+  canvas.classList.remove("orbit-dragging");
+}
+function bindCameraDrag() {
+  const canvas = renderer.domElement;
+  canvas.addEventListener("pointerdown", event => {
+    if (!started || cameraDrag || event.button !== 0) return;
+    event.preventDefault();
+    cameraDrag = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      previousX: event.clientX,
+      previousY: event.clientY,
+      moved: false,
+    };
+    canvas.setPointerCapture(event.pointerId);
+    canvas.classList.add("orbit-dragging");
+  });
+  canvas.addEventListener("pointermove", event => {
+    if (!cameraDrag || event.pointerId !== cameraDrag.pointerId) return;
+    if (!cameraDrag.moved && Math.hypot(
+      event.clientX - cameraDrag.startX,
+      event.clientY - cameraDrag.startY,
+    ) < 3) return;
+    const deltaX = event.clientX - cameraDrag.previousX;
+    const deltaY = event.clientY - cameraDrag.previousY;
+    cameraDrag.previousX = event.clientX;
+    cameraDrag.previousY = event.clientY;
+    cameraDrag.moved = true;
+    orbit.azimuth -= deltaX * 0.005;
+    orbit.elevation = Math.max(0.12, Math.min(Math.PI / 2 - 0.04,
+      orbit.elevation + deltaY * 0.004,
+    ));
+    view = 5;
+    $("camera").value = "5";
+    updateOrbitCamera();
+  });
+  for (const type of ["pointerup", "pointercancel", "lostpointercapture"]) {
+    canvas.addEventListener(type, event => {
+      if (cameraDrag && cameraDrag.pointerId === event.pointerId) stopCameraDrag();
+    });
+  }
 }
 function geometryFor(id) {
   const m = claw.model;
@@ -238,16 +306,27 @@ function initializeScene() {
     new THREE.LineBasicMaterial({ color: 0xb4a9b7 }),
   );
   scene.add(cable);
-  marker = new THREE.Mesh(
-    new THREE.RingGeometry(0.034, 0.038, 36),
+  marker = new THREE.Group();
+  const markerBorder = new THREE.Mesh(
+    new THREE.RingGeometry(0.032, 0.041, 48),
     new THREE.MeshBasicMaterial({
-      color: 0xb8ffb1,
+      color: 0x163024,
       side: THREE.DoubleSide,
-      transparent: true,
-      opacity: 0.85,
       depthWrite: false,
     }),
   );
+  const markerRing = new THREE.Mesh(
+    new THREE.RingGeometry(0.034, 0.039, 48),
+    new THREE.MeshBasicMaterial({
+      color: 0xcaff59,
+      side: THREE.DoubleSide,
+      depthWrite: false,
+    }),
+  );
+  markerBorder.renderOrder = 1;
+  markerRing.renderOrder = 2;
+  markerRing.position.z = 0.0004;
+  marker.add(markerBorder, markerRing);
   marker.position.z = 0.002;
   scene.add(marker);
   particles = new THREE.Group();
@@ -276,6 +355,7 @@ function resize() {
 }
 function draw() {
   const data = claw.data;
+  const overhead = view === 1 || orbit.elevation > 1.30;
   const clawPosition = claw.position("claw");
   for (const name of PRIZES) {
     const body = claw.bodies[name];
@@ -293,7 +373,7 @@ function draw() {
   }
   for (const mesh of meshes) {
     const { id, led, upper, toy, bodyId } = mesh.userData;
-    mesh.visible = !(view === 1 && upper);
+    mesh.visible = !(overhead && upper);
     mesh.position.fromArray(data.geom_xpos, id * 3);
     const a = data.geom_xmat.slice(id * 9, id * 9 + 9);
     matrix.set(
@@ -341,7 +421,7 @@ function draw() {
   points.setXYZ(0, top[0], top[1], top[2] - 0.014);
   points.setXYZ(1, bottom[0], bottom[1], bottom[2] + 0.009);
   points.needsUpdate = true;
-  cable.visible = view !== 1;
+  cable.visible = !overhead;
   marker.position.x = bottom[0];
   marker.position.y = bottom[1];
   const remaining = claw.celebrationUntil - data.time;
@@ -385,6 +465,7 @@ function input() {
     view,
     Math.max(-1, Math.min(1, h)),
     Math.max(-1, Math.min(1, v)),
+    orbit.azimuth,
   );
   return [
     x,
@@ -409,6 +490,7 @@ function loop(now) {
   requestAnimationFrame(loop);
 }
 function reset() {
+  stopCameraDrag();
   keys.clear();
   touches.clear();
   claw.reset();
@@ -417,6 +499,7 @@ function reset() {
   previous = performance.now();
 }
 function bindControls() {
+  bindCameraDrag();
   $("start").onclick = () => {
     started = true;
     $("welcome").hidden = true;
@@ -465,7 +548,7 @@ function bindControls() {
           left: [-1, 0],
           right: [1, 0],
         };
-        claw.nudge(...aimDirection(view, ...directions[move]));
+        claw.nudge(...aimDirection(view, ...directions[move], orbit.azimuth));
       } else
         touches.set(event.pointerId, move || `rotate${button.dataset.rotate}`);
     });
@@ -503,19 +586,21 @@ function bindControls() {
         ArrowLeft: [-1, 0],
         ArrowRight: [1, 0],
       };
-      claw.nudge(...aimDirection(view, ...directions[key]));
+      claw.nudge(...aimDirection(view, ...directions[key], orbit.azimuth));
     } else if (key === "Enter") claw.start();
-    else if (key === "Tab") setCamera((view + 1) % 5);
+    else if (key === "Tab") setCamera(view === 5 ? 0 : (view + 1) % 5);
     else if (/^Digit[1-5]$/.test(key)) setCamera(Number(key.slice(-1)) - 1);
     else if (key === "KeyR") reset();
     else if (key === "KeyM") toggleSound();
   });
   addEventListener("keyup", (event) => keys.delete(event.code));
   addEventListener("blur", () => {
+    stopCameraDrag();
     keys.clear();
     touches.clear();
   });
   document.addEventListener("visibilitychange", () => {
+    stopCameraDrag();
     keys.clear();
     touches.clear();
     lag = 0;
@@ -535,7 +620,7 @@ async function boot() {
     const [graphics, physics, xml] = await Promise.all([
       import(CDN + "three@0.187.0/build/three.module.js"),
       import(CDN + "@mujoco/mujoco@4.0.1/mujoco.js"),
-      fetch("./claw.xml?v=studio-4").then((response) => {
+      fetch("./claw.xml?v=orbit-5").then((response) => {
         if (!response.ok) throw new Error("모델을 불러오지 못했어요");
         return response.text();
       }),

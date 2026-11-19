@@ -28,7 +28,7 @@
           <option value="1">위에서</option>
           <option value="2">왼쪽</option>
           <option value="3">오른쪽</option>
-          <option value="4">뒤에서</option></select
+          <option value="4">뒤에서</option><option value="5">자유 시점</option></select
         ><button id="sound" aria-pressed="true">소리 켜짐</button
         ><button id="reset">새 판</button
         ><button id="help" aria-label="조작 안내" aria-expanded="false">
@@ -37,7 +37,7 @@
       </div>
       <p id="status" role="status">인형뽑기를 준비하고 있어요…</p>
       <aside id="instructions" hidden>
-        방향키로 이동 · Shift로 천천히 · Ctrl + 방향키로 1mm 이동<br />Z / X로
+        화면을 드래그해서 관점을 바꿔요.<br />방향키로 이동 · Shift로 천천히 · Ctrl + 방향키로 1mm 이동<br />Z / X로
         회전 · Enter로 뽑기 · Tab / 1~5로 카메라<br />R로 새 판 · M으로 소리<br />휴대폰에서는
         방향키를 길게 눌러 움직이고, 미세 이동을 켜면 한 번에 1mm씩 움직여요.
       </aside>
@@ -67,10 +67,10 @@
           <h2>오늘은 어떤 인형을<br />데려갈까요?</h2>
           <p id="loading">집게와 일곱 인형을 준비하고 있어요.</p>
           <button id="start" disabled>준비 중…</button>
-          <p class="small">방향을 맞추고, 각도를 돌리고, 뽑기.</p>
+          <p class="small">화면을 드래그해서 둘러보고, 조준하고, 뽑기.</p>
         </div>
       </div>
     </main>
-    <script type="module" src="app.js?v=studio-4"></script>
+    <script type="module" src="app.js?v=orbit-5"></script>
   </body>
 </html>
