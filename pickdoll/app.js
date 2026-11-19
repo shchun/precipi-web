@@ -1,4 +1,4 @@
-import { Claw, PRIZES, aimDirection } from "./physics.js?v=grip-3";
+import { Claw, PRIZES, aimDirection } from "./physics.js?v=studio-4";
 
 const $ = (id) => document.getElementById(id);
 const CDN = "https://cdn.jsdelivr.net/npm/";
@@ -152,11 +152,11 @@ function initializeScene() {
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.2;
+  renderer.toneMappingExposure = 0.92;
   $("viewport").appendChild(renderer.domElement);
   camera = new THREE.PerspectiveCamera(40, 1, 0.01, 10);
-  scene.add(new THREE.HemisphereLight(0xffe8f8, 0x47314b, 2.2));
-  const light = new THREE.DirectionalLight(0xffebed, 2.4);
+  scene.add(new THREE.HemisphereLight(0xe5ddf5, 0x241b35, 0.65));
+  const light = new THREE.DirectionalLight(0xfff2ef, 1.15);
   light.position.set(-0.5, -0.6, 1.3);
   light.castShadow = true;
   light.shadow.mapSize.set(1024, 1024);
@@ -171,9 +171,18 @@ function initializeScene() {
   light.shadow.bias = -0.0003;
   light.shadow.normalBias = 0.001;
   scene.add(light);
-  const fill = new THREE.DirectionalLight(0xc8c4ff, 1.3);
+  const fill = new THREE.DirectionalLight(0xc8c4ff, 0.35);
   fill.position.set(0.6, 0.5, 0.7);
   scene.add(fill);
+  // Small interior lamps illuminate the playfield while the cabinet stays darker.
+  for (const x of [-0.115, 0.115]) {
+    const inside = new THREE.PointLight(0xfff1e8, 0.3, 0.62, 2);
+    inside.position.set(x, -0.015, 0.32);
+    scene.add(inside);
+  }
+  const faceLight = new THREE.PointLight(0xfff0ed, 0.08, 0.45, 2);
+  faceLight.position.set(0, -0.15, 0.2);
+  scene.add(faceLight);
   const m = claw.model;
   const fabric = createFabricTexture();
   const prizeBodies = new Set(PRIZES.map((name) => claw.bodies[name]));
@@ -188,7 +197,12 @@ function initializeScene() {
       ? THREE.MeshPhysicalMaterial
       : THREE.MeshStandardMaterial;
     const material = new Material({
-      color: new THREE.Color().setRGB(rgba[0], rgba[1], rgba[2]),
+      color: new THREE.Color().setRGB(
+        rgba[0],
+        rgba[1],
+        rgba[2],
+        THREE.SRGBColorSpace,
+      ),
       roughness: 0.48,
       metalness: 0.06,
       opacity: rgba[3],
@@ -199,14 +213,14 @@ function initializeScene() {
     if (fabricPart) {
       material.roughness = 0.96;
       material.metalness = 0;
-      material.sheen = 0.85;
+      material.sheen = 0.35;
       material.sheenColor.set("#ffe8ef");
       material.bumpMap = fabric;
       material.bumpScale = 0.00055;
     }
     if (led) {
       material.emissive.copy(material.color);
-      material.emissiveIntensity = 1.7;
+      material.emissiveIntensity = 1.05;
     }
     const mesh = new THREE.Mesh(geometryFor(id), material);
     mesh.castShadow = !led && rgba[3] > 0.9 && m.geom_type[id] !== 0;
@@ -315,7 +329,9 @@ function draw() {
     }
     if (led) {
       const colors = claw.model.geom_rgba.slice(id * 4, id * 4 + 3);
-      mesh.material.color.setRGB(...colors);
+      mesh.material.color.setRGB(...colors, THREE.SRGBColorSpace);
+      // The opaque diffuser mixes the LED color into a milky continuous line.
+      mesh.material.color.lerp(new THREE.Color("#fff2fa"), 0.4);
       mesh.material.emissive.copy(mesh.material.color);
     }
   }
@@ -519,7 +535,7 @@ async function boot() {
     const [graphics, physics, xml] = await Promise.all([
       import(CDN + "three@0.187.0/build/three.module.js"),
       import(CDN + "@mujoco/mujoco@4.0.1/mujoco.js"),
-      fetch("./claw.xml?v=grip-3").then((response) => {
+      fetch("./claw.xml?v=studio-4").then((response) => {
         if (!response.ok) throw new Error("모델을 불러오지 못했어요");
         return response.text();
       }),

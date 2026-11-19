@@ -43,6 +43,9 @@ export class Claw {
     ]) {
       this.bodies[name] = mj.mj_name2id(this.model, 1, name);
     }
+    this.swingJoints = ["swing_x", "swing_y"].map((name) =>
+      mj.mj_name2id(this.model, 3, name),
+    );
     this.leds = [];
     for (let id = 0; id < this.model.ngeom; id++) {
       if ((mj.mj_id2name(this.model, 5, id) || "").startsWith("led_"))
@@ -118,7 +121,7 @@ export class Claw {
     if (this.phase !== "ready" || this.collected.size === 7) return;
     const [cx, cy] = this.position("claw");
     let best = null,
-      distance = 0.030;
+      distance = 0.03;
     for (const name of PRIZES) {
       if (this.collected.has(name)) continue;
       const [x, y, z] = this.position(name);
@@ -132,7 +135,7 @@ export class Claw {
     // Sample motor strength once per attempt. Contacts decide whether a toy slips.
     this.holdForce =
       Math.random() < 0.12
-        ? 0.020 + Math.random() * 0.015
+        ? 0.02 + Math.random() * 0.015
         : 0.065 + Math.random() * 0.015;
     this.gripForce = 0.065;
     this.holdBlend = 0;
@@ -201,7 +204,7 @@ export class Claw {
             z = 0;
             this.setTarget("z", height);
             this.closed = true;
-            this.timer = 0.60;
+            this.timer = 0.6;
             this.phase = "gripping";
             this.events.push("grip");
           }
@@ -316,6 +319,19 @@ export class Claw {
     const button = this.model.body_mocapid[this.bodies.panel_button];
     this.data.mocap_pos[button * 3 + 2] =
       0.019 - (!["ready", "fault"].includes(this.phase) ? 0.005 : 0);
+    // Stabilize the suspended head during precision contact, then let it sway in transit.
+    const steady = [
+      "aligning",
+      "lowering",
+      "gripping",
+      "raising",
+      "settling",
+    ].includes(this.phase);
+    for (const joint of this.swingJoints) {
+      this.model.jnt_stiffness[joint] = steady ? 30.0 : 0.1;
+      const dof = this.model.jnt_dofadr[joint];
+      this.model.dof_damping[dof] = steady ? 1.0 : 0.05;
+    }
     this.mj.mj_step(this.model, this.data);
     this.animateLights();
   }

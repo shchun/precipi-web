@@ -52,34 +52,39 @@
         <joint name="x" type="slide" axis="1 0 0" range="-0.128 0.128" damping="1" />
         <inertial pos="0 0 0" mass="0.1" diaginertia="0.0001 0.0001 0.0001" />
         <geom class="trim" type="box" size="0.019 0.014 0.012" group="3" />
-        <body name="claw" pos="0 0 -0.05">
-          <joint name="z" type="slide" axis="0 0 1" range="-0.255 0" damping="1" />
-          <geom type="cylinder" size="0.049 0.008" mass="0.075" rgba="0.88 0.54 0.20 1" group="3" />
-          <body name="finger_a_mount">
-            <body name="finger_a" pos="0.047 0 -0.007" childclass="finger">
-              <joint name="finger_a" />
-              <geom fromto="0 0 0 0.008 0 -0.039" group="3" />
-              <geom class="grip_pad" fromto="0.008 0 -0.039 -0.001 0 -0.057" group="3" />
-            </body>
-          </body>
-          <body name="finger_b_mount" euler="0 0 2.0943951">
-            <body name="finger_b" pos="0.047 0 -0.007" childclass="finger">
-              <joint name="finger_b" />
-              <geom fromto="0 0 0 0.008 0 -0.039" group="3" />
-              <geom class="grip_pad" fromto="0.008 0 -0.039 -0.001 0 -0.057" group="3" />
-            </body>
-          </body>
-          <body name="finger_c_mount" euler="0 0 4.1887902">
-            <body name="finger_c" pos="0.047 0 -0.007" childclass="finger">
-              <joint name="finger_c" />
-              <geom fromto="0 0 0 0.008 0 -0.039" group="3" />
-              <geom class="grip_pad" fromto="0.008 0 -0.039 -0.001 0 -0.057" group="3" />
-            </body>
-          </body>
-          <site name="cable_bottom" pos="0 0 .009" size=".001" rgba="0 0 0 0" />
-          <joint name="yaw" type="hinge" axis="0 0 1" range="-3.14159 3.14159" damping=".025" armature=".0001" />
-        </body>
         <site name="cable_top" pos="0 0 -.014" size=".001" rgba="0 0 0 0" />
+        <body name="suspension">
+          <inertial pos="0 0 -.008" mass=".008" diaginertia=".000002 .000002 .000002" />
+          <joint name="swing_x" type="hinge" axis="1 0 0" range="-.052 .052" damping=".035" stiffness=".02" armature=".0001" />
+          <joint name="swing_y" type="hinge" axis="0 1 0" range="-.052 .052" damping=".035" stiffness=".02" armature=".0001" />
+          <body name="claw" pos="0 0 -0.05">
+            <joint name="z" type="slide" axis="0 0 1" range="-0.255 0" damping="1" />
+            <geom type="cylinder" size="0.049 0.008" mass="0.075" rgba="0.88 0.54 0.20 1" group="3" />
+            <body name="finger_a_mount">
+              <body name="finger_a" pos="0.047 0 -0.007" childclass="finger">
+                <joint name="finger_a" />
+                <geom fromto="0 0 0 0.008 0 -0.039" group="3" />
+                <geom class="grip_pad" fromto="0.008 0 -0.039 -0.001 0 -0.057" group="3" />
+              </body>
+            </body>
+            <body name="finger_b_mount" euler="0 0 2.0943951">
+              <body name="finger_b" pos="0.047 0 -0.007" childclass="finger">
+                <joint name="finger_b" />
+                <geom fromto="0 0 0 0.008 0 -0.039" group="3" />
+                <geom class="grip_pad" fromto="0.008 0 -0.039 -0.001 0 -0.057" group="3" />
+              </body>
+            </body>
+            <body name="finger_c_mount" euler="0 0 4.1887902">
+              <body name="finger_c" pos="0.047 0 -0.007" childclass="finger">
+                <joint name="finger_c" />
+                <geom fromto="0 0 0 0.008 0 -0.039" group="3" />
+                <geom class="grip_pad" fromto="0.008 0 -0.039 -0.001 0 -0.057" group="3" />
+              </body>
+            </body>
+            <site name="cable_bottom" pos="0 0 .009" size=".001" rgba="0 0 0 0" />
+            <joint name="yaw" type="hinge" axis="0 0 1" range="-3.14159 3.14159" damping=".025" armature=".0001" />
+          </body>
+        </body>
       </body>
     </body>
     <geom type="box" pos="0.071 0 -0.01" size="0.129 0.2 0.01" rgba=".86 .62 .72 1" />
@@ -322,53 +327,12 @@
       <geom type="ellipsoid" pos="0.0 -0.0026000000000000003 -0.045500000000000006" size="0.031200000000000002 0.005200000000000001 0.015600000000000001" rgba="1 .62 .76 1" contype="0" conaffinity="0" />
     </body>
     <body name="led_strips">
-      <geom name="led_0" type="box" pos="-0.213 -.213 0.035" size=".002 .002 .015" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
-      <geom name="led_1" type="box" pos="-0.213 -.213 0.075" size=".002 .002 .015" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
-      <geom name="led_2" type="box" pos="-0.213 -.213 0.115" size=".002 .002 .015" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
-      <geom name="led_3" type="box" pos="-0.213 -.213 0.155" size=".002 .002 .015" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
-      <geom name="led_4" type="box" pos="-0.213 -.213 0.195" size=".002 .002 .015" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
-      <geom name="led_5" type="box" pos="-0.213 -.213 0.235" size=".002 .002 .015" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
-      <geom name="led_6" type="box" pos="-0.213 -.213 0.275" size=".002 .002 .015" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
-      <geom name="led_7" type="box" pos="-0.213 -.213 0.315" size=".002 .002 .015" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
-      <geom name="led_8" type="box" pos="-0.213 -.213 0.355" size=".002 .002 .015" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
-      <geom name="led_9" type="box" pos="-0.213 -.213 0.395" size=".002 .002 .015" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
-      <geom name="led_10" type="box" pos="0.213 -.213 0.035" size=".002 .002 .015" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
-      <geom name="led_11" type="box" pos="0.213 -.213 0.075" size=".002 .002 .015" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
-      <geom name="led_12" type="box" pos="0.213 -.213 0.115" size=".002 .002 .015" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
-      <geom name="led_13" type="box" pos="0.213 -.213 0.155" size=".002 .002 .015" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
-      <geom name="led_14" type="box" pos="0.213 -.213 0.195" size=".002 .002 .015" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
-      <geom name="led_15" type="box" pos="0.213 -.213 0.235" size=".002 .002 .015" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
-      <geom name="led_16" type="box" pos="0.213 -.213 0.275" size=".002 .002 .015" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
-      <geom name="led_17" type="box" pos="0.213 -.213 0.315" size=".002 .002 .015" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
-      <geom name="led_18" type="box" pos="0.213 -.213 0.355" size=".002 .002 .015" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
-      <geom name="led_19" type="box" pos="0.213 -.213 0.395" size=".002 .002 .015" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
-      <geom name="led_20" type="box" pos="-0.175 -.223 .408" size=".013 .002 .0018" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
-      <geom name="led_21" type="box" pos="-0.14 -.223 .408" size=".013 .002 .0018" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
-      <geom name="led_22" type="box" pos="-0.105 -.223 .408" size=".013 .002 .0018" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
-      <geom name="led_23" type="box" pos="-0.07 -.223 .408" size=".013 .002 .0018" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
-      <geom name="led_24" type="box" pos="-0.035 -.223 .408" size=".013 .002 .0018" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
-      <geom name="led_25" type="box" pos="0 -.223 .408" size=".013 .002 .0018" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
-      <geom name="led_26" type="box" pos="0.035 -.223 .408" size=".013 .002 .0018" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
-      <geom name="led_27" type="box" pos="0.07 -.223 .408" size=".013 .002 .0018" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
-      <geom name="led_28" type="box" pos="0.105 -.223 .408" size=".013 .002 .0018" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
-      <geom name="led_29" type="box" pos="0.14 -.223 .408" size=".013 .002 .0018" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
-      <geom name="led_30" type="box" pos="0.175 -.223 .408" size=".013 .002 .0018" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
-      <geom name="led_31" type="box" pos="-0.213 -0.175 .405" size=".002 .019 .0018" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
-      <geom name="led_32" type="box" pos="-0.213 -0.125 .405" size=".002 .019 .0018" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
-      <geom name="led_33" type="box" pos="-0.213 -0.075 .405" size=".002 .019 .0018" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
-      <geom name="led_34" type="box" pos="-0.213 -0.025 .405" size=".002 .019 .0018" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
-      <geom name="led_35" type="box" pos="-0.213 0.025 .405" size=".002 .019 .0018" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
-      <geom name="led_36" type="box" pos="-0.213 0.075 .405" size=".002 .019 .0018" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
-      <geom name="led_37" type="box" pos="-0.213 0.125 .405" size=".002 .019 .0018" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
-      <geom name="led_38" type="box" pos="-0.213 0.175 .405" size=".002 .019 .0018" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
-      <geom name="led_39" type="box" pos="0.213 -0.175 .405" size=".002 .019 .0018" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
-      <geom name="led_40" type="box" pos="0.213 -0.125 .405" size=".002 .019 .0018" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
-      <geom name="led_41" type="box" pos="0.213 -0.075 .405" size=".002 .019 .0018" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
-      <geom name="led_42" type="box" pos="0.213 -0.025 .405" size=".002 .019 .0018" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
-      <geom name="led_43" type="box" pos="0.213 0.025 .405" size=".002 .019 .0018" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
-      <geom name="led_44" type="box" pos="0.213 0.075 .405" size=".002 .019 .0018" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
-      <geom name="led_45" type="box" pos="0.213 0.125 .405" size=".002 .019 .0018" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
-      <geom name="led_46" type="box" pos="0.213 0.175 .405" size=".002 .019 .0018" rgba="1 .4 .7 1" material="led_glow" contype="0" conaffinity="0" />
+      <geom name="led_0" type="capsule" fromto="-.213 -.215 .025 -.213 -.215 .400" size=".0028" rgba=".96 .76 .89 1" material="led_glow" contype="0" conaffinity="0" />
+      <geom name="led_1" type="capsule" fromto=".213 -.215 .025 .213 -.215 .400" size=".0028" rgba=".96 .76 .89 1" material="led_glow" contype="0" conaffinity="0" />
+      <geom name="led_2" type="capsule" fromto="-.180 -.224 .408 .180 -.224 .408" size=".0028" rgba=".96 .76 .89 1" material="led_glow" contype="0" conaffinity="0" />
+      <geom name="led_3" type="capsule" fromto="-.213 -.180 .405 -.213 .180 .405" size=".0028" rgba=".96 .76 .89 1" material="led_glow" contype="0" conaffinity="0" />
+      <geom name="led_4" type="capsule" fromto=".213 -.180 .405 .213 .180 .405" size=".0028" rgba=".96 .76 .89 1" material="led_glow" contype="0" conaffinity="0" />
+      <geom name="led_5" type="capsule" fromto="-.180 .213 .405 .180 .213 .405" size=".0028" rgba=".96 .76 .89 1" material="led_glow" contype="0" conaffinity="0" />
     </body>
     <body name="glass_enclosure">
       <geom name="glass_left" type="box" pos="-.202 0 .205" size=".003 .202 .205" rgba=".73 .88 .96 .075" friction=".4 .005 .001" group="4" />
