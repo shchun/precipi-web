@@ -1,4 +1,4 @@
-import { Claw, PRIZES, aimDirection } from "./physics.js?v=orbit-5";
+import { Claw, PRIZES } from "./physics.js?v=fixed-6";
 
 const $ = (id) => document.getElementById(id);
 const CDN = "https://cdn.jsdelivr.net/npm/";
@@ -461,12 +461,8 @@ function input() {
     if (action === "rotate1") rotation += 1;
     if (action === "rotate-1") rotation -= 1;
   }
-  const [x, y] = aimDirection(
-    view,
-    Math.max(-1, Math.min(1, h)),
-    Math.max(-1, Math.min(1, v)),
-    orbit.azimuth,
-  );
+  const x = Math.max(-1, Math.min(1, h));
+  const y = Math.max(-1, Math.min(1, v));
   return [
     x,
     y,
@@ -548,7 +544,7 @@ function bindControls() {
           left: [-1, 0],
           right: [1, 0],
         };
-        claw.nudge(...aimDirection(view, ...directions[move], orbit.azimuth));
+        claw.nudge(...directions[move]);
       } else
         touches.set(event.pointerId, move || `rotate${button.dataset.rotate}`);
     });
@@ -586,7 +582,7 @@ function bindControls() {
         ArrowLeft: [-1, 0],
         ArrowRight: [1, 0],
       };
-      claw.nudge(...aimDirection(view, ...directions[key], orbit.azimuth));
+      claw.nudge(...directions[key]);
     } else if (key === "Enter") claw.start();
     else if (key === "Tab") setCamera(view === 5 ? 0 : (view + 1) % 5);
     else if (/^Digit[1-5]$/.test(key)) setCamera(Number(key.slice(-1)) - 1);
@@ -620,7 +616,7 @@ async function boot() {
     const [graphics, physics, xml] = await Promise.all([
       import(CDN + "three@0.187.0/build/three.module.js"),
       import(CDN + "@mujoco/mujoco@4.0.1/mujoco.js"),
-      fetch("./claw.xml?v=orbit-5").then((response) => {
+      fetch("./claw.xml?v=fixed-6").then((response) => {
         if (!response.ok) throw new Error("모델을 불러오지 못했어요");
         return response.text();
       }),

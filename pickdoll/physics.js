@@ -5,17 +5,6 @@ export const PRIZES = [
   ...[4, 5, 6, 7].map((n) => `prize_${n}`),
 ];
 export const clamp = (value, low, high) => Math.min(high, Math.max(low, value));
-export function aimDirection(view, x, y, azimuth = 0) {
-  if (view === 5) {
-    const cosine = Math.cos(azimuth);
-    const sine = Math.sin(azimuth);
-    return [x * cosine - y * sine, x * sine + y * cosine];
-  }
-  if (view === 2) return [y, -x];
-  if (view === 3) return [-y, x];
-  if (view === 4) return [-x, -y];
-  return [x, y];
-}
 
 export class Claw {
   constructor(mj, xml) {
